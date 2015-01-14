@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.2
+* Add clean-defs task and clean up defs.d.ts
+
 #### 2.0.1
 * Bring in hawtio-simple-table
 

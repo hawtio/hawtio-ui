@@ -43,7 +43,12 @@ gulp.task('path-adjust', function() {
     .pipe(gulp.dest('libs'));
 });
 
-gulp.task('tsc', function() {
+gulp.task('clean-defs', function() {
+  return gulp.src('defs.d.ts', { read: false })
+    .pipe(plugins.clean());
+});
+
+gulp.task('tsc', ['clean-defs'], function() {
   var cwd = process.cwd();
   var tsResult = gulp.src(config.ts)
     .pipe(plugins.typescript(config.tsProject))
