@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.3
+* Remove jsplumb.css
+
 #### 2.0.2
 * Add clean-defs task and clean up defs.d.ts
 
