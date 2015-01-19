@@ -97,7 +97,7 @@ gulp.task('clean', ['concat'], function() {
 });
 
 gulp.task('watch', ['build'], function() {
-  plugins.watch(['libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + config.js], function() {
+  plugins.watch(['dist/*.css', 'libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + config.js], function() {
     gulp.start('reload');
   });
   plugins.watch(['libs/**/*.d.ts', config.ts, config.templates], function() {

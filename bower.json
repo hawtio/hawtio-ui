@@ -5,6 +5,7 @@
     "hawtio"
   ],
   "main": [
+    "dist/hawtio-ui.css",
     "dist/jquery.jsPlumb-1.7.2.js",
     "dist/marked.js",
     "dist/hawtio-ui.js"

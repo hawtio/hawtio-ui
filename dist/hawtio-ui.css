@@ -1,0 +1,686 @@
+
+.expandable {
+  padding: 3px;
+}
+
+.expandable > .title {
+  cursor: pointer;
+}
+
+i.expandable-indicator {
+  font-family: FontAwesome;
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  text-decoration: inherit;
+}
+
+.expandable-body form fieldset legend {
+  font-size: inherit;
+  margin-bottom: 0px;
+}
+
+.expandable.opened i.expandable-indicator:before {
+  font-family: FontAwesome;
+  content: "\f078" !important;
+}
+
+.expandable.closed i.expandable-indicator:before {
+  font-family: FontAwesome;
+  content: "\f054";
+}
+
+.expandable.opened i.expandable-indicator.folder:before {
+  font-family: FontAwesome;
+  content: "\F07C" !important;
+}
+
+.expandable.closed i.expandable-indicator.folder:before {
+  font-family: FontAwesome;
+  content: "\F07B";
+}
+
+.expandable.opened .expandable-body {
+  display: inline-block;
+  margin-bottom: 3px;
+}
+
+.expandable.closed .expandable-body {
+  display: none;
+}
+
+.editor-autoresize .CodeMirror {
+  height: auto;
+}
+
+.well.editor-autoresize {
+  padding: 0px;
+}
+
+.well.editor-autoresize .CodeMirror {
+  margin-bottom: 0px;
+  border: none;
+}
+
+.editor-autoresize .CodeMirror .CodeMirror-scroll {
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+.gridster ul#widgets {
+  list-style-type: none;
+}
+
+.gridster ul#widgets .gs_w {
+  padding: 0px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gridster ul#widgets .preview-holder {
+  transition-property: opacity;
+  transition-duration: 500ms;
+  padding: 1px;
+}
+
+.widget-area {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.widget-title {
+  margin: 0;
+  padding-left: 5px;
+  padding-right: 5px;
+  z-index: 6000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.widget-title:hover {
+  cursor: move;
+}
+
+.widget-title > .row-fluid > .pull-right > i {
+  cursor: pointer;
+  opacity: .25;
+}
+
+.widget-title > .row-fluid > .pull-right > i:hover {
+  transition: opacity 0.25s ease-in-out;
+  -moz-transition: opacity 0.25s ease-in-out;
+  -webkit-transition: opacity 0.25s ease-in-out;
+  opacity: 1;
+}
+
+.widget-body {
+  position: absolute;
+  top: 20px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.height-controls > a {
+  float: left;
+  display: block;
+  opacity: .1;
+  text-decoration: none;
+}
+
+.width-controls > a {
+  float: left;
+  display: block;
+  opacity: .1;
+  text-decoration: none;
+}
+
+.width-controls > a:hover {
+  opacity: .9;
+  text-decoration: none;
+}
+
+.height-controls > a:hover {
+  opacity: .9;
+  text-decoration: none;
+}
+
+.width-controls {
+  font-size: 32px;
+  z-index: 50;
+  position: absolute;
+  width: 1.5em;
+  height: 3em;
+  display: block;
+  right: 5px;
+  top: 43%;
+}
+
+.height-controls {
+  font-size: 32px;
+  z-index: 50;
+  position: absolute;
+  display: block;
+  width: 3em;
+  height: 1.5em;
+  left: 41%;
+  bottom: 5px;
+}
+
+editable-property {
+  position: relative;
+}
+
+.ep.editing {
+  position: absolute;
+  top: -10px;
+  padding: 0;
+  z-index: 10000;
+  border: 1px solid #cecdcd;
+  white-space: nowrap;
+}
+
+/*
+.widget-title > div > div .ep[ng-show=editing] {
+  top: -1px;
+}
+
+table .ep.editing {
+  top: 12px;
+}
+  */
+.ep.editing > form > fieldset > i {
+  position: relative;
+  top: 2px;
+}
+
+.ep > i {
+  cursor: pointer;
+  opacity: .25;
+  transition: opacity 0.25s ease-in-out;
+  -moz-transition: opacity 0.25s ease-in-out;
+  -webkit-transition: opacity 0.25s ease-in-out;
+}
+
+.ep > form > fieldset > input {
+  border: 0;
+}
+
+.ep > i:hover {
+  opacity: 1;
+}
+
+.ep form fieldset i {
+  cursor: pointer;
+  padding-left: 5px;
+}
+
+.ep form.no-bottom-margin {
+  margin: 0;
+}
+
+/* slideout directive stuff */
+.slideout {
+  position: fixed;
+  z-index: 3000;
+  width: 75%;
+}
+
+.slideout > .slideout-title {
+  min-height: 22px;
+  font-size: 20px;
+  padding: 15px;
+}
+
+.slideout > .slideout-content {
+  position: relative;
+  min-height: 93%;
+  max-height: 93%;
+  overflow: auto;
+  -webkit-transform: translateZ(0);
+}
+
+.slideout-title span {
+  width: 97%;
+  display: inline-block;
+  text-align: left;
+}
+
+.slideout.left > .slideout-content {
+  left: 0;
+  top: 0;
+  margin-right: 2px;
+  margin-left: 0px;
+}
+
+.slideout.right > .slideout-content {
+  left: 2px;
+  top: 0;
+  margin-left: 2px;
+  margin-right: 0px;
+}
+
+.slideout > .slideout-content > .slideout-body {
+  margin: 5px;
+  height: 100%;  
+}
+
+.slideout.right {
+  left: 100%;
+}
+
+.slideout.left {
+  left: -75%;
+}
+
+.slideout .slideout-title a {
+  display: inline-block;
+}
+
+.slideout .slideout-title a:hover {
+  text-decoration: none;
+}
+
+.slideout.right .slideout-title a {
+  margin-left: 5px;
+  float: left;
+}
+
+.out {
+  transition: left 1s, right 1s ease-in-out;
+}
+
+.slideout.left .slideout-title a {
+  margin-right: 5px;
+  float: right;
+}
+
+.slideout.right.out {
+  left: 25%;
+}
+
+.slideout.left.out {
+  left: 0%;
+}
+
+.color-picker {
+  display: inline-block;
+  position: relative;
+  margin: 0px;
+  line-height: 0px;
+}
+
+.color-picker .wrapper {
+  display: inline-block;
+  padding: 2px;
+  line-height: 0;
+}
+
+.selected-color {
+  width: 1em;
+  height: 1em;
+  padding: 4px;
+  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.color-picker-popout {
+  transition: opacity 0.25s ease-in-out;
+  position: absolute;
+  top: 0px;
+  overflow: hidden;
+  padding: 0px;
+  line-height: 0;
+  margin: 0px;
+  width: 0px;
+  opacity: 0;
+}
+
+.popout-open {
+  padding: 1px;
+  width: auto;
+  opacity: 1;
+}
+
+.color-picker div table tr td div {
+  width: 1em;
+  height: 1em;
+  padding: 3px;
+  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
+}
+
+.color-picker div table tr td {
+  padding-right: 5px;
+}
+
+.color-picker div table tr td:last-child {
+  padding-right: 0px;
+}
+
+.mouse-pointer {
+  cursor: pointer;
+}
+
+.clickable {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity .5s;
+  text-decoration: none;
+}
+
+.clickable,
+.clickable:before {
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.clickable.no-fade {
+  transition: none;
+  opacity: 1;
+}
+
+.clickable:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
+.hawtio-pager {
+  overflow: auto;
+  display: inline-block;
+}
+
+.hawtio-pager label {
+  min-height: 100%;
+  vertical-align: middle;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.directive-example {
+  padding: 10px;
+  margin: 10px;
+}
+
+.widget-title > .row-fluid {
+  position: relative;
+}
+
+.widget-title > .row-fluid > .pull-left {
+  position: absolute;
+  right: 16px;
+  left: 0;
+}
+
+.widget-title > .row-fluid > .pull-left > .ep > div {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+ul.zebra-list {
+  margin-left: 0;
+}
+
+.zebra-list li {
+  padding: 7px;
+}
+
+ul.zebra-list > li {
+  list-style-type: none;
+}
+
+ol.zebra-list {
+  counter-reset:li;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+ol.zebra-list > li {
+  position: relative;
+  list-style-type: none;
+}
+
+ol.zebra-list > li:before {
+  content: counter(li);
+  counter-increment: li;
+  padding: 7px;
+  font-weight: bold;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.ex-node-container {
+  position: relative;
+  width: 100%;
+  height: 696px;
+}
+
+.ex-node {
+  position: absolute;
+  width: 150px;
+  height: 90px;
+  text-align: center;
+  padding-top: 60px;
+}
+
+
+.dropdown-menu.right {
+  left: auto;
+  right: 0;
+}
+
+.dropdown-menu.right:before {
+  left:auto !important;
+  right: 9px;
+}
+
+.dropdown-menu.right:after {
+  left:auto !important;
+  right: 10px;
+}
+
+/*
+ * jquery.tocify.css 1.8.0
+ * Author: @gregfranko
+ */
+/* The Table of Contents container element */
+.tocify {
+  /* top works for the wiki, may need customization
+     elsewhere */
+  top: 120px;
+  width: 232px;
+  padding-left: 1em;
+  padding-right: 1em;
+  overflow-y: auto;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: fixed;
+  bottom: 5px;
+  z-index: 20;
+}
+
+.tocify h2,
+.tocify h3 {
+  white-space: normal;
+}
+
+.toc-container {
+  position: relative;
+  width: 100%;
+}
+
+.toc-content {
+  position: absolute;
+  left: 290px;
+  right: 0;
+}
+
+.tocify ul {
+  margin-left: 0px;
+}
+
+.tocify li {
+  list-style-type: none;
+  display: block;
+}
+
+.tocify li a {
+  display: block;
+  padding: 3px;
+  transition: background,border .25s ease-in-out;
+}
+
+.tocify li a:hover {
+  text-decoration: none;
+}
+
+.tocify li a.active {
+  font-weight: bolder;
+}
+
+/* Makes the font smaller for all subheader elements. */
+.tocify-subheader li {
+  font-size: 12px;
+}
+
+/* Further indents second level subheader elements. */
+.tocify-subheader .tocify-subheader {
+  text-indent: 30px;
+}
+
+/* Further indents third level subheader elements. You can continue this pattern if you have more nested elements. */
+.tocify-subheader .tocify-subheader .tocify-subheader {
+  text-indent: 40px;
+}
+
+@media(max-width: 700px) {
+  .tocify {
+    position: static;
+    width: auto;
+    margin-bottom: 1em;
+  }
+
+  .toc-content {
+    position: static;
+    left: auto;
+  }
+}
+
+.toast.toast-warning * {
+  color: black;
+}
+
+.hawtio-toc .panel-title {
+  padding: 0;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.hawtio-toc .panel-title a {
+  display: block;
+  text-align: center;
+  padding: 10px;
+}
+
+._jsPlumb_endpoint {
+  z-index: 25;
+}
+
+._jsPlumb_connector {
+  z-index: 4;
+}
+
+._jsPlumb_overlay {
+  z-index: 6;
+}
+
+.pane {
+  position: fixed;
+  bottom: 0;
+  top: 70px;
+  height: auto;
+  width: 300px;
+}
+
+.pane > .pane-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.pane-viewport {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  margin-right: 10px;
+}
+
+.pane-content {
+  width: auto;
+  height: auto;
+}
+
+.pane-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  cursor: ew-resize;
+  height: 100%;
+}
+
+.pane-content {
+  float: none;
+  position: static;
+}
+
+.pane.left {
+  left: 0;
+  z-index: 39;
+}
+
+.pane.left .pane-viewport {
+  margin-left: 10px;
+  right: 5px;
+  margin-right: 0;
+}
+
+.pane.left .pane-bar {
+  right: 0;
+}
+
+.pane.right {
+  right: 0;
+}
+
+.pane.right .pane-viewport {
+  margin-left: 10px;
+  margin-right: 5px;
+  right: 5px;
+}
+
+.pane.right .pane-bar {
+  left: 0;
+}
+
+.pane-header-wrapper {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.search-query.has-text {
+  background: #55ddff;
+  color: #333333;
+}
+
