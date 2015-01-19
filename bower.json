@@ -6,6 +6,8 @@
   ],
   "main": [
     "dist/hawtio-ui.css",
+    "dist/ui-bootstrap.js",
+    "dist/ui-bootstrap-tpls.js",
     "dist/jquery.jsPlumb-1.7.2.js",
     "dist/marked.js",
     "dist/d3.js",

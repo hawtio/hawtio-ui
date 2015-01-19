@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.7
+* Add ui-bootstrap
+
 #### 2.0.6
 * Add d3.js for forceGraph plugin
 
