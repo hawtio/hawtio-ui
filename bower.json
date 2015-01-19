@@ -8,6 +8,7 @@
     "dist/hawtio-ui.css",
     "dist/jquery.jsPlumb-1.7.2.js",
     "dist/marked.js",
+    "dist/d3.js",
     "dist/hawtio-ui.js"
   ],
   "ignore": [
