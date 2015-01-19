@@ -43,3 +43,4 @@
 /// <reference path="d.ts/ui/ts/toc.d.ts"/>
 /// <reference path="d.ts/ui/ts/viewport.d.ts"/>
 /// <reference path="d.ts/ui/ts/zeroclipboard.d.ts"/>
+/// <reference path="d.ts/ui-bootstrap/ts/uiBootstrapPlugin.d.ts"/>
