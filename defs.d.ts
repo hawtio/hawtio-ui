@@ -6,6 +6,9 @@
 /// <reference path="d.ts/editor/ts/editorGlobals.d.ts"/>
 /// <reference path="d.ts/editor/ts/editorPlugin.d.ts"/>
 /// <reference path="d.ts/editor/ts/editorDirective.d.ts"/>
+/// <reference path="d.ts/forcegraph/ts/forceGraphPlugin.d.ts"/>
+/// <reference path="d.ts/forcegraph/ts/forceGraphDirective.d.ts"/>
+/// <reference path="d.ts/forcegraph/ts/graphBuilder.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiHelpers.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiPlugin.d.ts"/>
 /// <reference path="d.ts/ui/ts/autoColumns.d.ts"/>

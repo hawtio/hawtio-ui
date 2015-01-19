@@ -639,6 +639,310 @@ var HawtioEditor;
     HawtioEditor.Editor = Editor;
 })(HawtioEditor || (HawtioEditor = {}));
 
+/// <reference path="../../includes.ts"/>
+/// <reference path="forceGraphDirective.ts"/>
+/**
+ * Force Graph plugin & directive
+ *
+ * @module ForceGraph
+ */
+var ForceGraph;
+(function (ForceGraph) {
+    var pluginName = 'forceGraph';
+    ForceGraph._module = angular.module(pluginName, []);
+    ForceGraph._module.directive('hawtioForceGraph', function () {
+        return new ForceGraph.ForceGraphDirective();
+    });
+    hawtioPluginLoader.addModule(pluginName);
+})(ForceGraph || (ForceGraph = {}));
+
+///<reference path="forceGraphPlugin.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    var log = Logger.get("ForceGraph");
+    var ForceGraphDirective = (function () {
+        function ForceGraphDirective() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.transclude = false;
+            this.scope = {
+                graph: '=graph',
+                nodesize: '@',
+                selectedModel: '@',
+                linkDistance: '@',
+                markerKind: '@',
+                charge: '@'
+            };
+            this.link = function ($scope, $element, $attrs) {
+                $scope.trans = [0, 0];
+                $scope.scale = 1;
+                $scope.$watch('graph', function (oldVal, newVal) {
+                    updateGraph();
+                });
+                $scope.redraw = function () {
+                    $scope.trans = d3.event.translate;
+                    $scope.scale = d3.event.scale;
+                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
+                };
+                // This is a callback for the animation
+                $scope.tick = function () {
+                    // provide curvy lines as curves are kind of hawt
+                    $scope.graphEdges.attr("d", function (d) {
+                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
+                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                    });
+                    // apply the translates coming from the layouter
+                    $scope.graphNodes.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    $scope.graphLabels.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    // Only run this in IE
+                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
+                        $scope.svg.selectAll(".link").each(function () {
+                            this.parentNode.insertBefore(this, this);
+                        });
+                    }
+                };
+                $scope.mover = function (d) {
+                    if (d.popup != null) {
+                        $("#pop-up").fadeOut(100, function () {
+                            // Popup content
+                            if (d.popup.title != null) {
+                                $("#pop-up-title").html(d.popup.title);
+                            }
+                            else {
+                                $("#pop-up-title").html("");
+                            }
+                            if (d.popup.content != null) {
+                                $("#pop-up-content").html(d.popup.content);
+                            }
+                            else {
+                                $("#pop-up-content").html("");
+                            }
+                            // Popup position
+                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
+                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
+                            $("#pop-up").css({ "left": popLeft, "top": popTop });
+                            $("#pop-up").fadeIn(100);
+                        });
+                    }
+                };
+                $scope.mout = function (d) {
+                    $("#pop-up").fadeOut(50);
+                    //d3.select(this).attr("fill","url(#ten1)");
+                };
+                var updateGraph = function () {
+                    var canvas = $($element);
+                    // TODO: determine the canvas size dynamically
+                    var h = $($element).parent().height();
+                    var w = $($element).parent().width();
+                    var i = 0;
+                    canvas.children("svg").remove();
+                    // First we create the top level SVG object
+                    // TODO maybe pass in the width/height
+                    $scope.svg = d3.select(canvas[0]).append("svg").attr("width", w).attr("height", h);
+                    // The we add the markers for the arrow tips
+                    var linkTypes = null;
+                    if ($scope.graph) {
+                        linkTypes = $scope.graph.linktypes;
+                    }
+                    if (!linkTypes) {
+                        return;
+                    }
+                    $scope.svg.append("svg:defs").selectAll("marker").data(linkTypes).enter().append("svg:marker").attr("id", String).attr("viewBox", "0 -5 10 10").attr("refX", 15).attr("refY", -1.5).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto").append("svg:path").attr("d", "M0,-5L10,0L0,5");
+                    // The bounding box can't be zoomed or scaled at all
+                    $scope.svg.append("svg:g").append("svg:rect").attr("class", "graphbox.frame").attr('width', w).attr('height', h);
+                    $scope.viewport = $scope.svg.append("svg:g").call(d3.behavior.zoom().on("zoom", $scope.redraw)).append("svg:g");
+                    $scope.viewport.append("svg:rect").attr("width", 1000000).attr("height", 1000000).attr("class", "graphbox").attr("transform", "translate(-50000, -500000)");
+                    // Only do this if we have a graph object
+                    if ($scope.graph) {
+                        var ownerScope = $scope.$parent || $scope;
+                        var selectedModel = $scope.selectedModel || "selectedNode";
+                        // kick off the d3 forced graph layout
+                        $scope.force = d3.layout.force().nodes($scope.graph.nodes).links($scope.graph.links).size([w, h]).on("tick", $scope.tick);
+                        if (angular.isDefined($scope.linkDistance)) {
+                            $scope.force.linkDistance($scope.linkDistance);
+                        }
+                        if (angular.isDefined($scope.charge)) {
+                            $scope.force.charge($scope.charge);
+                        }
+                        var markerTypeName = $scope.markerKind || "marker-end";
+                        // Add all edges to the viewport
+                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path").data($scope.force.links()).enter().append("svg:path").attr("class", function (d) {
+                            return "link " + d.type;
+                        }).attr(markerTypeName, function (d) {
+                            return "url(#" + d.type + ")";
+                        });
+                        // add all nodes to the viewport
+                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle").data($scope.force.nodes()).enter().append("a").attr("xlink:href", function (d) {
+                            return d.navUrl;
+                        }).on("mouseover.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', true);
+                            ownerScope[selectedModel] = d;
+                            Core.pathSet(ownerScope, selectedModel, d);
+                            Core.$apply(ownerScope);
+                        }).on("mouseout.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', false);
+                        });
+                        function hasImage(d) {
+                            return d.image && d.image.url;
+                        }
+                        // Add the images if they are set
+                        $scope.graphNodes.filter(function (d) {
+                            return d.image != null;
+                        }).append("image").attr("xlink:href", function (d) {
+                            return d.image.url;
+                        }).attr("x", function (d) {
+                            return -(d.image.width / 2);
+                        }).attr("y", function (d) {
+                            return -(d.image.height / 2);
+                        }).attr("width", function (d) {
+                            return d.image.width;
+                        }).attr("height", function (d) {
+                            return d.image.height;
+                        });
+                        // if we don't have an image add a circle
+                        $scope.graphNodes.filter(function (d) { return !hasImage(d); }).append("circle").attr("class", function (d) {
+                            return d.type;
+                        }).attr("r", function (d) {
+                            return d.size || $scope.nodesize;
+                        });
+                        // Add the labels to the viewport
+                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g").data($scope.force.nodes()).enter().append("svg:g");
+                        // A copy of the text with a thick white stroke for legibility.
+                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").attr("class", "shadow").text(function (d) {
+                            return d.name;
+                        });
+                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").text(function (d) {
+                            return d.name;
+                        });
+                        // animate, then stop
+                        $scope.force.start();
+                        $scope.graphNodes.call($scope.force.drag).on("mouseover", $scope.mover).on("mouseout", $scope.mout);
+                    }
+                };
+            };
+        }
+        return ForceGraphDirective;
+    })();
+    ForceGraph.ForceGraphDirective = ForceGraphDirective;
+})(ForceGraph || (ForceGraph = {}));
+
+/// <reference path="../../includes.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    /**
+     * GraphBuilder
+     *
+     * @class GraphBuilder
+     */
+    var GraphBuilder = (function () {
+        function GraphBuilder() {
+            this.nodes = {};
+            this.links = [];
+            this.linkTypes = {};
+        }
+        /**
+         * Adds a node to this graph
+         * @method addNode
+         * @param {Object} node
+         */
+        GraphBuilder.prototype.addNode = function (node) {
+            if (!this.nodes[node.id]) {
+                this.nodes[node.id] = node;
+            }
+        };
+        GraphBuilder.prototype.getNode = function (id) {
+            return this.nodes[id];
+        };
+        GraphBuilder.prototype.hasLinks = function (id) {
+            var _this = this;
+            var result = false;
+            this.links.forEach(function (link) {
+                if (link.source.id == id || link.target.id == id) {
+                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
+                }
+            });
+            return result;
+        };
+        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
+            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
+                this.links.push({
+                    source: this.nodes[srcId],
+                    target: this.nodes[targetId],
+                    type: linkType
+                });
+                if (!this.linkTypes[linkType]) {
+                    this.linkTypes[linkType] = {
+                        used: true
+                    };
+                }
+                ;
+            }
+        };
+        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
+            var result = -1;
+            var index = 0;
+            for (index = 0; index < nodes.length; index++) {
+                var node = nodes[index];
+                if (node.id == id) {
+                    result = index;
+                    break;
+                }
+            }
+            return result;
+        };
+        GraphBuilder.prototype.filterNodes = function (filter) {
+            var filteredNodes = {};
+            var newLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (filter(node)) {
+                    filteredNodes[node.id] = node;
+                }
+            });
+            this.links.forEach(function (link) {
+                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
+                    newLinks.push(link);
+                }
+            });
+            this.nodes = filteredNodes;
+            this.links = newLinks;
+        };
+        GraphBuilder.prototype.buildGraph = function () {
+            var _this = this;
+            var graphNodes = [];
+            var linktypes = d3.keys(this.linkTypes);
+            var graphLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (node.includeInGraph == null || node.includeInGraph) {
+                    node.includeInGraph = true;
+                    graphNodes.push(node);
+                }
+            });
+            this.links.forEach(function (link) {
+                if (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null && _this.nodes[link.source.id].includeInGraph && _this.nodes[link.target.id].includeInGraph) {
+                    graphLinks.push({
+                        source: _this.nodeIndex(link.source.id, graphNodes),
+                        target: _this.nodeIndex(link.target.id, graphNodes),
+                        type: link.type
+                    });
+                }
+            });
+            return {
+                nodes: graphNodes,
+                links: graphLinks,
+                linktypes: linktypes
+            };
+        };
+        return GraphBuilder;
+    })();
+    ForceGraph.GraphBuilder = GraphBuilder;
+})(ForceGraph || (ForceGraph = {}));
+
 /**
  * @module UI
  */

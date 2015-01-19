@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.5
+* Add forceGraph plugin
+
 #### 2.0.4
 * Bring over related css from hawtio 1.x site-base.css
 
