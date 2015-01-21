@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.9
+* Add in CSS from the old bootstrap version so compat modals behave
+
 #### 2.0.8
 * Add dialog/modal stuff from ui-bootstrap 0.4.0 and see if we can keep 'em for compatability for now
 
