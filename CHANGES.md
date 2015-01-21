@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.8
+* Add dialog/modal stuff from ui-bootstrap 0.4.0 and see if we can keep 'em for compatability for now
+
 #### 2.0.7
 * Add ui-bootstrap
 
