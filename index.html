@@ -80,7 +80,10 @@
       <ul class="nav navbar-nav" hawtio-sub-tabs></ul>
     </nav>
 
-    <div class="container-fluid" ng-view></div>
+    <div id="main" class="container-fluid ng-cloak" ng-controller="HawtioNav.ViewController">
+      <div ng-include src="viewPartial"></div>
+    </div>
+
 
     <script src="dist/ui-bootstrap.js"></script>
     <script src="dist/ui-bootstrap-tpls.js"></script>
