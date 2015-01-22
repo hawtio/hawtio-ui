@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.11
+* Let's pull in hawtio 1.x's css for now, also use container-fluid for the page
+
 #### 2.0.10
 * Search/replace bootstrap 2.x classes with bootstrap 3.x classes
 

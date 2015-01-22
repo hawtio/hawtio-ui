@@ -7,7 +7,9 @@
     <meta charset="UTF8">
 
     <link rel="stylesheet" href="libs/bootstrap/dist/css/bootstrap.css" />
+    <!--
     <link rel="stylesheet" href="libs/patternfly/dist/css/patternfly.css" />
+    -->
 
     <!-- bower:css -->
     <link rel="stylesheet" href="libs/codemirror/lib/codemirror.css" />
@@ -69,8 +71,10 @@
     <script type="text/javascript" src="libs/codemirror/mode/clike/clike.js"></script>
     <script type="text/javascript" src="libs/codemirror/mode/yaml/yaml.js"></script>
 
+    <!--
     <script src="libs/bootstrap/dist/js/bootstrap.js"></script>
     <script src="libs/patternfly/dist/js/patternfly.js"></script>
+    -->
 
   </head>
 
@@ -80,7 +84,7 @@
       <ul class="nav navbar-nav" hawtio-sub-tabs></ul>
     </nav>
 
-    <div id="main" class="container ng-cloak" ng-controller="HawtioNav.ViewController">
+    <div id="main" class="container-fluid ng-cloak" ng-controller="HawtioNav.ViewController">
       <div ng-include src="viewPartial"></div>
     </div>
 

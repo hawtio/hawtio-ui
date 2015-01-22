@@ -5,6 +5,8 @@
     "hawtio"
   ],
   "main": [
+    "dist/site-base.css",
+    "dist/default.css",
     "dist/hawtio-ui.css",
     "dist/ui-bootstrap.js",
     "dist/ui-bootstrap-tpls.js",
