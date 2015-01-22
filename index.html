@@ -79,9 +79,11 @@
   </head>
 
   <body>
-    <nav class="navbar navbar-default navbar-pf" role="navigation">
-      <ul class="nav navbar-nav navbar-primary" hawtio-main-nav></ul>
-      <ul class="nav navbar-nav" hawtio-sub-tabs></ul>
+    <nav class="navbar navbar-fixed-top navbar-default navbar-pf" role="navigation">
+      <div class="container-fluid">
+        <ul class="nav navbar-nav navbar-primary" hawtio-main-nav></ul>
+        <ul class="nav navbar-nav" hawtio-sub-tabs></ul>
+      </div>
     </nav>
 
     <div id="main" class="container-fluid ng-cloak" ng-controller="HawtioNav.ViewController">
@@ -98,6 +100,8 @@
     <script src="dist/jquery.jsPlumb-1.7.2.js"></script>
     <script src="dist/marked.js"></script>
     <script src="dist/hawtio-ui.js"></script>
+
+    <script src="hawtio-nav-example.js"></script>
 
   </body>
 </html>
