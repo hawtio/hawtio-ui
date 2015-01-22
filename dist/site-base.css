@@ -4104,7 +4104,7 @@ img.nodeIcon:hover {
 
 .operation-row {
   position: relative;
-  height: 30px;
+  /* height: 30px; */
   vertical-align: middle;
 }
 
