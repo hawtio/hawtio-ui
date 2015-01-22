@@ -1,5 +1,8 @@
 ### Change Log
 
+#### 2.0.10
+* Search/replace bootstrap 2.x classes with bootstrap 3.x classes
+
 #### 2.0.9
 * Add in CSS from the old bootstrap version so compat modals behave
 

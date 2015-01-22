@@ -338,611 +338,6 @@ var DataTable;
     }]);
 })(DataTable || (DataTable = {}));
 
-/// <reference path="../../includes.ts"/>
-/**
- * Module that contains several helper functions related to hawtio's code editor
- *
- * @module CodeEditor
- * @main CodeEditor
- */
-var CodeEditor;
-(function (CodeEditor) {
-    /**
-     * @property GlobalCodeMirrorOptions
-     * @for CodeEditor
-     * @type CodeMirrorOptions
-     */
-    CodeEditor.GlobalCodeMirrorOptions = {
-        theme: "default",
-        tabSize: 4,
-        lineNumbers: true,
-        indentWithTabs: true,
-        lineWrapping: true,
-        autoCloseTags: true
-    };
-    /**
-     * Tries to figure out what kind of text we're going to render in the editor, either
-     * text, javascript or XML.
-     *
-     * @method detectTextFormat
-     * @for CodeEditor
-     * @static
-     * @param value
-     * @returns {string}
-     */
-    function detectTextFormat(value) {
-        var answer = "text";
-        if (value) {
-            answer = "javascript";
-            var trimmed = value.toString().trimLeft().trimRight();
-            if (trimmed && trimmed.first() === '<' && trimmed.last() === '>') {
-                answer = "xml";
-            }
-        }
-        return answer;
-    }
-    CodeEditor.detectTextFormat = detectTextFormat;
-    /**
-     * Auto formats the CodeMirror editor content to pretty print
-     *
-     * @method autoFormatEditor
-     * @for CodeEditor
-     * @static
-     * @param {CodeMirrorEditor} editor
-     * @return {void}
-     */
-    function autoFormatEditor(editor) {
-        if (editor) {
-            var totalLines = editor.lineCount();
-            //var totalChars = editor.getValue().length;
-            var start = { line: 0, ch: 0 };
-            var end = { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length };
-            editor.autoFormatRange(start, end);
-            editor.setSelection(start, start);
-        }
-    }
-    CodeEditor.autoFormatEditor = autoFormatEditor;
-    /**
-     * Used to configures the default editor settings (per Editor Instance)
-     *
-     * @method createEditorSettings
-     * @for CodeEditor
-     * @static
-     * @param {Object} options
-     * @return {Object}
-     */
-    function createEditorSettings(options) {
-        if (options === void 0) { options = {}; }
-        options.extraKeys = options.extraKeys || {};
-        // Handle Mode
-        (function (mode) {
-            mode = mode || { name: "text" };
-            if (typeof mode !== "object") {
-                mode = { name: mode };
-            }
-            var modeName = mode.name;
-            if (modeName === "javascript") {
-                angular.extend(mode, {
-                    "json": true
-                });
-            }
-        })(options.mode);
-        // Handle Code folding folding
-        (function (options) {
-            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
-            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
-            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
-            // So don't have to listen to the options model and deal with re-attaching events etc...
-            var foldFunction = function (codeMirror, line) {
-                var mode = codeMirror.getOption("mode");
-                var modeName = mode["name"];
-                if (!mode || !modeName)
-                    return;
-                if (modeName === 'javascript') {
-                    javascriptFolding(codeMirror, line);
-                }
-                else if (modeName === "xml" || modeName.startsWith("html")) {
-                    xmlFolding(codeMirror, line);
-                }
-                ;
-            };
-            options.onGutterClick = foldFunction;
-            options.extraKeys = angular.extend(options.extraKeys, {
-                "Ctrl-Q": function (codeMirror) {
-                    foldFunction(codeMirror, codeMirror.getCursor().line);
-                }
-            });
-        })(options);
-        var readOnly = options.readOnly;
-        if (!readOnly) {
-            /*
-             options.extraKeys = angular.extend(options.extraKeys, {
-             "'>'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '>');
-             },
-             "'/'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '/');
-             }
-             });
-             */
-            options.matchBrackets = true;
-        }
-        // Merge the global config in to this instance of CodeMirror
-        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
-        return options;
-    }
-    CodeEditor.createEditorSettings = createEditorSettings;
-})(CodeEditor || (CodeEditor = {}));
-
-/// <reference path="../../includes.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor.pluginName = "hawtio-editor";
-    HawtioEditor.templatePath = "plugins/editor/html";
-    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorGlobals.ts"/>
-/// <reference path="CodeEditor.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
-    HawtioEditor._module.run(function () {
-        HawtioEditor.log.debug("loaded");
-    });
-    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorPlugin.ts"/>
-/// <reference path="CodeEditor.ts"/>
-/**
- * @module HawtioEditor
- */
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
-        return HawtioEditor.Editor($parse);
-    }]);
-    function Editor($parse) {
-        return {
-            restrict: 'A',
-            replace: true,
-            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
-            scope: {
-                text: '=hawtioEditor',
-                mode: '=',
-                outputEditor: '@',
-                name: '@'
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                $scope.codeMirror = null;
-                $scope.doc = null;
-                $scope.options = [];
-                UI.observe($scope, $attrs, 'name', 'editor');
-                $scope.applyOptions = function () {
-                    if ($scope.codeMirror) {
-                        $scope.options.each(function (option) {
-                            $scope.codeMirror.setOption(option.key, option['value']);
-                        });
-                        $scope.options = [];
-                    }
-                };
-                $scope.$watch('doc', function () {
-                    if ($scope.doc) {
-                        $scope.codeMirror.on('change', function (changeObj) {
-                            $scope.text = $scope.doc.getValue();
-                            $scope.dirty = !$scope.doc.isClean();
-                            Core.$apply($scope);
-                        });
-                    }
-                });
-                $scope.$watch('codeMirror', function () {
-                    if ($scope.codeMirror) {
-                        $scope.doc = $scope.codeMirror.getDoc();
-                    }
-                });
-                $scope.$watch('text', function (oldValue, newValue) {
-                    if ($scope.codeMirror && $scope.doc) {
-                        if (!$scope.codeMirror.hasFocus()) {
-                            var text = $scope.text || "";
-                            if (angular.isArray(text) || angular.isObject(text)) {
-                                text = JSON.stringify(text, null, "  ");
-                                $scope.mode = "javascript";
-                                $scope.codeMirror.setOption("mode", "javascript");
-                            }
-                            $scope.doc.setValue(text);
-                        }
-                    }
-                });
-            }],
-            link: function ($scope, $element, $attrs) {
-                if ('dirty' in $attrs) {
-                    $scope.dirtyTarget = $attrs['dirty'];
-                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            $scope.dirty = newValue;
-                        }
-                    });
-                }
-                var config = _.cloneDeep($attrs);
-                delete config['$$element'];
-                delete config['$attr'];
-                delete config['class'];
-                delete config['hawtioEditor'];
-                delete config['mode'];
-                delete config['dirty'];
-                delete config['outputEditor'];
-                if ('onChange' in $attrs) {
-                    var onChange = $attrs['onChange'];
-                    delete config['onChange'];
-                    $scope.options.push({
-                        onChange: function (codeMirror) {
-                            var func = $parse(onChange);
-                            if (func) {
-                                func($scope.$parent, { codeMirror: codeMirror });
-                            }
-                        }
-                    });
-                }
-                angular.forEach(config, function (value, key) {
-                    $scope.options.push({
-                        key: key,
-                        'value': value
-                    });
-                });
-                $scope.$watch('mode', function () {
-                    if ($scope.mode) {
-                        if (!$scope.codeMirror) {
-                            $scope.options.push({
-                                key: 'mode',
-                                'value': $scope.mode
-                            });
-                        }
-                        else {
-                            $scope.codeMirror.setOption('mode', $scope.mode);
-                        }
-                    }
-                });
-                $scope.$watch('dirty', function (newValue, oldValue) {
-                    if ($scope.dirty && !$scope.doc.isClean()) {
-                        $scope.doc.markClean();
-                    }
-                    if (newValue !== oldValue && 'dirtyTarget' in $scope) {
-                        $scope.$parent[$scope.dirtyTarget] = $scope.dirty;
-                    }
-                });
-                $scope.$watch(function () {
-                    return $element.is(':visible');
-                }, function (newValue, oldValue) {
-                    if (newValue !== oldValue && $scope.codeMirror) {
-                        $scope.codeMirror.refresh();
-                    }
-                });
-                $scope.$watch('text', function () {
-                    if (!$scope.codeMirror) {
-                        var options = {
-                            value: $scope.text
-                        };
-                        options = CodeEditor.createEditorSettings(options);
-                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
-                        var outputEditor = $scope.outputEditor;
-                        if (outputEditor) {
-                            var outputScope = $scope.$parent || $scope;
-                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
-                        }
-                        $scope.applyOptions();
-                    }
-                });
-            }
-        };
-    }
-    HawtioEditor.Editor = Editor;
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="../../includes.ts"/>
-/// <reference path="forceGraphDirective.ts"/>
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-var ForceGraph;
-(function (ForceGraph) {
-    var pluginName = 'forceGraph';
-    ForceGraph._module = angular.module(pluginName, []);
-    ForceGraph._module.directive('hawtioForceGraph', function () {
-        return new ForceGraph.ForceGraphDirective();
-    });
-    hawtioPluginLoader.addModule(pluginName);
-})(ForceGraph || (ForceGraph = {}));
-
-///<reference path="forceGraphPlugin.ts"/>
-var ForceGraph;
-(function (ForceGraph) {
-    var log = Logger.get("ForceGraph");
-    var ForceGraphDirective = (function () {
-        function ForceGraphDirective() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.transclude = false;
-            this.scope = {
-                graph: '=graph',
-                nodesize: '@',
-                selectedModel: '@',
-                linkDistance: '@',
-                markerKind: '@',
-                charge: '@'
-            };
-            this.link = function ($scope, $element, $attrs) {
-                $scope.trans = [0, 0];
-                $scope.scale = 1;
-                $scope.$watch('graph', function (oldVal, newVal) {
-                    updateGraph();
-                });
-                $scope.redraw = function () {
-                    $scope.trans = d3.event.translate;
-                    $scope.scale = d3.event.scale;
-                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
-                };
-                // This is a callback for the animation
-                $scope.tick = function () {
-                    // provide curvy lines as curves are kind of hawt
-                    $scope.graphEdges.attr("d", function (d) {
-                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
-                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
-                    });
-                    // apply the translates coming from the layouter
-                    $scope.graphNodes.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    $scope.graphLabels.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    // Only run this in IE
-                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
-                        $scope.svg.selectAll(".link").each(function () {
-                            this.parentNode.insertBefore(this, this);
-                        });
-                    }
-                };
-                $scope.mover = function (d) {
-                    if (d.popup != null) {
-                        $("#pop-up").fadeOut(100, function () {
-                            // Popup content
-                            if (d.popup.title != null) {
-                                $("#pop-up-title").html(d.popup.title);
-                            }
-                            else {
-                                $("#pop-up-title").html("");
-                            }
-                            if (d.popup.content != null) {
-                                $("#pop-up-content").html(d.popup.content);
-                            }
-                            else {
-                                $("#pop-up-content").html("");
-                            }
-                            // Popup position
-                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
-                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
-                            $("#pop-up").css({ "left": popLeft, "top": popTop });
-                            $("#pop-up").fadeIn(100);
-                        });
-                    }
-                };
-                $scope.mout = function (d) {
-                    $("#pop-up").fadeOut(50);
-                    //d3.select(this).attr("fill","url(#ten1)");
-                };
-                var updateGraph = function () {
-                    var canvas = $($element);
-                    // TODO: determine the canvas size dynamically
-                    var h = $($element).parent().height();
-                    var w = $($element).parent().width();
-                    var i = 0;
-                    canvas.children("svg").remove();
-                    // First we create the top level SVG object
-                    // TODO maybe pass in the width/height
-                    $scope.svg = d3.select(canvas[0]).append("svg").attr("width", w).attr("height", h);
-                    // The we add the markers for the arrow tips
-                    var linkTypes = null;
-                    if ($scope.graph) {
-                        linkTypes = $scope.graph.linktypes;
-                    }
-                    if (!linkTypes) {
-                        return;
-                    }
-                    $scope.svg.append("svg:defs").selectAll("marker").data(linkTypes).enter().append("svg:marker").attr("id", String).attr("viewBox", "0 -5 10 10").attr("refX", 15).attr("refY", -1.5).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto").append("svg:path").attr("d", "M0,-5L10,0L0,5");
-                    // The bounding box can't be zoomed or scaled at all
-                    $scope.svg.append("svg:g").append("svg:rect").attr("class", "graphbox.frame").attr('width', w).attr('height', h);
-                    $scope.viewport = $scope.svg.append("svg:g").call(d3.behavior.zoom().on("zoom", $scope.redraw)).append("svg:g");
-                    $scope.viewport.append("svg:rect").attr("width", 1000000).attr("height", 1000000).attr("class", "graphbox").attr("transform", "translate(-50000, -500000)");
-                    // Only do this if we have a graph object
-                    if ($scope.graph) {
-                        var ownerScope = $scope.$parent || $scope;
-                        var selectedModel = $scope.selectedModel || "selectedNode";
-                        // kick off the d3 forced graph layout
-                        $scope.force = d3.layout.force().nodes($scope.graph.nodes).links($scope.graph.links).size([w, h]).on("tick", $scope.tick);
-                        if (angular.isDefined($scope.linkDistance)) {
-                            $scope.force.linkDistance($scope.linkDistance);
-                        }
-                        if (angular.isDefined($scope.charge)) {
-                            $scope.force.charge($scope.charge);
-                        }
-                        var markerTypeName = $scope.markerKind || "marker-end";
-                        // Add all edges to the viewport
-                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path").data($scope.force.links()).enter().append("svg:path").attr("class", function (d) {
-                            return "link " + d.type;
-                        }).attr(markerTypeName, function (d) {
-                            return "url(#" + d.type + ")";
-                        });
-                        // add all nodes to the viewport
-                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle").data($scope.force.nodes()).enter().append("a").attr("xlink:href", function (d) {
-                            return d.navUrl;
-                        }).on("mouseover.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', true);
-                            ownerScope[selectedModel] = d;
-                            Core.pathSet(ownerScope, selectedModel, d);
-                            Core.$apply(ownerScope);
-                        }).on("mouseout.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', false);
-                        });
-                        function hasImage(d) {
-                            return d.image && d.image.url;
-                        }
-                        // Add the images if they are set
-                        $scope.graphNodes.filter(function (d) {
-                            return d.image != null;
-                        }).append("image").attr("xlink:href", function (d) {
-                            return d.image.url;
-                        }).attr("x", function (d) {
-                            return -(d.image.width / 2);
-                        }).attr("y", function (d) {
-                            return -(d.image.height / 2);
-                        }).attr("width", function (d) {
-                            return d.image.width;
-                        }).attr("height", function (d) {
-                            return d.image.height;
-                        });
-                        // if we don't have an image add a circle
-                        $scope.graphNodes.filter(function (d) { return !hasImage(d); }).append("circle").attr("class", function (d) {
-                            return d.type;
-                        }).attr("r", function (d) {
-                            return d.size || $scope.nodesize;
-                        });
-                        // Add the labels to the viewport
-                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g").data($scope.force.nodes()).enter().append("svg:g");
-                        // A copy of the text with a thick white stroke for legibility.
-                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").attr("class", "shadow").text(function (d) {
-                            return d.name;
-                        });
-                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").text(function (d) {
-                            return d.name;
-                        });
-                        // animate, then stop
-                        $scope.force.start();
-                        $scope.graphNodes.call($scope.force.drag).on("mouseover", $scope.mover).on("mouseout", $scope.mout);
-                    }
-                };
-            };
-        }
-        return ForceGraphDirective;
-    })();
-    ForceGraph.ForceGraphDirective = ForceGraphDirective;
-})(ForceGraph || (ForceGraph = {}));
-
-/// <reference path="../../includes.ts"/>
-var ForceGraph;
-(function (ForceGraph) {
-    /**
-     * GraphBuilder
-     *
-     * @class GraphBuilder
-     */
-    var GraphBuilder = (function () {
-        function GraphBuilder() {
-            this.nodes = {};
-            this.links = [];
-            this.linkTypes = {};
-        }
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        GraphBuilder.prototype.addNode = function (node) {
-            if (!this.nodes[node.id]) {
-                this.nodes[node.id] = node;
-            }
-        };
-        GraphBuilder.prototype.getNode = function (id) {
-            return this.nodes[id];
-        };
-        GraphBuilder.prototype.hasLinks = function (id) {
-            var _this = this;
-            var result = false;
-            this.links.forEach(function (link) {
-                if (link.source.id == id || link.target.id == id) {
-                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
-                }
-            });
-            return result;
-        };
-        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
-            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
-                this.links.push({
-                    source: this.nodes[srcId],
-                    target: this.nodes[targetId],
-                    type: linkType
-                });
-                if (!this.linkTypes[linkType]) {
-                    this.linkTypes[linkType] = {
-                        used: true
-                    };
-                }
-                ;
-            }
-        };
-        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
-            var result = -1;
-            var index = 0;
-            for (index = 0; index < nodes.length; index++) {
-                var node = nodes[index];
-                if (node.id == id) {
-                    result = index;
-                    break;
-                }
-            }
-            return result;
-        };
-        GraphBuilder.prototype.filterNodes = function (filter) {
-            var filteredNodes = {};
-            var newLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (filter(node)) {
-                    filteredNodes[node.id] = node;
-                }
-            });
-            this.links.forEach(function (link) {
-                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
-                    newLinks.push(link);
-                }
-            });
-            this.nodes = filteredNodes;
-            this.links = newLinks;
-        };
-        GraphBuilder.prototype.buildGraph = function () {
-            var _this = this;
-            var graphNodes = [];
-            var linktypes = d3.keys(this.linkTypes);
-            var graphLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (node.includeInGraph == null || node.includeInGraph) {
-                    node.includeInGraph = true;
-                    graphNodes.push(node);
-                }
-            });
-            this.links.forEach(function (link) {
-                if (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null && _this.nodes[link.source.id].includeInGraph && _this.nodes[link.target.id].includeInGraph) {
-                    graphLinks.push({
-                        source: _this.nodeIndex(link.source.id, graphNodes),
-                        target: _this.nodeIndex(link.target.id, graphNodes),
-                        type: link.type
-                    });
-                }
-            });
-            return {
-                nodes: graphNodes,
-                links: graphLinks,
-                linktypes: linktypes
-            };
-        };
-        return GraphBuilder;
-    })();
-    ForceGraph.GraphBuilder = GraphBuilder;
-})(ForceGraph || (ForceGraph = {}));
-
 /**
  * @module UI
  */
@@ -4043,40 +3438,645 @@ var UIBootstrap;
     hawtioPluginLoader.addModule("hawtio-compat.modal");
 })(UIBootstrap || (UIBootstrap = {}));
 
-angular.module("hawtio-ui-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("plugins/datatable/html/test.html","<div ng-controller=\"DataTable.SimpleTableTestController\">\n  <div class=\"row-fluid\">\n    <div class=\"section-header\">\n\n      <div class=\"section-filter\">\n        <input type=\"text\" class=\"search-query\" placeholder=\"Filter...\" ng-model=\"mygrid.filterOptions.filterText\">\n        <i class=\"icon-remove clickable\" title=\"Clear filter\" ng-click=\"mygrid.filterOptions.filterText = \'\'\"></i>\n      </div>\n\n    </div>\n  </div>\n\n  <h3>hawtio-simple-table example</h3>\n\n  <table class=\"table table-striped\" hawtio-simple-table=\"mygrid\"></table>\n\n  <div class=\"row-fluid\">\n    <p>Selected folks:</p>\n    <ul>\n      <li ng-repeat=\"person in selectedItems\">{{person.name}}</li>\n    </ul>\n\n    <p>\n       <a class=\"btn\" href=\"#/datatable/test?multi={{!mygrid.multiSelect}}\">multi select is: {{mygrid.multiSelect}}</a>\n    </p>\n  </div>\n</div>\n");
+/// <reference path="../../includes.ts"/>
+/**
+ * Module that contains several helper functions related to hawtio's code editor
+ *
+ * @module CodeEditor
+ * @main CodeEditor
+ */
+var CodeEditor;
+(function (CodeEditor) {
+    /**
+     * @property GlobalCodeMirrorOptions
+     * @for CodeEditor
+     * @type CodeMirrorOptions
+     */
+    CodeEditor.GlobalCodeMirrorOptions = {
+        theme: "default",
+        tabSize: 4,
+        lineNumbers: true,
+        indentWithTabs: true,
+        lineWrapping: true,
+        autoCloseTags: true
+    };
+    /**
+     * Tries to figure out what kind of text we're going to render in the editor, either
+     * text, javascript or XML.
+     *
+     * @method detectTextFormat
+     * @for CodeEditor
+     * @static
+     * @param value
+     * @returns {string}
+     */
+    function detectTextFormat(value) {
+        var answer = "text";
+        if (value) {
+            answer = "javascript";
+            var trimmed = value.toString().trimLeft().trimRight();
+            if (trimmed && trimmed.first() === '<' && trimmed.last() === '>') {
+                answer = "xml";
+            }
+        }
+        return answer;
+    }
+    CodeEditor.detectTextFormat = detectTextFormat;
+    /**
+     * Auto formats the CodeMirror editor content to pretty print
+     *
+     * @method autoFormatEditor
+     * @for CodeEditor
+     * @static
+     * @param {CodeMirrorEditor} editor
+     * @return {void}
+     */
+    function autoFormatEditor(editor) {
+        if (editor) {
+            var totalLines = editor.lineCount();
+            //var totalChars = editor.getValue().length;
+            var start = { line: 0, ch: 0 };
+            var end = { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length };
+            editor.autoFormatRange(start, end);
+            editor.setSelection(start, start);
+        }
+    }
+    CodeEditor.autoFormatEditor = autoFormatEditor;
+    /**
+     * Used to configures the default editor settings (per Editor Instance)
+     *
+     * @method createEditorSettings
+     * @for CodeEditor
+     * @static
+     * @param {Object} options
+     * @return {Object}
+     */
+    function createEditorSettings(options) {
+        if (options === void 0) { options = {}; }
+        options.extraKeys = options.extraKeys || {};
+        // Handle Mode
+        (function (mode) {
+            mode = mode || { name: "text" };
+            if (typeof mode !== "object") {
+                mode = { name: mode };
+            }
+            var modeName = mode.name;
+            if (modeName === "javascript") {
+                angular.extend(mode, {
+                    "json": true
+                });
+            }
+        })(options.mode);
+        // Handle Code folding folding
+        (function (options) {
+            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
+            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
+            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
+            // So don't have to listen to the options model and deal with re-attaching events etc...
+            var foldFunction = function (codeMirror, line) {
+                var mode = codeMirror.getOption("mode");
+                var modeName = mode["name"];
+                if (!mode || !modeName)
+                    return;
+                if (modeName === 'javascript') {
+                    javascriptFolding(codeMirror, line);
+                }
+                else if (modeName === "xml" || modeName.startsWith("html")) {
+                    xmlFolding(codeMirror, line);
+                }
+                ;
+            };
+            options.onGutterClick = foldFunction;
+            options.extraKeys = angular.extend(options.extraKeys, {
+                "Ctrl-Q": function (codeMirror) {
+                    foldFunction(codeMirror, codeMirror.getCursor().line);
+                }
+            });
+        })(options);
+        var readOnly = options.readOnly;
+        if (!readOnly) {
+            /*
+             options.extraKeys = angular.extend(options.extraKeys, {
+             "'>'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '>');
+             },
+             "'/'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '/');
+             }
+             });
+             */
+            options.matchBrackets = true;
+        }
+        // Merge the global config in to this instance of CodeMirror
+        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
+        return options;
+    }
+    CodeEditor.createEditorSettings = createEditorSettings;
+})(CodeEditor || (CodeEditor = {}));
+
+/// <reference path="../../includes.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor.pluginName = "hawtio-editor";
+    HawtioEditor.templatePath = "plugins/editor/html";
+    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="editorGlobals.ts"/>
+/// <reference path="CodeEditor.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
+    HawtioEditor._module.run(function () {
+        HawtioEditor.log.debug("loaded");
+    });
+    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="editorPlugin.ts"/>
+/// <reference path="CodeEditor.ts"/>
+/**
+ * @module HawtioEditor
+ */
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
+        return HawtioEditor.Editor($parse);
+    }]);
+    function Editor($parse) {
+        return {
+            restrict: 'A',
+            replace: true,
+            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
+            scope: {
+                text: '=hawtioEditor',
+                mode: '=',
+                outputEditor: '@',
+                name: '@'
+            },
+            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                $scope.codeMirror = null;
+                $scope.doc = null;
+                $scope.options = [];
+                UI.observe($scope, $attrs, 'name', 'editor');
+                $scope.applyOptions = function () {
+                    if ($scope.codeMirror) {
+                        $scope.options.each(function (option) {
+                            $scope.codeMirror.setOption(option.key, option['value']);
+                        });
+                        $scope.options = [];
+                    }
+                };
+                $scope.$watch('doc', function () {
+                    if ($scope.doc) {
+                        $scope.codeMirror.on('change', function (changeObj) {
+                            $scope.text = $scope.doc.getValue();
+                            $scope.dirty = !$scope.doc.isClean();
+                            Core.$apply($scope);
+                        });
+                    }
+                });
+                $scope.$watch('codeMirror', function () {
+                    if ($scope.codeMirror) {
+                        $scope.doc = $scope.codeMirror.getDoc();
+                    }
+                });
+                $scope.$watch('text', function (oldValue, newValue) {
+                    if ($scope.codeMirror && $scope.doc) {
+                        if (!$scope.codeMirror.hasFocus()) {
+                            var text = $scope.text || "";
+                            if (angular.isArray(text) || angular.isObject(text)) {
+                                text = JSON.stringify(text, null, "  ");
+                                $scope.mode = "javascript";
+                                $scope.codeMirror.setOption("mode", "javascript");
+                            }
+                            $scope.doc.setValue(text);
+                        }
+                    }
+                });
+            }],
+            link: function ($scope, $element, $attrs) {
+                if ('dirty' in $attrs) {
+                    $scope.dirtyTarget = $attrs['dirty'];
+                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            $scope.dirty = newValue;
+                        }
+                    });
+                }
+                var config = _.cloneDeep($attrs);
+                delete config['$$element'];
+                delete config['$attr'];
+                delete config['class'];
+                delete config['hawtioEditor'];
+                delete config['mode'];
+                delete config['dirty'];
+                delete config['outputEditor'];
+                if ('onChange' in $attrs) {
+                    var onChange = $attrs['onChange'];
+                    delete config['onChange'];
+                    $scope.options.push({
+                        onChange: function (codeMirror) {
+                            var func = $parse(onChange);
+                            if (func) {
+                                func($scope.$parent, { codeMirror: codeMirror });
+                            }
+                        }
+                    });
+                }
+                angular.forEach(config, function (value, key) {
+                    $scope.options.push({
+                        key: key,
+                        'value': value
+                    });
+                });
+                $scope.$watch('mode', function () {
+                    if ($scope.mode) {
+                        if (!$scope.codeMirror) {
+                            $scope.options.push({
+                                key: 'mode',
+                                'value': $scope.mode
+                            });
+                        }
+                        else {
+                            $scope.codeMirror.setOption('mode', $scope.mode);
+                        }
+                    }
+                });
+                $scope.$watch('dirty', function (newValue, oldValue) {
+                    if ($scope.dirty && !$scope.doc.isClean()) {
+                        $scope.doc.markClean();
+                    }
+                    if (newValue !== oldValue && 'dirtyTarget' in $scope) {
+                        $scope.$parent[$scope.dirtyTarget] = $scope.dirty;
+                    }
+                });
+                $scope.$watch(function () {
+                    return $element.is(':visible');
+                }, function (newValue, oldValue) {
+                    if (newValue !== oldValue && $scope.codeMirror) {
+                        $scope.codeMirror.refresh();
+                    }
+                });
+                $scope.$watch('text', function () {
+                    if (!$scope.codeMirror) {
+                        var options = {
+                            value: $scope.text
+                        };
+                        options = CodeEditor.createEditorSettings(options);
+                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
+                        var outputEditor = $scope.outputEditor;
+                        if (outputEditor) {
+                            var outputScope = $scope.$parent || $scope;
+                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
+                        }
+                        $scope.applyOptions();
+                    }
+                });
+            }
+        };
+    }
+    HawtioEditor.Editor = Editor;
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="../../includes.ts"/>
+/// <reference path="forceGraphDirective.ts"/>
+/**
+ * Force Graph plugin & directive
+ *
+ * @module ForceGraph
+ */
+var ForceGraph;
+(function (ForceGraph) {
+    var pluginName = 'forceGraph';
+    ForceGraph._module = angular.module(pluginName, []);
+    ForceGraph._module.directive('hawtioForceGraph', function () {
+        return new ForceGraph.ForceGraphDirective();
+    });
+    hawtioPluginLoader.addModule(pluginName);
+})(ForceGraph || (ForceGraph = {}));
+
+///<reference path="forceGraphPlugin.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    var log = Logger.get("ForceGraph");
+    var ForceGraphDirective = (function () {
+        function ForceGraphDirective() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.transclude = false;
+            this.scope = {
+                graph: '=graph',
+                nodesize: '@',
+                selectedModel: '@',
+                linkDistance: '@',
+                markerKind: '@',
+                charge: '@'
+            };
+            this.link = function ($scope, $element, $attrs) {
+                $scope.trans = [0, 0];
+                $scope.scale = 1;
+                $scope.$watch('graph', function (oldVal, newVal) {
+                    updateGraph();
+                });
+                $scope.redraw = function () {
+                    $scope.trans = d3.event.translate;
+                    $scope.scale = d3.event.scale;
+                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
+                };
+                // This is a callback for the animation
+                $scope.tick = function () {
+                    // provide curvy lines as curves are kind of hawt
+                    $scope.graphEdges.attr("d", function (d) {
+                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
+                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                    });
+                    // apply the translates coming from the layouter
+                    $scope.graphNodes.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    $scope.graphLabels.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    // Only run this in IE
+                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
+                        $scope.svg.selectAll(".link").each(function () {
+                            this.parentNode.insertBefore(this, this);
+                        });
+                    }
+                };
+                $scope.mover = function (d) {
+                    if (d.popup != null) {
+                        $("#pop-up").fadeOut(100, function () {
+                            // Popup content
+                            if (d.popup.title != null) {
+                                $("#pop-up-title").html(d.popup.title);
+                            }
+                            else {
+                                $("#pop-up-title").html("");
+                            }
+                            if (d.popup.content != null) {
+                                $("#pop-up-content").html(d.popup.content);
+                            }
+                            else {
+                                $("#pop-up-content").html("");
+                            }
+                            // Popup position
+                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
+                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
+                            $("#pop-up").css({ "left": popLeft, "top": popTop });
+                            $("#pop-up").fadeIn(100);
+                        });
+                    }
+                };
+                $scope.mout = function (d) {
+                    $("#pop-up").fadeOut(50);
+                    //d3.select(this).attr("fill","url(#ten1)");
+                };
+                var updateGraph = function () {
+                    var canvas = $($element);
+                    // TODO: determine the canvas size dynamically
+                    var h = $($element).parent().height();
+                    var w = $($element).parent().width();
+                    var i = 0;
+                    canvas.children("svg").remove();
+                    // First we create the top level SVG object
+                    // TODO maybe pass in the width/height
+                    $scope.svg = d3.select(canvas[0]).append("svg").attr("width", w).attr("height", h);
+                    // The we add the markers for the arrow tips
+                    var linkTypes = null;
+                    if ($scope.graph) {
+                        linkTypes = $scope.graph.linktypes;
+                    }
+                    if (!linkTypes) {
+                        return;
+                    }
+                    $scope.svg.append("svg:defs").selectAll("marker").data(linkTypes).enter().append("svg:marker").attr("id", String).attr("viewBox", "0 -5 10 10").attr("refX", 15).attr("refY", -1.5).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto").append("svg:path").attr("d", "M0,-5L10,0L0,5");
+                    // The bounding box can't be zoomed or scaled at all
+                    $scope.svg.append("svg:g").append("svg:rect").attr("class", "graphbox.frame").attr('width', w).attr('height', h);
+                    $scope.viewport = $scope.svg.append("svg:g").call(d3.behavior.zoom().on("zoom", $scope.redraw)).append("svg:g");
+                    $scope.viewport.append("svg:rect").attr("width", 1000000).attr("height", 1000000).attr("class", "graphbox").attr("transform", "translate(-50000, -500000)");
+                    // Only do this if we have a graph object
+                    if ($scope.graph) {
+                        var ownerScope = $scope.$parent || $scope;
+                        var selectedModel = $scope.selectedModel || "selectedNode";
+                        // kick off the d3 forced graph layout
+                        $scope.force = d3.layout.force().nodes($scope.graph.nodes).links($scope.graph.links).size([w, h]).on("tick", $scope.tick);
+                        if (angular.isDefined($scope.linkDistance)) {
+                            $scope.force.linkDistance($scope.linkDistance);
+                        }
+                        if (angular.isDefined($scope.charge)) {
+                            $scope.force.charge($scope.charge);
+                        }
+                        var markerTypeName = $scope.markerKind || "marker-end";
+                        // Add all edges to the viewport
+                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path").data($scope.force.links()).enter().append("svg:path").attr("class", function (d) {
+                            return "link " + d.type;
+                        }).attr(markerTypeName, function (d) {
+                            return "url(#" + d.type + ")";
+                        });
+                        // add all nodes to the viewport
+                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle").data($scope.force.nodes()).enter().append("a").attr("xlink:href", function (d) {
+                            return d.navUrl;
+                        }).on("mouseover.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', true);
+                            ownerScope[selectedModel] = d;
+                            Core.pathSet(ownerScope, selectedModel, d);
+                            Core.$apply(ownerScope);
+                        }).on("mouseout.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', false);
+                        });
+                        function hasImage(d) {
+                            return d.image && d.image.url;
+                        }
+                        // Add the images if they are set
+                        $scope.graphNodes.filter(function (d) {
+                            return d.image != null;
+                        }).append("image").attr("xlink:href", function (d) {
+                            return d.image.url;
+                        }).attr("x", function (d) {
+                            return -(d.image.width / 2);
+                        }).attr("y", function (d) {
+                            return -(d.image.height / 2);
+                        }).attr("width", function (d) {
+                            return d.image.width;
+                        }).attr("height", function (d) {
+                            return d.image.height;
+                        });
+                        // if we don't have an image add a circle
+                        $scope.graphNodes.filter(function (d) { return !hasImage(d); }).append("circle").attr("class", function (d) {
+                            return d.type;
+                        }).attr("r", function (d) {
+                            return d.size || $scope.nodesize;
+                        });
+                        // Add the labels to the viewport
+                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g").data($scope.force.nodes()).enter().append("svg:g");
+                        // A copy of the text with a thick white stroke for legibility.
+                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").attr("class", "shadow").text(function (d) {
+                            return d.name;
+                        });
+                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").text(function (d) {
+                            return d.name;
+                        });
+                        // animate, then stop
+                        $scope.force.start();
+                        $scope.graphNodes.call($scope.force.drag).on("mouseover", $scope.mover).on("mouseout", $scope.mout);
+                    }
+                };
+            };
+        }
+        return ForceGraphDirective;
+    })();
+    ForceGraph.ForceGraphDirective = ForceGraphDirective;
+})(ForceGraph || (ForceGraph = {}));
+
+/// <reference path="../../includes.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    /**
+     * GraphBuilder
+     *
+     * @class GraphBuilder
+     */
+    var GraphBuilder = (function () {
+        function GraphBuilder() {
+            this.nodes = {};
+            this.links = [];
+            this.linkTypes = {};
+        }
+        /**
+         * Adds a node to this graph
+         * @method addNode
+         * @param {Object} node
+         */
+        GraphBuilder.prototype.addNode = function (node) {
+            if (!this.nodes[node.id]) {
+                this.nodes[node.id] = node;
+            }
+        };
+        GraphBuilder.prototype.getNode = function (id) {
+            return this.nodes[id];
+        };
+        GraphBuilder.prototype.hasLinks = function (id) {
+            var _this = this;
+            var result = false;
+            this.links.forEach(function (link) {
+                if (link.source.id == id || link.target.id == id) {
+                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
+                }
+            });
+            return result;
+        };
+        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
+            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
+                this.links.push({
+                    source: this.nodes[srcId],
+                    target: this.nodes[targetId],
+                    type: linkType
+                });
+                if (!this.linkTypes[linkType]) {
+                    this.linkTypes[linkType] = {
+                        used: true
+                    };
+                }
+                ;
+            }
+        };
+        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
+            var result = -1;
+            var index = 0;
+            for (index = 0; index < nodes.length; index++) {
+                var node = nodes[index];
+                if (node.id == id) {
+                    result = index;
+                    break;
+                }
+            }
+            return result;
+        };
+        GraphBuilder.prototype.filterNodes = function (filter) {
+            var filteredNodes = {};
+            var newLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (filter(node)) {
+                    filteredNodes[node.id] = node;
+                }
+            });
+            this.links.forEach(function (link) {
+                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
+                    newLinks.push(link);
+                }
+            });
+            this.nodes = filteredNodes;
+            this.links = newLinks;
+        };
+        GraphBuilder.prototype.buildGraph = function () {
+            var _this = this;
+            var graphNodes = [];
+            var linktypes = d3.keys(this.linkTypes);
+            var graphLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (node.includeInGraph == null || node.includeInGraph) {
+                    node.includeInGraph = true;
+                    graphNodes.push(node);
+                }
+            });
+            this.links.forEach(function (link) {
+                if (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null && _this.nodes[link.source.id].includeInGraph && _this.nodes[link.target.id].includeInGraph) {
+                    graphLinks.push({
+                        source: _this.nodeIndex(link.source.id, graphNodes),
+                        target: _this.nodeIndex(link.target.id, graphNodes),
+                        type: link.type
+                    });
+                }
+            });
+            return {
+                nodes: graphNodes,
+                links: graphLinks,
+                linktypes: linktypes
+            };
+        };
+        return GraphBuilder;
+    })();
+    ForceGraph.GraphBuilder = GraphBuilder;
+})(ForceGraph || (ForceGraph = {}));
+
+angular.module("hawtio-ui-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("plugins/datatable/html/test.html","<div ng-controller=\"DataTable.SimpleTableTestController\">\n  <div class=\"row\">\n    <div class=\"section-header\">\n\n      <div class=\"section-filter\">\n        <input type=\"text\" class=\"search-query\" placeholder=\"Filter...\" ng-model=\"mygrid.filterOptions.filterText\">\n        <i class=\"glyphicon glyphicon-remove clickable\" title=\"Clear filter\" ng-click=\"mygrid.filterOptions.filterText = \'\'\"></i>\n      </div>\n\n    </div>\n  </div>\n\n  <h3>hawtio-simple-table example</h3>\n\n  <table class=\"table table-striped\" hawtio-simple-table=\"mygrid\"></table>\n\n  <div class=\"row\">\n    <p>Selected folks:</p>\n    <ul>\n      <li ng-repeat=\"person in selectedItems\">{{person.name}}</li>\n    </ul>\n\n    <p>\n       <a class=\"btn\" href=\"#/datatable/test?multi={{!mygrid.multiSelect}}\">multi select is: {{mygrid.multiSelect}}</a>\n    </p>\n  </div>\n</div>\n");
 $templateCache.put("plugins/editor/html/editor.html","<div class=\"editor-autoresize\">\n  <textarea name=\"{{name}}\" ng-model=\"text\"></textarea>\n</div>\n");
 $templateCache.put("plugins/ui/html/breadcrumbs.html","<span class=\"hawtio-breadcrumb\">\n  <li ng-repeat=\"(level, config) in levels track by level\" ng-show=\"config\">\n    <div hawtio-drop-down=\"config\" process-submenus=\"false\"></div>\n  </li>\n</span>\n");
-$templateCache.put("plugins/ui/html/colorPicker.html","<div class=\"color-picker\">\n  <div class=\"wrapper\">\n    <div class=\"selected-color\" style=\"background-color: {{property}};\" ng-click=\"popout = !popout\"></div>\n  </div>\n  <div class=\"color-picker-popout\">\n    <table>\n      <tr>\n        <td ng-repeat=\"color in colorList\">\n          <div class=\"{{color.select}}\" style=\"background-color: {{color.color}};\"\n               ng-click=\"selectColor(color)\">\n          </div>\n        <td>\n        <td>\n          <i class=\"icon-remove clickable\" ng-click=\"popout = !popout\"></i>\n        </td>\n      </tr>\n    </table>\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/colorPicker.html","<div class=\"color-picker\">\n  <div class=\"wrapper\">\n    <div class=\"selected-color\" style=\"background-color: {{property}};\" ng-click=\"popout = !popout\"></div>\n  </div>\n  <div class=\"color-picker-popout\">\n    <table>\n      <tr>\n        <td ng-repeat=\"color in colorList\">\n          <div class=\"{{color.select}}\" style=\"background-color: {{color.color}};\"\n               ng-click=\"selectColor(color)\">\n          </div>\n        <td>\n        <td>\n          <i class=\"glyphicon glyphicon-remove clickable\" ng-click=\"popout = !popout\"></i>\n        </td>\n      </tr>\n    </table>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/confirmDialog.html","<div modal=\"show\">\n  <form class=\"form-horizontal no-bottom-margin\">\n    <div class=\"modal-header\"><h4>{{title}}</h4></div>\n    <div class=\"modal-body\">\n    </div>\n    <div class=\"modal-footer\">\n      <input class=\"btn btn-danger\" ng-show=\"{{showOkButton != \'false\'}}\" type=\"submit\" value=\"{{okButtonText}}\" ng-click=\"submit()\">\n      <button class=\"btn btn-primary\" ng-click=\"cancel()\">{{cancelButtonText}}</button>\n    </div>\n  </form>\n</div>\n");
-$templateCache.put("plugins/ui/html/developerPage.html","<div class=\"row-fluid\" ng-controller=\"UI.DeveloperPageController\">\n\n  <div class=\"tocify\" wiki-href-adjuster>\n    <div hawtio-toc-display\n         get-contents=\"getContents(filename, cb)\">\n      <ul>\n        <li>\n          <a href=\"plugins/ui/html/test/icon.html\" chapter-id=\"icons\">icons</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/auto-columns.html\" chapter-id=\"auto-columns\">auto-columns</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/auto-dropdown.html\" chapter-id=\"auto-dropdown\">auto-dropdown</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/breadcrumbs.html\" chapter-id=\"breadcrumbs\">breadcrumbs</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/color-picker.html\" chapter-id=\"color-picker\">color-picker</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/confirm-dialog.html\" chapter-id=\"confirm-dialog\">confirm-dialog</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/drop-down.html\" chapter-id=\"drop-down\">drop-down</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/editable-property.html\" chapter-id=\"editableProperty\">editable-property</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/editor.html\" chapter-id=\"editor\">editor</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/expandable.html\" chapter-id=\"expandable\">expandable</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/file-upload.html\" chapter-id=\"file-upload\">file-upload</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/jsplumb.html\" chapter-id=\"jsplumb\">jsplumb</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/pager.html\" chapter-id=\"pager\">pager</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/slideout.html\" chapter-id=\"slideout\">slideout</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/template-popover.html\" chapter-id=\"template-popover\">template-popover</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/zero-clipboard.html\" chapter-id=\"zero-clipboard\">zero-clipboard</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n  <div class=\"toc-content\" id=\"toc-content\"></div>\n</div>\n");
+$templateCache.put("plugins/ui/html/developerPage.html","<div ng-controller=\"UI.DeveloperPageController\">\n\n  <div class=\"tocify\" wiki-href-adjuster>\n    <div hawtio-toc-display\n         get-contents=\"getContents(filename, cb)\">\n      <ul>\n        <li>\n          <a href=\"plugins/ui/html/test/icon.html\" chapter-id=\"icons\">icons</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/auto-columns.html\" chapter-id=\"auto-columns\">auto-columns</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/auto-dropdown.html\" chapter-id=\"auto-dropdown\">auto-dropdown</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/breadcrumbs.html\" chapter-id=\"breadcrumbs\">breadcrumbs</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/color-picker.html\" chapter-id=\"color-picker\">color-picker</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/confirm-dialog.html\" chapter-id=\"confirm-dialog\">confirm-dialog</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/drop-down.html\" chapter-id=\"drop-down\">drop-down</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/editable-property.html\" chapter-id=\"editableProperty\">editable-property</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/editor.html\" chapter-id=\"editor\">editor</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/expandable.html\" chapter-id=\"expandable\">expandable</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/file-upload.html\" chapter-id=\"file-upload\">file-upload</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/jsplumb.html\" chapter-id=\"jsplumb\">jsplumb</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/pager.html\" chapter-id=\"pager\">pager</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/slideout.html\" chapter-id=\"slideout\">slideout</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/template-popover.html\" chapter-id=\"template-popover\">template-popover</a>\n        </li>\n        <li>\n          <a href=\"plugins/ui/html/test/zero-clipboard.html\" chapter-id=\"zero-clipboard\">zero-clipboard</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n  <div class=\"toc-content\" id=\"toc-content\"></div>\n</div>\n");
 $templateCache.put("plugins/ui/html/dropDown.html","<span>\n\n  <script type=\"text/ng-template\" id=\"withsubmenus.html\">\n    <span class=\"hawtio-dropdown dropdown\" ng-class=\"open(config)\" ng-click=\"action(config, $event)\">\n      <p ng-show=\"config.heading\" ng-bind=\"config.heading\"></p>\n      <span ng-show=\"config.title\">\n        <i ng-class=\"icon(config)\"></i>&nbsp;<span ng-bind=\"config.title\"></span>\n        <span ng-show=\"config.items\" ng-hide=\"config.submenu\" class=\"caret\"></span>\n        <span ng-show=\"config.items && config.submenu\" class=\"submenu-caret\"></span>\n      </span>\n\n      <ul ng-hide=\"config.action\" ng-show=\"config.items\" class=\"dropdown-menu\" ng-class=\"submenu(config)\">\n        <li ng-repeat=\"item in config.items track by $index\" ng-init=\"config=item; config[\'submenu\']=true\" ng-include=\"\'withsubmenus.html\'\" hawtio-show object-name=\"{{item.objectName}}\" method-name=\"{{item.methodName}}\" argument-types=\"{{item.argumentTypes}}\" mode=\"remove\">\n        </li>\n      </ul>\n    </span>\n  </script>\n\n  <script type=\"text/ng-template\" id=\"withoutsubmenus.html\">\n    <span class=\"hawtio-dropdown dropdown\" ng-class=\"open(config)\" ng-click=\"action(config, $event)\">\n      <p ng-show=\"config.heading\" ng-bind=\"config.heading\"></p>\n      <span ng-show=\"config.title\">\n        <i ng-class=\"icon(config)\"></i>&nbsp;<span ng-bind=\"config.title\"></span>\n        <span ng-show=\"config.items && config.items.length > 0\" class=\"caret\"></span>\n     </span>\n\n      <ul ng-hide=\"config.action\" ng-show=\"config.items\" class=\"dropdown-menu\" ng-class=\"submenu(config)\">\n        <li ng-repeat=\"item in config.items track by $index\" hawtio-show object-name=\"{{item.objectName}}\" method-name=\"{{item.methodName}}\" argument-types=\"{{item.argumentTypes}}\" mode=\"remove\">\n          <span class=\"menu-item\" ng-click=\"action(item, $event)\">\n            <i ng-class=\"icon(item)\"></i>&nbsp;<span ng-bind=\"item.title\"></span>\n            <span ng-show=\"item.items\" class=\"submenu-caret\"></span>\n          </span>\n        </li>\n      </ul>\n\n    </span>\n  </script>\n\n  <span compile=\"menuStyle\"></span>\n\n</span>\n");
-$templateCache.put("plugins/ui/html/editableProperty.html","<div ng-mouseenter=\"showEdit()\" ng-mouseleave=\"hideEdit()\" class=\"ep\" ng-dblclick=\"doEdit()\">\n  {{getText()}}&nbsp;<i class=\"ep-edit icon-pencil\" title=\"Edit this item\" ng-click=\"doEdit()\" no-click></i>\n</div>\n<div class=\"ep editing\" ng-show=\"editing\" no-click>\n  <form class=\"form-inline no-bottom-margin\" ng-submit=\"saveEdit()\">\n    <fieldset>\n      <span ng-switch=\"inputType\">\n        <span ng-switch-when=\"number\">\n          <input type=\"number\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\" max=\"{{max}}\" min=\"{{min}}\">\n        </span>\n        <span ng-switch-when=\"password\">\n          <input type=\"password\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\n        </span>\n        <span ng-switch-default>\n          <input type=\"text\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\n        </span>\n      </span>\n      <i class=\"green clickable icon-ok icon1point5x\" title=\"Save changes\" ng-click=\"saveEdit()\"></i>\n      <i class=\"red clickable icon-remove icon1point5x\" title=\"Discard changes\" ng-click=\"stopEdit()\"></i>\n    </fieldset>\n  </form>\n</div>\n");
+$templateCache.put("plugins/ui/html/editableProperty.html","<div ng-mouseenter=\"showEdit()\" ng-mouseleave=\"hideEdit()\" class=\"ep\" ng-dblclick=\"doEdit()\">\n  {{getText()}}&nbsp;<i class=\"ep-edit glyphicon glyphicon-pencil\" title=\"Edit this item\" ng-click=\"doEdit()\" no-click></i>\n</div>\n<div class=\"ep editing\" ng-show=\"editing\" no-click>\n  <form class=\"form-inline no-bottom-margin\" ng-submit=\"saveEdit()\">\n    <fieldset>\n      <span ng-switch=\"inputType\">\n        <span ng-switch-when=\"number\">\n          <input type=\"number\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\" max=\"{{max}}\" min=\"{{min}}\">\n        </span>\n        <span ng-switch-when=\"password\">\n          <input type=\"password\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\n        </span>\n        <span ng-switch-default>\n          <input type=\"text\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\n        </span>\n      </span>\n      <i class=\"green clickable glyphicon glyphicon-ok icon1point5x\" title=\"Save changes\" ng-click=\"saveEdit()\"></i>\n      <i class=\"red clickable glyphicon glyphicon-remove icon1point5x\" title=\"Discard changes\" ng-click=\"stopEdit()\"></i>\n    </fieldset>\n  </form>\n</div>\n");
 $templateCache.put("plugins/ui/html/editor.html","<div class=\"editor-autoresize\">\n  <textarea name=\"{{name}}\" ng-model=\"text\"></textarea>\n</div>\n");
 $templateCache.put("plugins/ui/html/editorPreferences.html","<div ng-controller=\"CodeEditor.PreferencesController\">\n  <form class=\"form-horizontal\">\n    <div class=\"control-group\">\n      <label class=\"control-label\" for=\"theme\" title=\"The default theme to be used by the code editor\">Theme</label>\n\n      <div class=\"controls\">\n        <select id=\"theme\" ng-model=\"preferences.theme\">\n          <option value=\"default\">Default</option>\n          <option value=\"ambiance\">Ambiance</option>\n          <option value=\"blackboard\">Blackboard</option>\n          <option value=\"cobalt\">Cobalt</option>\n          <option value=\"eclipse\">Eclipse</option>\n          <option value=\"monokai\">Monokai</option>\n          <option value=\"neat\">Neat</option>\n          <option value=\"twilight\">Twilight</option>\n          <option value=\"vibrant-ink\">Vibrant ink</option>\n        </select>\n      </div>\n    </div>\n  </form>\n\n  <form name=\"editorTabForm\" class=\"form-horizontal\">\n    <div class=\"control-group\">\n      <label class=\"control-label\" for=\"tabSIze\">Tab size</label>\n\n      <div class=\"controls\">\n        <input type=\"number\" id=\"tabSize\" name=\"tabSize\" ng-model=\"preferences.tabSize\" ng-required=\"ng-required\" min=\"1\" max=\"10\"/>\n        <span class=\"help-block\"\n            ng-hide=\"editorTabForm.tabSize.$valid\">Please specify correct size (1-10).</span>\n      </div>\n    </div>\n  </form>\n\n  <div compile=\"codeMirrorEx\"></div>\n\n<!-- please do not change the tabs into spaces in the following script! -->\n<script type=\"text/ng-template\" id=\"exampleText\">\nvar foo = \"World!\";\n\nvar myObject = {\n	message: \"Hello\",\n		getMessage: function() {\n		return message + \" \";\n 	}\n};\n\nwindow.alert(myObject.getMessage() + foo);\n</script>\n\n<script type=\"text/ng-template\" id=\"codeMirrorExTemplate\">\n  <div hawtio-editor=\"exampleText\" mode=\"javascript\"></div>\n</script>\n</div>\n\n</div>\n");
-$templateCache.put("plugins/ui/html/filter.html","<div class=\"inline-block section-filter\">\n  <input type=\"text\"\n         class=\"search-query\"\n         ng-class=\"getClass()\"\n         ng-model=\"ngModel\"\n         placeholder=\"{{placeholder}}\">\n  <i class=\"icon-remove clickable\"\n     title=\"Clear Filter\"\n     ng-click=\"ngModel = \'\'\"></i>\n</div>\n");
+$templateCache.put("plugins/ui/html/filter.html","<div class=\"inline-block section-filter\">\n  <input type=\"text\"\n         class=\"search-query\"\n         ng-class=\"getClass()\"\n         ng-model=\"ngModel\"\n         placeholder=\"{{placeholder}}\">\n  <i class=\"glyphicon glyphicon-remove clickable\"\n     title=\"Clear Filter\"\n     ng-click=\"ngModel = \'\'\"></i>\n</div>\n");
 $templateCache.put("plugins/ui/html/icon.html","<span>\n  <span ng-show=\"icon && icon.type && icon.src\" title=\"{{icon.title}}\" ng-switch=\"icon.type\">\n    <i ng-switch-when=\"icon\" class=\"{{icon.src}} {{icon.class}}\"></i>\n    <img ng-switch-when=\"img\" ng-src=\"{{icon.src}}\" class=\"{{icon.class}}\">\n  </span>\n  <span ng-hide=\"icon && icon.type && icon.src\">\n    &nbsp;\n  </span>\n</span>\n\n");
 $templateCache.put("plugins/ui/html/list.html","<div>\n\n  <!-- begin cell template -->\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\n    <div class=\"ngCellText\">\n      {{row.entity}}\n    </div>\n  </script>\n  <!-- end cell template -->\n\n  <!-- begin row template -->\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\n    <div class=\"list-row\">\n      <div ng-show=\"config.showSelectionCheckbox\"\n           class=\"list-row-select\">\n        <input type=\"checkbox\" ng-model=\"row.selected\">\n      </div>\n      <div class=\"list-row-contents\"></div>\n    </div>\n  </script>\n  <!-- end row template -->\n\n  <!-- must have a little margin in the top -->\n  <div class=\"list-root\" style=\"margin-top: 15px\"></div>\n\n</div>\n");
 $templateCache.put("plugins/ui/html/multiItemConfirmActionDialog.html","<div>\n  <form class=\"no-bottom-margin\">\n    <div class=\"modal-header\">\n      <span>{{options.title || \'Are you sure?\'}}</span>\n    </div>\n    <div class=\"modal-body\">\n      <p ng-show=\'options.action\'\n         ng-class=\'options.actionClass\'\n         ng-bind=\'options.action\'></p>\n      <ul>\n        <li ng-repeat=\"item in options.collection\">{{item[options.index]}}</li>\n      </ul>\n      <p ng-show=\"options.custom\" \n         ng-class=\"options.customClass\" \n         ng-bind=\"options.custom\"></p>\n    </div>\n    <div class=\"modal-footer\">\n      <button class=\"btn\" \n              ng-class=\"options.okClass\" \n              ng-click=\"close(true)\">{{options.okText || \'Ok\'}}</button>\n      <button class=\"btn\" \n              ng-class=\"options.cancelClass\"\n              ng-click=\"close(false)\">{{options.cancelText || \'Cancel\'}}</button>\n    </div>\n  </form>\n</div>\n");
 $templateCache.put("plugins/ui/html/object.html","<div>\n  <script type=\"text/ng-template\" id=\"primitiveValueTemplate.html\">\n    <span ng-show=\"data\" object-path=\"{{path}}\">{{data}}</span>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayValueListTemplate.html\">\n    <ul class=\"zebra-list\" ng-show=\"data\" object-path=\"{{path}}\">\n      <li ng-repeat=\"item in data\">\n        <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\n      </li>\n    </ul>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayValueTableTemplate.html\">\n    <table class=\"table table-striped\" object-path=\"{{path}}\">\n      <thead>\n      </thead>\n      <tbody>\n      </tbody>\n    </table>\n  </script>\n  <script type=\"text/ng-template\" id=\"dateAttributeTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd ng-show=\"data && data.getTime() > 0\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</dd>\n      <dd ng-show=\"data && data.getTime() <= 0\"></dd>\n\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"dateValueTemplate.html\">\n    <span ng-show=\"data\">\n      <span ng-show=\"data && data.getTime() > 0\" object-path=\"{{path}}\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</span>\n      <span ng-show=\"data && data.getTime() <= 0\" object-path=\"{{path}}\"></span>\n    </span>\n  </script>\n  <script type=\"text/ng-template\" id=\"primitiveAttributeTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>{{data}}</dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"objectAttributeTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>\n        <div hawtio-object=\"data\" config=\"config\" path=\"path\" row=\"row\"></div>\n      </dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayAttributeListTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>\n        <ul class=\"zebra-list\">\n          <li ng-repeat=\"item in data\" ng-init=\"path = path + \'/\' + $index\">\n            <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\n          </li>\n        </ul>\n      </dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayAttributeTableTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>\n        <table class=\"table table-striped\">\n          <thead>\n          </thead>\n          <tbody>\n          </tbody>\n        </table>\n      </dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"headerTemplate.html\">\n    <th object-path=\"{{path}}\">{{key}}</th>\n  </script>\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\n    <tr object-path=\"{{path}}\"></tr>\n  </script>\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\n    <td object-path=\"{{path}}\"></td>\n  </script>\n</div>\n");
 $templateCache.put("plugins/ui/html/pane.html","<div class=\"pane\">\n  <div class=\"pane-wrapper\">\n    <div class=\"pane-header-wrapper\">\n    </div>\n    <div class=\"pane-viewport\">\n      <div class=\"pane-content\">\n      </div>\n    </div>\n    <div class=\"pane-bar\"\n         ng-mousedown=\"startMoving($event)\"\n         ng-click=\"toggle()\"></div>\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{direction}}\">\n  <div class=slideout-title>\n    <div class=\"mouse-pointer pull-right\" ng-click=\"hidePanel($event)\" title=\"Close panel\">\n      <i class=\"icon-remove\"></i>\n    </div>\n    <span>{{title}}</span>\n  </div>\n  <div class=\"slideout-content\">\n    <div class=\"slideout-body\"></div>\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{direction}}\">\n  <div class=slideout-title>\n    <div class=\"mouse-pointer pull-right\" ng-click=\"hidePanel($event)\" title=\"Close panel\">\n      <i class=\"glyphicon glyphicon-remove\"></i>\n    </div>\n    <span>{{title}}</span>\n  </div>\n  <div class=\"slideout-content\">\n    <div class=\"slideout-body\"></div>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/tablePager.html","<div class=\"hawtio-pager clearfix\">\n  <label>{{rowIndex() + 1}} / {{tableLength()}}</label>\n  <div class=btn-group>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"first()\"><i class=\"icon-fast-backward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"previous()\"><i class=\"icon-step-backward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"next()\"><i class=\"icon-step-forward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"last()\"><i class=\"icon-fast-forward\"></i></button>\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/tagFilter.html","<div>\n  <ul class=\"unstyled label-list\">\n    <li ng-repeat=\"tag in visibleTags | orderBy:\'tag.id || tag\'\"\n        class=\"mouse-pointer\"\n        ng-click=\"toggleSelectionFromGroup(selected, tag.id || tag)\">\n              <span class=\"badge\"\n                    ng-class=\"isInGroup(selected, tag.id || tag, \'badge-success\', \'\')\"\n                      >{{tag.id || tag}}</span>\n              <span class=\"pull-right\"\n                    ng-show=\"tag.count\">{{tag.count}}&nbsp;</span>\n    </li>\n  </ul>\n  <div class=\"mouse-pointer\"\n       ng-show=\"selected.length\"\n       ng-click=\"clearGroup(selected)\">\n    <i class=\"icon-remove\" ></i> Clear Tags\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/tagFilter.html","<div>\n  <ul class=\"list-unstyled label-list\">\n    <li ng-repeat=\"tag in visibleTags | orderBy:\'tag.id || tag\'\"\n        class=\"mouse-pointer\"\n        ng-click=\"toggleSelectionFromGroup(selected, tag.id || tag)\">\n              <span class=\"badge\"\n                    ng-class=\"isInGroup(selected, tag.id || tag, \'badge-success\', \'\')\"\n                      >{{tag.id || tag}}</span>\n              <span class=\"pull-right\"\n                    ng-show=\"tag.count\">{{tag.count}}&nbsp;</span>\n    </li>\n  </ul>\n  <div class=\"mouse-pointer\"\n       ng-show=\"selected.length\"\n       ng-click=\"clearGroup(selected)\">\n    <i class=\"glyphicon glyphicon-remove\" ></i> Clear Tags\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/toc.html","<div>\n  <div ng-repeat=\"item in myToc\">\n    <div id=\"{{item[\'href\']}}Target\" ng-bind-html=\"item.text\">\n    </div>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui-bootstrap/html/message.html","<div class=\"modal-header\">\n	<h3>{{ title }}</h3>\n</div>\n<div class=\"modal-body\">\n	<p>{{ message }}</p>\n</div>\n<div class=\"modal-footer\">\n	<button ng-repeat=\"btn in buttons\" ng-click=\"close(btn.result)\" class=\"btn\" ng-class=\"btn.cssClass\">{{ btn.label }}</button>\n</div>\n");
-$templateCache.put("plugins/ui/html/test/auto-columns.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row-fluid\">\n      <h3>Auto Columns</h3>\n      <p>Lays out a bunch of inline-block child elements into columns automatically based on the size of the parent container.  Specify the selector for the child items as an argument</p>\n\n      <script type=\"text/ng-template\" id=\"autoColumnTemplate\">\n<div id=\"container\"\n     style=\"height: 225px;\n            width: 785px;\n            background: lightgrey;\n            border-radius: 4px;\"\n     hawtio-auto-columns=\".ex-children\"\n     min-margin=\"5\">\n  <div class=\"ex-children\"\n       style=\"display: inline-block;\n              width: 64px; height: 64px;\n              border-radius: 4px;\n              background: lightgreen;\n              text-align: center;\n              vertical-align: middle;\n              margin: 5px;\"\n       ng-repeat=\"div in divs\">{{div}}</div>\n</div>\n      </script>\n      <div hawtio-editor=\"autoColumnEx\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"autoColumnEx\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/test/auto-dropdown.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row-fluid\">\n      <h3>Auto Drop Down</h3>\n      <p>Handy for horizontal lists of things like menus, if the width of the element is smaller than the items inside any overflowing elements will be collected into a special dropdown element that\'s required at the end of the list</p>\n      <script type=\"text/ng-template\" id=\"autoDropDownTemplate\">\n        <ul class=\"nav nav-tabs\" hawtio-auto-dropdown>\n          <!-- All of our menu items -->\n          <li ng-repeat=\"item in menuItems\">\n            <a href=\"\">{{item}}</a>\n          </li>\n          <!-- The dropdown that will collect overflow elements -->\n          <li class=\"dropdown overflow\" style=\"float: right !important; visibility: hidden;\">\n            <a href=\"\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">\n              <i class=\"icon-chevron-down\"></i>\n            </a>\n            <ul class=\"dropdown-menu right\"></ul>\n          </li>\n        </ul>\n      </script>\n      <div hawtio-editor=\"autoDropDown\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"autoDropDown\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/test/breadcrumbs.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n\n    <div class=\"row-fluid\">\n      <h3>BreadCrumbs</h3>\n      <p>A breadcrumb implementation that supports dropdowns for each node.  The data structure is a tree structure with a single starting node.  When the user makes a selection the directive will update the \'path\' property of the config object.  The directive also watches the \'path\' property, allowing you to also set the initial state of the breadcrumbs.</p>\n      <script type=\"text/ng-template\" id=\"breadcrumbTemplate\">\n<p>path: {{breadcrumbConfig.path}}</p>\n<ul class=\"nav nav-tabs\">\n<hawtio-breadcrumbs config=\"breadcrumbConfig\"></hawtio-breadcrumbs>\n</ul>\n      </script>\n      <h5>HTML</h5>\n      <div hawtio-editor=\"breadcrumbEx\" mode=\"fileUploadExMode\"></div>\n      <h5>JSON</h5>\n      <div hawtio-editor=\"breadcrumbConfigTxt\" mode=\"javascript\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"breadcrumbEx\"></div>\n      </div>\n    </div>\n\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/test/color-picker.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row-fluid\">\n    <h3>Color picker</h3>\n\n    <p>Currently used on the preferences page to associate a color with a given URL regex</p>\n\n    <div hawtio-editor=\"colorPickerEx\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"colorPickerEx\"></div>\n    </div>\n    <hr>\n  </div>\n\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/confirm-dialog.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row-fluid\">\n    <h3>Confirmation Dialog</h3>\n\n    <p>Displays a simple confirmation dialog with a standard title and buttons, just the dialog body needs to be\n      provided. The buttons can be customized as well as the actions when the ok or cancel button is clicked</p>\n\n    <div hawtio-editor=\"confirmationEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"confirmationEx1\"></div>\n    </div>\n\n    <div hawtio-editor=\"confirmationEx2\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"confirmationEx2\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/drop-down.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n\n    <div class=\"row-fluid\">\n      <h3>Drop Down</h3>\n      <p>A bootstrap.js drop-down widget driven by a simple json structure</p>\n      <script type=\"text/ng-template\" id=\"dropDownTemplate\">\n<p>someVal: {{someVal}}</p>\n  <div hawtio-drop-down=\"dropDownConfig\"></div>\n      </script>\n      <h5>HTML</h5>\n      <div hawtio-editor=\"dropDownEx\" mode=\"fileUploadExMode\"></div>\n      <h5>JSON</h5>\n      <div hawtio-editor=\"dropDownConfigTxt\" mode=\"javascript\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"dropDownEx\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/test/editable-property.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row-fluid\">\n    <h3>Editable Property</h3>\n\n    <p>Use to display a value that the user can edit at will</p>\n\n    <div hawtio-editor=\"editablePropertyEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"editablePropertyEx1\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/editor.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div>\n    <div class=\"row-fluid\">\n        <h3>CodeMirror</h3>\n\n        <p>A directive that wraps the codeMirror editor.</p>\n\n        <div hawtio-editor=\"editorEx1\" mode=\"fileUploadExMode\"></div>\n        <div class=\"directive-example\">\n          <div compile=\"editorEx1\"></div>\n        </div>\n      </div>\n  </div>\n\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/expandable.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row-fluid\">\n    <h3>Expandable</h3>\n\n    <p>Use to hide content under a header that a user can display when necessary</p>\n\n    <div hawtio-editor=\"expandableEx\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"expandableEx\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/file-upload.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row-fluid\">\n    <h3>File upload</h3>\n\n    <p>Use to upload files to the hawtio webapp backend. Files are stored in a temporary directory and managed via the\n      UploadManager JMX MBean</p>\n\n    <p>Showing files:</p>\n\n    <div hawtio-editor=\"fileUploadEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"fileUploadEx1\"></div>\n    </div>\n    <hr>\n    <p>Not showing files:</p>\n\n    <div hawtio-editor=\"fileUploadEx2\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"fileUploadEx2\"></div>\n    </div>\n  </div>\n  <hr>\n</div>\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/icon.html","<div ng-controller=\"UI.IconTestController\">\n\n  <script type=\"text/ng-template\" id=\"example-html\">\n\n<style>\n\n/* Define icon sizes in CSS\n   use the \'class\' attribute\n   to handle icons that are\n   wider than they are tall */\n.icon-example i:before,\n.icon-example img {\n  vertical-align: middle;\n  line-height: 32px;\n  font-size: 32px;\n  height: 32px;\n  width: auto;\n}\n\n.icon-example img.girthy {\n  height: auto;\n  width: 32px;\n}\n</style>\n\n<!-- Here we turn an array of\n     simple objects into icons! -->\n<ul class=\"icon-example inline\">\n  <li ng-repeat=\"icon in icons\">\n    <hawtio-icon config=\"icon\"></hawtio-icon>\n  </li>\n</ul>\n  </script>\n\n  <script type=\"text/ng-template\" id=\"example-config-json\">\n[{\n  \"title\": \"Awesome!\",\n  \"src\": \"icon-thumbs-up\"\n},\n{\n  \"title\": \"Apache Karaf\",\n  \"type\": \"icon\",\n  \"src\": \"icon-beaker\"\n},\n{\n  \"title\": \"Fabric8\",\n  \"type\": \"img\",\n  \"src\": \"img/icons/fabric8_icon.svg\"\n},\n{\n  \"title\": \"Apache Cassandra\",\n  \"src\": \"img/icons/cassandra.svg\",\n  \"class\": \"girthy\"\n}]\n  </script>\n\n\n  <div class=\"row-fluid\">\n    <h3>Icons</h3>\n    <p>A simple wrapper to handle arbitrarily using FontAwesome icons or images via a simple configuration</p>\n    <h5>HTML</h5>\n    <p>The icon sizes are specified in CSS, we can also pass a \'class\' field to the icon as well to handle icons that are wider than they are tall for certain layouts</p>\n    <div hawtio-editor=\"exampleHtml\" mode=\"html\"></div>\n    <h5>JSON</h5>\n    <p>Here we define the configuration for our icons, in this case we\'re just creating a simple array of icon definitions to show in a list</p>\n    <div hawtio-editor=\"exampleConfigJson\" mode=\"javascript\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"exampleHtml\"></div>\n    </div>\n  </div>\n\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/jsplumb.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div>\n\n    <div class=\"row-fluid\">\n      <h3>JSPlumb</h3>\n      <p>Use to create an instance of JSPlumb</p>\n      <script type=\"text/ng-template\" id=\"jsplumbTemplate\">\n<div>\n  <div class=\"ex-node-container\" hawtio-jsplumb>\n    <!-- Nodes just need to have an ID and the jsplumb-node class -->\n    <div ng-repeat=\"node in nodes\"\n         id=\"{{node}}\"\n         anchors=\"AutoDefault\"\n         class=\"jsplumb-node ex-node\">\n      <i class=\"icon-plus clickable\" ng-click=\"createEndpoint(node)\"></i> Node: {{node}}\n    </div>\n    <!-- You can specify a connect-to attribute and a comma separated list of IDs to connect nodes -->\n    <div id=\"node3\"\n         class=\"jsplumb-node ex-node\"\n         anchors=\"Left,Right\"\n         connect-to=\"node1,node2\">\n      <i class=\"icon-plus clickable\" ng-click=\"createEndpoint(\'node3\')\"></i> Node 3\n    </div>\n    <!-- Expressions and stuff will work too -->\n    <div ng-repeat=\"node in otherNodes\"\n         id=\"{{node}}\"\n         class=\"jsplumb-node ex-node\"\n         anchors=\"Continuous\"\n         connect-to=\"{{otherNodes[$index - 1]}}\"><i class=\"icon-plus clickable\" ng-click=\"createEndpoint(node)\"></i> Node: {{node}}</div>\n  </div>\n\n</div>\n      </script>\n      <div hawtio-editor=\"jsplumbEx\" mode=\"fileUploadExMode\"></div>\n\n      <div class=\"directive-example\">\n        <div compile=\"jsplumbEx\"></div>\n      </div>\n    </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/test/pager.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div>\n    <div class=\"row-fluid\">\n      <h3>Pager</h3>\n      <hr>\n    </div>\n  </div>\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/slideout.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row-fluid\">\n    <h3>Slideout</h3>\n    <p>Displays a panel that slides out from either the left or right and immediately disappears when closed</p>\n\n    <div hawtio-editor=\"sliderEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"sliderEx1\"></div>\n    </div>\n\n    <div hawtio-editor=\"sliderEx2\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"sliderEx2\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
-$templateCache.put("plugins/ui/html/test/template-popover.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row-fluid\">\n      <h3>Template Popover</h3>\n      <p>Uses bootstrap popover but lets you supply an angular template to render as the popover body.  For example here\'s a simple template for the popover body:</p>\n      <script type=\"text/ng-template\" id=\"myTemplate\">\n<table>\n  <tbody>\n    <tr ng-repeat=\"(k, v) in stuff track by $index\">\n      <td>{{k}}</td>\n      <td>{{v}}</td>\n    </tr>\n  </tbody>\n</table>\n      </script>\n      <div hawtio-editor=\"popoverEx\" mode=\"fileUploadExMode\"></div>\n\n      <p>\n      You can then supply this template as an argument to hawtioTemplatePopover.  By default it will look for a template in $templateCache called \"popoverTemplate\", or specify a templte for the \"content\" argument.  You can specify \"placement\" if you want the popover to appear on a certain side, or \"auto\" and the directive will calculate an appropriate side (\"right\" or \"left\") depending on where the element is in the window.\n      </p>\n\n      <script type=\"text/ng-template\" id=\"popoverExTemplate\">\n<ul>\n  <li ng-repeat=\"stuff in things\" hawtio-template-popover content=\"myTemplate\">{{stuff.name}}</li>\n</ul>\n      </script>\n      <div hawtio-editor=\"popoverUsageEx\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"popoverUsageEx\"></div>\n      </div>\n    </div>\n\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/test/zero-clipboard.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row-fluid\">\n      <h3>Zero Clipboard</h3>\n      <p>Directive that attaches a zero clipboard instance to an element so a user can click on a button to copy some text to the clipboard</p>\n      <p>Best way to use this is next to a readonly input that displays the same data to be copied, that way folks that have Flash disabled can still copy the text.</p>\n      <script type=\"text/ng-template\" id=\"zeroClipboardTemplate\">\n        <input type=\"text\" class=\"no-bottom-margin\" readonly value=\"Some Text!\">\n        <button class=\"btn\" zero-clipboard data-clipboard-text=\"Some Text!\" title=\"Click to copy!\">\n          <i class=\"icon-copy\"></i>\n        </button>\n      </script>\n      <div hawtio-editor=\"zeroClipboard\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"zeroClipboard\"></div>\n      </div>\n    </div>\n\n\n  </div>\n</div>\n");}]); hawtioPluginLoader.addModule("hawtio-ui-templates");
+$templateCache.put("plugins/ui/html/test/auto-columns.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row\">\n      <h3>Auto Columns</h3>\n      <p>Lays out a bunch of inline-block child elements into columns automatically based on the size of the parent container.  Specify the selector for the child items as an argument</p>\n\n      <script type=\"text/ng-template\" id=\"autoColumnTemplate\">\n<div id=\"container\"\n     style=\"height: 225px;\n            width: 785px;\n            background: lightgrey;\n            border-radius: 4px;\"\n     hawtio-auto-columns=\".ex-children\"\n     min-margin=\"5\">\n  <div class=\"ex-children\"\n       style=\"display: inline-block;\n              width: 64px; height: 64px;\n              border-radius: 4px;\n              background: lightgreen;\n              text-align: center;\n              vertical-align: middle;\n              margin: 5px;\"\n       ng-repeat=\"div in divs\">{{div}}</div>\n</div>\n      </script>\n      <div hawtio-editor=\"autoColumnEx\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"autoColumnEx\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/test/auto-dropdown.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row\">\n      <h3>Auto Drop Down</h3>\n      <p>Handy for horizontal lists of things like menus, if the width of the element is smaller than the items inside any overflowing elements will be collected into a special dropdown element that\'s required at the end of the list</p>\n      <script type=\"text/ng-template\" id=\"autoDropDownTemplate\">\n        <ul class=\"nav nav-tabs\" hawtio-auto-dropdown>\n          <!-- All of our menu items -->\n          <li ng-repeat=\"item in menuItems\">\n            <a href=\"\">{{item}}</a>\n          </li>\n          <!-- The dropdown that will collect overflow elements -->\n          <li class=\"dropdown overflow\" style=\"float: right !important; visibility: hidden;\">\n            <a href=\"\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">\n              <i class=\"icon-chevron-down\"></i>\n            </a>\n            <ul class=\"dropdown-menu right\"></ul>\n          </li>\n        </ul>\n      </script>\n      <div hawtio-editor=\"autoDropDown\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"autoDropDown\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/test/breadcrumbs.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n\n    <div class=\"row\">\n      <h3>BreadCrumbs</h3>\n      <p>A breadcrumb implementation that supports dropdowns for each node.  The data structure is a tree structure with a single starting node.  When the user makes a selection the directive will update the \'path\' property of the config object.  The directive also watches the \'path\' property, allowing you to also set the initial state of the breadcrumbs.</p>\n      <script type=\"text/ng-template\" id=\"breadcrumbTemplate\">\n<p>path: {{breadcrumbConfig.path}}</p>\n<ul class=\"nav nav-tabs\">\n<hawtio-breadcrumbs config=\"breadcrumbConfig\"></hawtio-breadcrumbs>\n</ul>\n      </script>\n      <h5>HTML</h5>\n      <div hawtio-editor=\"breadcrumbEx\" mode=\"fileUploadExMode\"></div>\n      <h5>JSON</h5>\n      <div hawtio-editor=\"breadcrumbConfigTxt\" mode=\"javascript\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"breadcrumbEx\"></div>\n      </div>\n    </div>\n\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/test/color-picker.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row\">\n    <h3>Color picker</h3>\n\n    <p>Currently used on the preferences page to associate a color with a given URL regex</p>\n\n    <div hawtio-editor=\"colorPickerEx\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"colorPickerEx\"></div>\n    </div>\n    <hr>\n  </div>\n\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/confirm-dialog.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row\">\n    <h3>Confirmation Dialog</h3>\n\n    <p>Displays a simple confirmation dialog with a standard title and buttons, just the dialog body needs to be\n      provided. The buttons can be customized as well as the actions when the ok or cancel button is clicked</p>\n\n    <div hawtio-editor=\"confirmationEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"confirmationEx1\"></div>\n    </div>\n\n    <div hawtio-editor=\"confirmationEx2\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"confirmationEx2\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/drop-down.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n\n    <div class=\"row\">\n      <h3>Drop Down</h3>\n      <p>A bootstrap.js drop-down widget driven by a simple json structure</p>\n      <script type=\"text/ng-template\" id=\"dropDownTemplate\">\n<p>someVal: {{someVal}}</p>\n  <div hawtio-drop-down=\"dropDownConfig\"></div>\n      </script>\n      <h5>HTML</h5>\n      <div hawtio-editor=\"dropDownEx\" mode=\"fileUploadExMode\"></div>\n      <h5>JSON</h5>\n      <div hawtio-editor=\"dropDownConfigTxt\" mode=\"javascript\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"dropDownEx\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/test/editable-property.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row\">\n    <h3>Editable Property</h3>\n\n    <p>Use to display a value that the user can edit at will</p>\n\n    <div hawtio-editor=\"editablePropertyEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"editablePropertyEx1\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/editor.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div>\n    <div class=\"row\">\n        <h3>CodeMirror</h3>\n\n        <p>A directive that wraps the codeMirror editor.</p>\n\n        <div hawtio-editor=\"editorEx1\" mode=\"fileUploadExMode\"></div>\n        <div class=\"directive-example\">\n          <div compile=\"editorEx1\"></div>\n        </div>\n      </div>\n  </div>\n\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/expandable.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row\">\n    <h3>Expandable</h3>\n\n    <p>Use to hide content under a header that a user can display when necessary</p>\n\n    <div hawtio-editor=\"expandableEx\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"expandableEx\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/file-upload.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row\">\n    <h3>File upload</h3>\n\n    <p>Use to upload files to the hawtio webapp backend. Files are stored in a temporary directory and managed via the\n      UploadManager JMX MBean</p>\n\n    <p>Showing files:</p>\n\n    <div hawtio-editor=\"fileUploadEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"fileUploadEx1\"></div>\n    </div>\n    <hr>\n    <p>Not showing files:</p>\n\n    <div hawtio-editor=\"fileUploadEx2\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"fileUploadEx2\"></div>\n    </div>\n  </div>\n  <hr>\n</div>\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/icon.html","<div ng-controller=\"UI.IconTestController\">\n\n  <script type=\"text/ng-template\" id=\"example-html\">\n\n<style>\n\n/* Define icon sizes in CSS\n   use the \'class\' attribute\n   to handle icons that are\n   wider than they are tall */\n.glyphicon glyphicon-example i:before,\n.glyphicon glyphicon-example img {\n  vertical-align: middle;\n  line-height: 32px;\n  font-size: 32px;\n  height: 32px;\n  width: auto;\n}\n\n.glyphicon glyphicon-example img.girthy {\n  height: auto;\n  width: 32px;\n}\n</style>\n\n<!-- Here we turn an array of\n     simple objects into icons! -->\n<ul class=\"glyphicon glyphicon-example list-inline\">\n  <li ng-repeat=\"icon in icons\">\n    <hawtio-icon config=\"icon\"></hawtio-icon>\n  </li>\n</ul>\n  </script>\n\n  <script type=\"text/ng-template\" id=\"example-config-json\">\n[{\n  \"title\": \"Awesome!\",\n  \"src\": \"icon-thumbs-up\"\n},\n{\n  \"title\": \"Apache Karaf\",\n  \"type\": \"icon\",\n  \"src\": \"glyphicon glyphicon-beaker\"\n},\n{\n  \"title\": \"Fabric8\",\n  \"type\": \"img\",\n  \"src\": \"img/icons/fabric8_icon.svg\"\n},\n{\n  \"title\": \"Apache Cassandra\",\n  \"src\": \"img/icons/cassandra.svg\",\n  \"class\": \"girthy\"\n}]\n  </script>\n\n\n  <div class=\"row\">\n    <h3>Icons</h3>\n    <p>A simple wrapper to handle arbitrarily using FontAwesome icons or images via a simple configuration</p>\n    <h5>HTML</h5>\n    <p>The icon sizes are specified in CSS, we can also pass a \'class\' field to the icon as well to handle icons that are wider than they are tall for certain layouts</p>\n    <div hawtio-editor=\"exampleHtml\" mode=\"html\"></div>\n    <h5>JSON</h5>\n    <p>Here we define the configuration for our icons, in this case we\'re just creating a simple array of icon definitions to show in a list</p>\n    <div hawtio-editor=\"exampleConfigJson\" mode=\"javascript\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"exampleHtml\"></div>\n    </div>\n  </div>\n\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/jsplumb.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div>\n\n    <div class=\"row\">\n      <h3>JSPlumb</h3>\n      <p>Use to create an instance of JSPlumb</p>\n      <script type=\"text/ng-template\" id=\"jsplumbTemplate\">\n<div>\n  <div class=\"ex-node-container\" hawtio-jsplumb>\n    <!-- Nodes just need to have an ID and the jsplumb-node class -->\n    <div ng-repeat=\"node in nodes\"\n         id=\"{{node}}\"\n         anchors=\"AutoDefault\"\n         class=\"jsplumb-node ex-node\">\n      <i class=\"glyphicon glyphicon-plus clickable\" ng-click=\"createEndpoint(node)\"></i> Node: {{node}}\n    </div>\n    <!-- You can specify a connect-to attribute and a comma separated list of IDs to connect nodes -->\n    <div id=\"node3\"\n         class=\"jsplumb-node ex-node\"\n         anchors=\"Left,Right\"\n         connect-to=\"node1,node2\">\n      <i class=\"glyphicon glyphicon-plus clickable\" ng-click=\"createEndpoint(\'node3\')\"></i> Node 3\n    </div>\n    <!-- Expressions and stuff will work too -->\n    <div ng-repeat=\"node in otherNodes\"\n         id=\"{{node}}\"\n         class=\"jsplumb-node ex-node\"\n         anchors=\"Continuous\"\n         connect-to=\"{{otherNodes[$index - 1]}}\"><i class=\"glyphicon glyphicon-plus clickable\" ng-click=\"createEndpoint(node)\"></i> Node: {{node}}</div>\n  </div>\n\n</div>\n      </script>\n      <div hawtio-editor=\"jsplumbEx\" mode=\"fileUploadExMode\"></div>\n\n      <div class=\"directive-example\">\n        <div compile=\"jsplumbEx\"></div>\n      </div>\n    </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/test/pager.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div>\n    <div class=\"row\">\n      <h3>Pager</h3>\n      <hr>\n    </div>\n  </div>\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/slideout.html","<div ng-controller=\"UI.UITestController1\">\n\n  <div class=\"row\">\n    <h3>Slideout</h3>\n    <p>Displays a panel that slides out from either the left or right and immediately disappears when closed</p>\n\n    <div hawtio-editor=\"sliderEx1\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"sliderEx1\"></div>\n    </div>\n\n    <div hawtio-editor=\"sliderEx2\" mode=\"fileUploadExMode\"></div>\n    <div class=\"directive-example\">\n      <div compile=\"sliderEx2\"></div>\n    </div>\n    <hr>\n  </div>\n\n</div>\n");
+$templateCache.put("plugins/ui/html/test/template-popover.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row\">\n      <h3>Template Popover</h3>\n      <p>Uses bootstrap popover but lets you supply an angular template to render as the popover body.  For example here\'s a simple template for the popover body:</p>\n      <script type=\"text/ng-template\" id=\"myTemplate\">\n<table>\n  <tbody>\n    <tr ng-repeat=\"(k, v) in stuff track by $index\">\n      <td>{{k}}</td>\n      <td>{{v}}</td>\n    </tr>\n  </tbody>\n</table>\n      </script>\n      <div hawtio-editor=\"popoverEx\" mode=\"fileUploadExMode\"></div>\n\n      <p>\n      You can then supply this template as an argument to hawtioTemplatePopover.  By default it will look for a template in $templateCache called \"popoverTemplate\", or specify a templte for the \"content\" argument.  You can specify \"placement\" if you want the popover to appear on a certain side, or \"auto\" and the directive will calculate an appropriate side (\"right\" or \"left\") depending on where the element is in the window.\n      </p>\n\n      <script type=\"text/ng-template\" id=\"popoverExTemplate\">\n<ul>\n  <li ng-repeat=\"stuff in things\" hawtio-template-popover content=\"myTemplate\">{{stuff.name}}</li>\n</ul>\n      </script>\n      <div hawtio-editor=\"popoverUsageEx\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"popoverUsageEx\"></div>\n      </div>\n    </div>\n\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/test/zero-clipboard.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row\">\n      <h3>Zero Clipboard</h3>\n      <p>Directive that attaches a zero clipboard instance to an element so a user can click on a button to copy some text to the clipboard</p>\n      <p>Best way to use this is next to a readonly input that displays the same data to be copied, that way folks that have Flash disabled can still copy the text.</p>\n      <script type=\"text/ng-template\" id=\"zeroClipboardTemplate\">\n        <input type=\"text\" class=\"no-bottom-margin\" readonly value=\"Some Text!\">\n        <button class=\"btn\" zero-clipboard data-clipboard-text=\"Some Text!\" title=\"Click to copy!\">\n          <i class=\"glyphicon glyphicon-copy\"></i>\n        </button>\n      </script>\n      <div hawtio-editor=\"zeroClipboard\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"zeroClipboard\"></div>\n      </div>\n    </div>\n\n\n  </div>\n</div>\n");}]); hawtioPluginLoader.addModule("hawtio-ui-templates");

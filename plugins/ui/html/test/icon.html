@@ -8,8 +8,8 @@
    use the 'class' attribute
    to handle icons that are
    wider than they are tall */
-.icon-example i:before,
-.icon-example img {
+.glyphicon glyphicon-example i:before,
+.glyphicon glyphicon-example img {
   vertical-align: middle;
   line-height: 32px;
   font-size: 32px;
@@ -17,7 +17,7 @@
   width: auto;
 }
 
-.icon-example img.girthy {
+.glyphicon glyphicon-example img.girthy {
   height: auto;
   width: 32px;
 }
@@ -25,7 +25,7 @@
 
 <!-- Here we turn an array of
      simple objects into icons! -->
-<ul class="icon-example inline">
+<ul class="glyphicon glyphicon-example list-inline">
   <li ng-repeat="icon in icons">
     <hawtio-icon config="icon"></hawtio-icon>
   </li>
@@ -40,7 +40,7 @@
 {
   "title": "Apache Karaf",
   "type": "icon",
-  "src": "icon-beaker"
+  "src": "glyphicon glyphicon-beaker"
 },
 {
   "title": "Fabric8",
@@ -55,7 +55,7 @@
   </script>
 
 
-  <div class="row-fluid">
+  <div class="row">
     <h3>Icons</h3>
     <p>A simple wrapper to handle arbitrarily using FontAwesome icons or images via a simple configuration</p>
     <h5>HTML</h5>

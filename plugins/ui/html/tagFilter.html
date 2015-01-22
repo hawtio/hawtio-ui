@@ -1,5 +1,5 @@
 <div>
-  <ul class="unstyled label-list">
+  <ul class="list-unstyled label-list">
     <li ng-repeat="tag in visibleTags | orderBy:'tag.id || tag'"
         class="mouse-pointer"
         ng-click="toggleSelectionFromGroup(selected, tag.id || tag)">
@@ -13,6 +13,6 @@
   <div class="mouse-pointer"
        ng-show="selected.length"
        ng-click="clearGroup(selected)">
-    <i class="icon-remove" ></i> Clear Tags
+    <i class="glyphicon glyphicon-remove" ></i> Clear Tags
   </div>
 </div>

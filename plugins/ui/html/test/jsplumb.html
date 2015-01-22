@@ -2,7 +2,7 @@
 
   <div>
 
-    <div class="row-fluid">
+    <div class="row">
       <h3>JSPlumb</h3>
       <p>Use to create an instance of JSPlumb</p>
       <script type="text/ng-template" id="jsplumbTemplate">
@@ -13,21 +13,21 @@
          id="{{node}}"
          anchors="AutoDefault"
          class="jsplumb-node ex-node">
-      <i class="icon-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}
+      <i class="glyphicon glyphicon-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}
     </div>
     <!-- You can specify a connect-to attribute and a comma separated list of IDs to connect nodes -->
     <div id="node3"
          class="jsplumb-node ex-node"
          anchors="Left,Right"
          connect-to="node1,node2">
-      <i class="icon-plus clickable" ng-click="createEndpoint('node3')"></i> Node 3
+      <i class="glyphicon glyphicon-plus clickable" ng-click="createEndpoint('node3')"></i> Node 3
     </div>
     <!-- Expressions and stuff will work too -->
     <div ng-repeat="node in otherNodes"
          id="{{node}}"
          class="jsplumb-node ex-node"
          anchors="Continuous"
-         connect-to="{{otherNodes[$index - 1]}}"><i class="icon-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}</div>
+         connect-to="{{otherNodes[$index - 1]}}"><i class="glyphicon glyphicon-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}</div>
   </div>
 
 </div>

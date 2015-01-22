@@ -1,10 +1,10 @@
 <div ng-controller="DataTable.SimpleTableTestController">
-  <div class="row-fluid">
+  <div class="row">
     <div class="section-header">
 
       <div class="section-filter">
         <input type="text" class="search-query" placeholder="Filter..." ng-model="mygrid.filterOptions.filterText">
-        <i class="icon-remove clickable" title="Clear filter" ng-click="mygrid.filterOptions.filterText = ''"></i>
+        <i class="glyphicon glyphicon-remove clickable" title="Clear filter" ng-click="mygrid.filterOptions.filterText = ''"></i>
       </div>
 
     </div>
@@ -14,7 +14,7 @@
 
   <table class="table table-striped" hawtio-simple-table="mygrid"></table>
 
-  <div class="row-fluid">
+  <div class="row">
     <p>Selected folks:</p>
     <ul>
       <li ng-repeat="person in selectedItems">{{person.name}}</li>

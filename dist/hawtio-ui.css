@@ -104,12 +104,12 @@ i.expandable-indicator {
   cursor: move;
 }
 
-.widget-title > .row-fluid > .pull-right > i {
+.widget-title > .row > .pull-right > i {
   cursor: pointer;
   opacity: .25;
 }
 
-.widget-title > .row-fluid > .pull-right > i:hover {
+.widget-title > .row > .pull-right > i:hover {
   transition: opacity 0.25s ease-in-out;
   -moz-transition: opacity 0.25s ease-in-out;
   -webkit-transition: opacity 0.25s ease-in-out;
@@ -406,17 +406,17 @@ table .ep.editing {
   margin: 10px;
 }
 
-.widget-title > .row-fluid {
+.widget-title > .row {
   position: relative;
 }
 
-.widget-title > .row-fluid > .pull-left {
+.widget-title > .row > .pull-left {
   position: absolute;
   right: 16px;
   left: 0;
 }
 
-.widget-title > .row-fluid > .pull-left > .ep > div {
+.widget-title > .row > .pull-left > .ep > div {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
