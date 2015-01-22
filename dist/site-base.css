@@ -1,9 +1,20 @@
+body {
+  padding-top: 70px;
+}
+
+#main {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 * {
   outline: none;
 }
+
 a:focus {
   outline: none;
 }
+
 .navbar .brand {
   font-size: 18px;
 }
@@ -713,10 +724,6 @@ table.table thead .sorting_desc:after {
   padding-left: 14px;
   padding-left: 4px \9;
   margin-bottom: 0;
-}
-
-.nav {
-  margin-bottom: 10px;
 }
 
 .navbar-fixed-top {
@@ -1837,11 +1844,11 @@ h4.ajaxError {
   margin: 10px;
 }
 
-div#main div ul.nav li a.nav-primary.active {
+#main div ul.nav li a.nav-primary.active {
   color: rgba(255, 255, 255, 0.75);
 }
 
-div#main div ul.nav li a.nav-primary {
+#main div ul.nav li a.nav-primary {
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
   background-color: #006dcc;
@@ -1900,7 +1907,7 @@ div#main div ul.nav li a.nav-primary.active {
   width: 9px;
 }
 
-div#main div ul.nav li a.nav-primary .caret {
+#main div ul.nav li a.nav-primary .caret {
   border-top-color: #ffffff;
   border-bottom-color: #ffffff;
 }
@@ -1966,14 +1973,6 @@ div#main div ul.nav li a.nav-primary .caret {
 .main-nav-upper .nav li a {
   padding-top: 2px;
   padding-bottom: 5px;
-}
-
-#main-nav {
-  max-height: 70px;
-}
-
-#main {
-  margin-top: 70px !important;
 }
 
 dd.file-list {

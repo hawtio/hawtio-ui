@@ -494,7 +494,7 @@ ol.zebra-list > li:before {
 .tocify {
   /* top works for the wiki, may need customization
      elsewhere */
-  top: 120px;
+  top: 56px;
   width: 232px;
   padding-left: 1em;
   padding-right: 1em;
@@ -519,7 +519,7 @@ ol.zebra-list > li:before {
 
 .toc-content {
   position: absolute;
-  left: 290px;
+  left: 280px;
   right: 0;
 }
 
