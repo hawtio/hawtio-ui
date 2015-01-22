@@ -129,11 +129,6 @@ div.log-stack-trace p {
   min-height: 100%;
   height: 100%;
 }
-/* sub tab tweaks */
-body div div ul.nav {
-  margin-bottom: 5px;
-  border-bottom: none;
-}
 
 #tree-ctrl {
   position: relative;
@@ -730,18 +725,6 @@ table.table thead .sorting_desc:after {
   margin-bottom: 0px;
 }
 
-#main > div > ul.nav,
-ng-include > .nav.nav-tabs {
-  margin-bottom: 10px;
-  min-width: 120px;
-}
-
-#main > div > ul.nav > li, 
-ng-include > .nav.nav-tabs > li {
-  margin-top: 3px;
-  margin-bottom: 3px;
-}
-
 .navbar .btn-navbar span:after {
   font-family: FontAwesome;
   content: "\f0de";
@@ -752,44 +735,6 @@ ng-include > .nav.nav-tabs > li {
   font-family: FontAwesome;
   content: "\f0dd";
   margin-left: 7px;
-}
-
-#main > div > ul.nav,
-ng-include > .nav.nav-tabs {
-  padding-left: 3px;
-  padding-right: 3px;
-}
-
-.nav-tabs > li > a,
-.nav-pills > li > a {
-  margin-right: 0px;
-}
-
-div#main div ul.nav li a,
-div#main div ul.nav li span {
-  padding-bottom: 2px;
-  padding-top: 2px;
-}
-
-div#main div ul.nav li a:hover {
-  padding-bottom: 2px;
-  padding-top: 2px;
-}
-
-#main div div div section .tabbable .nav.nav-tabs {
-  margin-top: 0px;
-  margin-bottom: 10px;
-  min-width: 120px;
-}
-
-#main > div > div > div > .nav.nav-tabs:not(.connected),
-.span12 > .nav.nav-tabs:not(.connected) {
-  margin-top: 5px;
-}
-
-.span12 > .nav.nav-tabs:not(.connected),
-.span12 > .nav.nav-tabs > li {
-  margin: 3px;
 }
 
 .logbar {
@@ -1844,44 +1789,6 @@ h4.ajaxError {
   margin: 10px;
 }
 
-#main div ul.nav li a.nav-primary.active {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-#main div ul.nav li a.nav-primary {
-  color: #ffffff;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: #006dcc;
-  background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0044cc));
-  background-image: -webkit-linear-gradient(top, #0088cc, #0044cc);
-  background-image: -o-linear-gradient(top, #0088cc, #0044cc);
-  background-image: linear-gradient(to bottom, #0088cc, #0044cc);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0044cc', GradientType=0);
-  border-color: #0044cc #0044cc #002a80;
-  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  *background-color: #0044cc;
-  /* Darken IE7 buttons by default so they stand out more given they won't have borders */
-
-  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
-}
-
-div#main div ul.nav li a.nav-primary:hover,
-div#main div ul.nav li a.nav-primary:active,
-div#main div ul.nav li a.nav-primary.active,
-div#main div ul.nav li a.nav-primary.disabled,
-div#main div ul.nav li a.nav-primary[disabled] {
-  color: #ffffff;
-  background-color: #0044cc;
-  *background-color: #003bb3;
-}
-
-div#main div ul.nav li a.nav-primary:active,
-div#main div ul.nav li a.nav-primary.active {
-  background-color: #003399 \9;
-}
-
 .nav.nav-tabs li a[disabled] {
   cursor: not-allowed;
   opacity: 0.3;
@@ -1910,20 +1817,6 @@ div#main div ul.nav li a.nav-primary.active {
 #main div ul.nav li a.nav-primary .caret {
   border-top-color: #ffffff;
   border-bottom-color: #ffffff;
-}
-
-.main-nav-upper .container:before {
-  display: none;
-}
-
-.main-nav-upper .container:after {
-  display: none;
-}
-
-.main-nav-upper .container {
-  width: auto;
-  line-height: 23px;
-  vertical-align: auto;
 }
 
 .main-nav-upper .icon-desktop:before {
