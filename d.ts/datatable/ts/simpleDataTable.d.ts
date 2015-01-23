@@ -11,7 +11,7 @@ declare module DataTable {
             target: string;
             showFiles: string;
         };
-        link: (scope: any, element: any, attrs: any) => any;
+        link: (scope, element, attrs) => any;
         constructor($compile: any);
         private doLink($scope, $element, $attrs);
     }

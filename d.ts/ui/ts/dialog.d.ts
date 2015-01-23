@@ -27,7 +27,7 @@ declare module UI {
         removeBackdropFadeDiv(): void;
     }
     interface MultiItemConfirmActionOptions {
-        collection: any[];
+        collection: Array<any>;
         index: string;
         onClose: (result: boolean) => void;
         action: string;

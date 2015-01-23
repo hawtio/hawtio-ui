@@ -11,6 +11,6 @@ declare module UI {
         scope: {
             config: string;
         };
-        controller: {}[];
+        controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
     };
 }

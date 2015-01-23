@@ -8,7 +8,7 @@ declare module UI {
         scope: {
             getContents: string;
         };
-        controller: {}[];
+        controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }

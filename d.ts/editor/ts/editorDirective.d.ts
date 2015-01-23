@@ -14,7 +14,7 @@ declare module HawtioEditor {
             outputEditor: string;
             name: string;
         };
-        controller: {}[];
+        controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }

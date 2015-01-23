@@ -81,7 +81,7 @@ declare module UI {
          * @type ConfirmDialogConfig
          */
         scope: ConfirmDialogConfig;
-        controller: {}[];
+        controller: (string | (($scope: any, $element: any, $attrs: any, $transclude: any, $compile: any) => void))[];
         constructor();
     }
 }

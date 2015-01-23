@@ -13,7 +13,7 @@ declare module UI {
             width: string;
             header: string;
         };
-        controller: {}[];
+        controller: (string | (($scope: any, $element: any, $attrs: any, $transclude: any, $document: any, $timeout: any, $compile: any, $templateCache: any, $window: any) => void))[];
         link: ($scope: any, $element: any, $attr: any) => void;
     };
 }

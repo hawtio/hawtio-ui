@@ -29,6 +29,6 @@ declare module UI {
         compile: (tElement: any, tAttrs: any, transclude: any) => {
             post: (scope: any, iElement: any, iAttrs: any, controller: any) => void;
         };
-        controller: {}[];
+        controller: (string | (($scope: any, $element: any, $timeout: any) => void))[];
     }
 }

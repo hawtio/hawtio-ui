@@ -7,7 +7,7 @@ declare module UI {
         restrict: string;
         scope: boolean;
         templateUrl: string;
-        link: (scope: any, element: any, attrs: any) => any;
+        link: (scope, element, attrs) => any;
         $scope: any;
         element: any;
         attrs: any;
