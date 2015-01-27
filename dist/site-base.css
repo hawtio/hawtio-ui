@@ -142,12 +142,11 @@ div.log-stack-trace p {
   /* padding: 5px; */
 }
 
-ul.dynatree-container {
+.dynatree-container, 
+.dynatree-container li {
   background: inherit;
 }
-ul.dynatree-container li {
-  background: inherit;
-}
+
 /* Chart stuff */
 #charts {
   display: block;
@@ -268,17 +267,6 @@ i.expandable-indicator {
 
 .expandable.closed .expandable-body {
   display: none;
-}
-
-span.dynatree-icon {
-  position: relative;
-  top: -2px;
-  font-size: 17px;
-}
-
-span:not(.dynatree-has-children) .dynatree-icon:before {
-  font-family: FontAwesome;
-  content: "\f013";
 }
 
 ul.inline,
@@ -2718,24 +2706,6 @@ i.expandable-indicator.folder {
   height: 45px;
 }
 
-[class^="dynatree-folder icon-"], [class*=" dynatree-folder icon-"] {
-
-}
-
-[class^="dynatree-folder icon-"]:before, [class*=" dynatree-folder icon-"]:before {
-  font-size: 17px;
-  margin-left: 18px;
-}
-
-
-[class^="dynatree-folder icon-"], [class*=" dynatree-folder icon-"] .dynatree-connector {
-  display: none;
-}
-
-[class^="dynatree-folder icon-"], [class*=" dynatree-folder icon-"] .dynatree-icon {
-  display: none;
-}
-
 .main-nav-lower .container ul .dropdown.overflow {
   margin-right: 25px;
 }
@@ -4132,7 +4102,7 @@ img.nodeIcon:hover {
   margin-top: 10px;
 }
 
-ul.dynatree-container {
+.dynatree-container {
   overflow: visible;
 }
 
