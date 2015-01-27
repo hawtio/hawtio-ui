@@ -97,7 +97,7 @@ gulp.task('clean', ['concat'], function() {
 });
 
 gulp.task('watch', ['build'], function() {
-  plugins.watch(['dist/*.css', 'libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + config.js], function() {
+  plugins.watch(['hawtio-nav-example.js', 'dist/*.css', 'libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + config.js], function() {
     gulp.start('reload');
   });
   plugins.watch(['libs/**/*.d.ts', config.ts, config.templates], function() {
@@ -110,7 +110,24 @@ gulp.task('connect', ['watch'], function() {
     root: '.',
     livereload: true,
     port: 2772,
-    fallback: 'index.html'
+    fallback: 'index.html',
+    middleware: function(connect, options) {
+      return [
+        function(req, res, next) {
+          var path = req.originalUrl;
+          // avoid returning these files, they should get pulled from js
+          if (s.startsWith(path, '/plugins/')) {
+            console.log("returning 404 for: ", path);
+            res.statusCode = 404;
+            res.end();
+            return;
+          } else {
+            console.log("allowing: ", path);
+            next();
+          }
+
+        }]
+    }
   });
 });
 

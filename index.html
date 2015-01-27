@@ -13,6 +13,7 @@
 
     <!-- bower:css -->
     <link rel="stylesheet" href="libs/codemirror/lib/codemirror.css" />
+    <link rel="stylesheet" href="libs/font-awesome/css/font-awesome.css" />
     <!-- endbower -->
 
     <link rel="stylesheet" href="libs/codemirror/theme/codemirror.css" />
@@ -72,8 +73,8 @@
     <script type="text/javascript" src="libs/codemirror/mode/clike/clike.js"></script>
     <script type="text/javascript" src="libs/codemirror/mode/yaml/yaml.js"></script>
 
-    <!--
     <script src="libs/bootstrap/dist/js/bootstrap.js"></script>
+    <!--
     <script src="libs/patternfly/dist/js/patternfly.js"></script>
     -->
 
@@ -88,7 +89,9 @@
     </nav>
 
     <div id="main" class="container-fluid ng-cloak" ng-controller="HawtioNav.ViewController">
-      <div ng-include src="viewPartial"></div>
+      <div class="row">
+        <div class="col-md-12" ng-include src="viewPartial"></div>
+      </div>
     </div>
 
 

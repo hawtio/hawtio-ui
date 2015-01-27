@@ -10,11 +10,6 @@ module UI {
 
   export var _module = angular.module(UI.pluginName, []);
 
-  _module.config(["$routeProvider", ($routeProvider) => {
-    $routeProvider.
-      when('/ui/developerPage', {templateUrl: templatePath + 'developerPage.html', reloadOnSearch: false});
-  }]);
-
   _module.factory('UI', () => {
     return UI;
   });
@@ -74,7 +69,7 @@ module UI {
   }]);
   */
 
-  _module.run(["localStorage", (localStorage) => {
+  _module.run([() => {
     log.debug("loaded");
     /*
     var opts = localStorage['CodeMirrorOptions'];

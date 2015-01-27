@@ -1,7 +1,7 @@
+/// <reference path="uiPlugin.ts"/>
 /**
  * @module UI
  */
-/// <reference path="uiPlugin.ts"/>
 module UI {
 
   _module.controller("UI.DeveloperPageController", ["$scope", "$http", ($scope, $http) => {
