@@ -5,7 +5,9 @@ var gulp = require('gulp'),
     map = require('vinyl-map'),
     fs = require('fs'),
     path = require('path'),
-    s = require('underscore.string');
+    s = require('underscore.string'),
+    base64 = require('base64'),
+    glob = require('glob');
 
 var plugins = gulpLoadPlugins({});
 var pkg = require('./package.json');
@@ -101,7 +103,7 @@ gulp.task('watch', ['build'], function() {
     gulp.start('reload');
   });
   plugins.watch(['libs/**/*.d.ts', config.ts, config.templates], function() {
-    gulp.start(['tsc', 'template', 'concat', 'clean']);
+    gulp.start(['tsc', 'template', 'concat', 'clean', 'embed-images']);
   });
 });
 
@@ -125,8 +127,7 @@ gulp.task('connect', ['watch'], function() {
             console.log("allowing: ", path);
             next();
           }
-
-        }]
+        }];
     }
   });
 });
@@ -136,7 +137,50 @@ gulp.task('reload', function() {
     .pipe(plugins.connect.reload());
 });
 
-gulp.task('build', ['bower', 'path-adjust', 'tsc', 'template', 'concat', 'clean']);
+gulp.task('embed-images', ['concat'], function() {
+
+  var replacements = [];
+
+  var files = glob.sync('img/**/*.{png,svg,gif,jpg}');
+  //console.log("files: ", files);
+  function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
+
+  function getDataURI(filename) {
+    var relative = path.relative('.', filename);
+    var ext = path.extname(filename);
+    var mime = 'image/jpg';
+    switch (ext) {
+      case '.png':
+        mime = 'image/png';
+      break;
+      case '.svg':
+        mime = 'image/svg+xml';
+      break;
+      case '.gif':
+        mime='image/gif';
+      break;
+    }
+    var buf = fs.readFileSync(filename);
+    return 'data:' + mime + ';base64,' + base64.encode(buf);
+  }
+
+  files.forEach(function(file) {
+    replacements.push({
+      match: new RegExp(escapeRegExp(file), 'g'),
+      replacement: getDataURI(file)
+    }); 
+  });
+
+  gulp.src(config.dist + config.js)
+  .pipe(plugins.replaceTask({
+    patterns: replacements
+  }))
+  .pipe(gulp.dest(config.dist));
+});
+
+gulp.task('build', ['bower', 'path-adjust', 'tsc', 'template', 'concat', 'clean', 'embed-images']);
 
 gulp.task('default', ['connect']);
 
