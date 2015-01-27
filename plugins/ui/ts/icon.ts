@@ -38,7 +38,7 @@ module UI {
           return;
         }
         if (!('type' in $scope.icon) && !Core.isBlank($scope.icon.src)) {
-          if ($scope.icon.src.startsWith("icon-")) {
+          if ($scope.icon.src.startsWith("fa fa-")) {
             $scope.icon.type = "icon";
           } else {
             $scope.icon.type = "img";

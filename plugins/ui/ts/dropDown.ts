@@ -108,7 +108,7 @@ module UI {
           if (config && !Core.isBlank(config.icon)) {
             return config.icon
           } else {
-            return 'icon-spacer';
+            return 'fa fa-spacer';
           }
         };
 

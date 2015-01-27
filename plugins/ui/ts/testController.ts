@@ -37,18 +37,18 @@ module UI {
       $scope.someVal = 1;
 
       $scope.dropDownConfig = <UI.MenuItem>{
-        icon: 'icon-cogs',
+        icon: 'fa fa-cogs',
         title: 'My Awesome Menu',
         items: [{
           title: 'Some Item',
           action: 'someVal=2'
         }, {
           title: 'Some other stuff',
-          icon: 'icon-twitter',
+          icon: 'fa fa-twitter',
           action: 'someVal=3'
         }, {
           title: "I've got children",
-          icon: 'icon-file-text',
+          icon: 'fa fa-file-text',
           items: [{
             title: 'Hi!',
             action: 'someVal=4'
@@ -84,39 +84,39 @@ module UI {
 
       $scope.breadcrumbConfig = {
         path: '/root/first child',
-        icon: 'icon-cogs',
+        icon: 'fa fa-cogs',
         title: 'root',
         items: [{
           title: 'first child',
-          icon: 'icon-folder-close-alt',
+          icon: 'fa fa-folder-close-alt',
           items: [{
             title: "first child's first child",
-            icon: 'icon-file-text'
+            icon: 'fa fa-file-text'
           }]
         }, {
           title: 'second child',
-          icon: 'icon-file'
+          icon: 'fa fa-file'
         }, {
           title: "third child",
-          icon: 'icon-folder-close-alt',
+          icon: 'fa fa-folder-close-alt',
           items: [{
             title: "third child's first child",
-            icon: 'icon-file-text'
+            icon: 'fa fa-file-text'
           }, {
             title: "third child's second child",
-            icon: 'icon-file-text'
+            icon: 'fa fa-file-text'
           }, {
             title: "third child's third child",
-            icon: 'icon-folder-close-alt',
+            icon: 'fa fa-folder-close-alt',
             items: [{
               title: 'More!',
-              icon: 'icon-file-text'
+              icon: 'fa fa-file-text'
             }, {
               title: 'Child',
-              icon: 'icon-file-text'
+              icon: 'fa fa-file-text'
             }, {
               title: 'Menus!',
-              icon: 'icon-file-text'
+              icon: 'fa fa-file-text'
             }]
           }]
         }]

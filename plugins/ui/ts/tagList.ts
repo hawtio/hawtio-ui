@@ -35,7 +35,7 @@ module UI {
           //log.debug("Collection changed: ", tags);
           var tmp = angular.element("<div></div>");
           tags.forEach((tag) => {
-            var func = $interpolate('<span class="badge badge-success mouse-pointer">{{tag}} <i class="icon-remove" ng-click="removeTag(\'{{tag}}\')"></i></span>&nbsp;');
+            var func = $interpolate('<span class="badge badge-success mouse-pointer">{{tag}} <i class="fa fa-remove" ng-click="removeTag(\'{{tag}}\')"></i></span>&nbsp;');
             tmp.append(func({
               tag: tag
             }));

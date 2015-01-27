@@ -36,7 +36,7 @@ module UI {
         };
 
         scope.editing = false;
-        (<JQueryStatic>$)(element.find(".icon-pencil")[0]).hide();
+        (<JQueryStatic>$)(element.find(".fa fa-pencil")[0]).hide();
 
         scope.getPropertyName = () => {
           var propertyName = $parse(attrs['property'])(scope);
@@ -67,11 +67,11 @@ module UI {
         };
 
         scope.showEdit = function () {
-          (<JQueryStatic>$)(element.find(".icon-pencil")[0]).show();
+          (<JQueryStatic>$)(element.find(".fa fa-pencil")[0]).show();
         };
 
         scope.hideEdit = function () {
-          (<JQueryStatic>$)(element.find(".icon-pencil")[0]).hide();
+          (<JQueryStatic>$)(element.find(".fa fa-pencil")[0]).hide();
         };
 
         function inputSelector() {

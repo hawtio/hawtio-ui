@@ -8,8 +8,8 @@
    use the 'class' attribute
    to handle icons that are
    wider than they are tall */
-.glyphicon glyphicon-example i:before,
-.glyphicon glyphicon-example img {
+.fa fa-example i:before,
+.fa fa-example img {
   vertical-align: middle;
   line-height: 32px;
   font-size: 32px;
@@ -17,7 +17,7 @@
   width: auto;
 }
 
-.glyphicon glyphicon-example img.girthy {
+.fa fa-example img.girthy {
   height: auto;
   width: 32px;
 }
@@ -25,7 +25,7 @@
 
 <!-- Here we turn an array of
      simple objects into icons! -->
-<ul class="glyphicon glyphicon-example list-inline">
+<ul class="fa fa-example list-inline">
   <li ng-repeat="icon in icons">
     <hawtio-icon config="icon"></hawtio-icon>
   </li>
@@ -35,12 +35,12 @@
   <script type="text/ng-template" id="example-config-json">
 [{
   "title": "Awesome!",
-  "src": "icon-thumbs-up"
+  "src": "fa fa-thumbs-up"
 },
 {
   "title": "Apache Karaf",
   "type": "icon",
-  "src": "glyphicon glyphicon-beaker"
+  "src": "fa fa-beaker"
 },
 {
   "title": "Fabric8",
