@@ -34,7 +34,8 @@
     "codemirror": "~4.11.0",
     "dagre": "~0.7.1",
     "zeroclipboard": "~2.2.0",
-    "font-awesome": "~4.3.0"
+    "font-awesome": "~4.3.0",
+    "toastr": "~2.1.0"
   },
   "devDependencies": {
     "bootstrap": "~3.3.1",
