@@ -130,111 +130,42 @@ div.log-stack-trace p {
   height: 100%;
 }
 
-#tree-ctrl {
-  position: relative;
-  top: -3px;
-}
-
-#tree-ctrl > li > a {
-  display: block;
-  padding-left: 5px;
-  padding-right: 5px;
-  /* padding: 5px; */
-}
-
-.dynatree-container, 
-.dynatree-container li {
-  background: inherit;
-}
-
-/* Chart stuff */
-#charts {
-  display: block;
-  overflow: hidden;
-  margin: 5px auto;
-  position: relative;
-  padding-bottom: 35px;
-}
-.group {
-  margin-bottom: 1em;
-}
-.axis {
-  font: 10px sans-serif;
-  pointer-events: none;
-  z-index: 2;
-}
-.axis.text {
-  -webkit-transition: fill-opacity 250ms linear;
-}
-.axis path {
-  display: none;
-}
-.axis line {
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-.axis.top {
-  position: relative;
-  top: 0;
-  padding: 0;
-}
-.axis.bottom {
-  position: absolute;
-  bottom: 0px;
-  padding: 0;
-}
-.horizon {
-  overflow: hidden;
-  position: relative;
-}
-.horizon:last-child {
-  border-bottom: none;
-}
-.horizon + .horizon {
-  border-top: none;
-}
-.horizon canvas {
-  display: block;
-}
-.horizon .title,
-.horizon .value {
-  bottom: 0;
-  line-height: 30px;
-  margin: 0 6px;
-  position: absolute;
-  white-space: nowrap;
-}
-.horizon .title {
-  left: 0;
-}
-.horizon .value {
-  right: 0;
-}
-.line {
-  opacity: .2;
-  z-index: 2;
-}
-
+/* what does this fix... */
+/*
 td {
   padding-right: 20px;
 }
-
-ul.inline,
-ol.inline {
-  margin-left: 0;
-  list-style: none;
-}
-
-ul.inline > li,
-ol.inline > li {
-  display: inline-block;
-  padding-right: 2px;
-  padding-left: 2px;
-}
+*/
+/* end what does this fix... */
 
 .tab {
   display: block;
   margin-left: 1em;
+}
+
+/* utility classes */
+.inline {
+  display: inline;
+}
+
+.inline-block,
+.list-row-select,
+.list-row-contents,
+.list-row-contents > .ngCellText {
+  display: inline-block;
+}
+
+ol.inline,
+ul.inline {
+  margin-left: 0;
+  list-style: none;
+}
+
+ol.inline > li,
+ul.inline > li {
+  display: inline-block;
+  padding-right: 2px;
+  padding-left: 2px;
 }
 
 .red {
@@ -291,16 +222,19 @@ ol.inline > li {
   text-align: left;
 }
 
-.inline {
-  display: inline;
+.no-bottom-margin {
+  margin-bottom: 0 !important;
 }
 
-.inline-block,
-.list-row-select,
-.list-row-contents,
-.list-row-contents > .ngCellText {
-  display: inline-block;
+.no-bottom-margin .control-group {
+  margin-bottom: 4px;
 }
+
+.bottom-margin {
+  margin-bottom: 20px;
+}
+
+/* end utility classes */
 
 .list-row {
   height: 30px;
@@ -320,18 +254,6 @@ ol.inline > li {
 
 .list-row-select > input {
   vertical-align: middle;
-}
-
-.no-bottom-margin {
-  margin-bottom: 0 !important;
-}
-
-.no-bottom-margin .control-group {
-  margin-bottom: 4px;
-}
-
-.bottom-margin {
-  margin-bottom: 20px;
 }
 
 li.attr-column {
@@ -387,6 +309,7 @@ li.attr-column {
   margin-right: .5em;
 }
 
+/* osgi page stuff */
 .ACTIVE:before {
   font-family: FontAwesome;
   content: "\f087";
@@ -437,6 +360,7 @@ li.attr-column {
   content: "\f06b";
   font-style: normal;
 }
+/* end osgi page stuff */
 
 .table-bordered {
   border: none;
@@ -2364,16 +2288,6 @@ i.expandable-indicator.folder {
 }
 /* End 800x600 optimizations */
 
-/* jmx donut graph */
-fs-donut svg g text.value {
-  font-size: 40px;
-}
-
-fs-donut svg g text.units {
-  font-size: 20px;
-}
-/* end jmx donut graph */
-
 /* health page and shared stuff */
 .health-displays {
   width: 100%;
@@ -2798,73 +2712,6 @@ input.ng-invalid-pattern:focus {
   box-shadow: 0 0 6px #f8b9b7;
 }
 
-/* threads page */
-.threads.logbar > .logbar-container {
-  margin-top: 2px;
-  margin-bottom: 5px;
-}
-
-.state-panel > ul > li:not(:first-child) > span {
-  margin-left: 15px;
-}
-
-.state-panel > ul > li.active {
-  font-weight: bold;
-}
-
-.runnable {
-  color: green;
-}
-
-.timed-waiting {
-  color: orange;
-}
-
-.waiting,
-.darkgray {
-  color: darkgray;
-}
-
-.blocked {
-  color: red;
-}
-
-strong.new,
-.lightgreen {
-  color: lightgreen;
-}
-
-.terminated,
-.darkred {
-  color: darkred;
-}
-
-.thread-state-indicator {
-  width: 100%;
-  height: 100%;
-  padding-top: 5px;
-}
-
-.monitor-indicator {
-  font-size: 10px;
-  padding: 4px;
-  margin: 5px;
-}
-
-.monitor-indicator.button {
-  cursor: pointer;
-}
-
-.monitor-indicator.true {
-  background: #1cd11d;
-  box-shadow: inset 0px 1px 0px 0px rgba(250, 250, 250, 0.5), 0px 0px 4px 1px rgba(34, 203, 1, 0.49);
-}
-
-.monitor-indicator.false {
-  background: #737373;
-  box-shadow: inset 0px 1px 0px 0px rgba(250, 250, 250, 0.5);
-}
-/* end threads page */
 
 .table-header {
   color: black;
@@ -2925,6 +2772,8 @@ th > .indicator:before {
   width: 32px;
 }
 
+/* osgi page stuff */
+
 .repository-browser-toolbar > .btn {
   margin-bottom: 10px;
 }
@@ -2954,6 +2803,7 @@ th > .indicator:before {
   left: 3px;
   top: -9px;
 }
+/* osgi page stuff */
 
 .connect-column {
   display: inline-block;
@@ -3430,49 +3280,6 @@ img.nodeIcon:hover {
   height: 16px;
   vertical-align: top;
 }
-
-/* jmx operation page stuff */
-.operation-row {
-  position: relative;
-  /* height: 30px; */
-  vertical-align: middle;
-}
-
-.operation-row.can-invoke {
-  cursor: pointer;
-}
-
-.operation-row.cant-invoke {
-  cursor: not-allowed;
-}
-
-.operation-row > * {
-  display: inline-block;
-  height: 100%;
-  line-height: 30px;
-}
-
-.operation-actions {
-  position: absolute;
-  right: 6px;
-  top: 4px;
-}
-
-.help-block:empty {
-  margin-top: 10px;
-}
-/* end jmx operation page stuff */
-
-/* JMX page stuff */
-.dynatree-container {
-  overflow: visible;
-}
-
-.tree-header {
-  position: relative;
-  height: 26px;
-}
-/* end JMX page stuff */
 
 .fabric-app-view-header {
   height: auto;

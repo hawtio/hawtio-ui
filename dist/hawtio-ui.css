@@ -789,6 +789,10 @@ span.hawtio-dropdown .dropdown-menu {
   margin-right: 10px;
 }
 
+.dynatree-container {
+  overflow: visible;
+}
+
 .search-query.has-text {
   background: #55ddff;
   color: #333333;
