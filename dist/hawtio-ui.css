@@ -715,7 +715,7 @@ span.hawtio-dropdown .dropdown-menu {
 .pane {
   position: fixed;
   bottom: 0;
-  top: 70px;
+  top: 80px;
   height: auto;
   width: 300px;
 }
