@@ -227,6 +227,8 @@ table .ep.editing {
   position: fixed;
   z-index: 3000;
   width: 75%;
+  top: 110px;
+  bottom: 10px;
 }
 
 .slideout > .slideout-title {
@@ -269,6 +271,7 @@ table .ep.editing {
 }
 
 .slideout.right {
+  right: 0px;
   left: 100%;
 }
 
@@ -931,7 +934,7 @@ span.hawtio-dropdown .dropdown-menu {
 .navbar-fixed-top [hawtio-sub-tabs] {
   float: none;
   display: block;
-  border-top: 1px solid #d4d4d4;
+  /* border-top: 1px solid #d4d4d4; */
 }
 
 .navbar-fixed-top [hawtio-sub-tabs] li a {
