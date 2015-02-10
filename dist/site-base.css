@@ -1313,31 +1313,6 @@ h4.ajaxError {
   opacity: 0.3;
 }
 
-.caret:before {
-  font-family: 'FontAwesome';
-  border: 0;
-  content: "\f078";
-  font-size: 11px;
-  display: block;
-  position: relative;
-  top: -9px;
-  left: 0;
-}
-
-.dropdown.perspective-selector .caret:before {
-  top: -7px;
-}
-
-.caret {
-  border: none;
-  width: 9px;
-}
-
-#main div ul.nav li a.nav-primary .caret {
-  border-top-color: #ffffff;
-  border-bottom-color: #ffffff;
-}
-
 .main-nav-upper .icon-desktop:before {
   position:relative;
   top: 1px;

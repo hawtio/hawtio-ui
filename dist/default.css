@@ -1192,10 +1192,6 @@ strong.new,
   border-top: 1px solid #d3d3d3;
 }
 
-.caret:before {
-  color: #53595f;
-}
-
 .hawtio-breadcrumb .caret {
   border: 0;
   width: 17px;
