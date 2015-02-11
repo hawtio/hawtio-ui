@@ -796,6 +796,13 @@ span.hawtio-dropdown .dropdown-menu {
   overflow: visible;
 }
 
+.search-query {
+  min-width: 20em;
+  padding: 5px;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
 .search-query.has-text {
   background: #55ddff;
   color: #333333;
