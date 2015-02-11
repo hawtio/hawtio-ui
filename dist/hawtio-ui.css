@@ -1005,3 +1005,13 @@ span.hawtio-dropdown .dropdown-menu {
   background-color: #1a1a1a;
 }
 
+.hawtio-form input {
+  width: 20em;
+}
+
+.hawtio-form textarea {
+  margin-left: 90px;
+  width: 20em;
+  min-height: 5em;
+
+}
