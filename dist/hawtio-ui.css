@@ -803,11 +803,21 @@ span.hawtio-dropdown .dropdown-menu {
   margin-bottom: 1em;
 }
 
+.tree-header .section-filter .search-query,
+.section-filter .search-query {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.tree-header .section-filter .search-query {
+  padding: 0;
+  min-width: 0;
+}
+
 .search-query.has-text {
   background: #55ddff;
   color: #333333;
 }
-
 
 .modal-backdrop {
   position: fixed;

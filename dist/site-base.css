@@ -2,11 +2,6 @@ body {
   padding-top: 90px;
 }
 
-#main {
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
 * {
   outline: none;
 }
