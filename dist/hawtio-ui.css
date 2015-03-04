@@ -819,6 +819,7 @@ span.hawtio-dropdown .dropdown-menu {
   color: #333333;
 }
 
+/*
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -940,6 +941,8 @@ span.hawtio-dropdown .dropdown-menu {
 .modal-footer .btn-block + .btn-block {
   margin-left: 0;
 }
+
+*/
 
 /* Main nav tweaks */
 
