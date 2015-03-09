@@ -941,6 +941,11 @@ span.hawtio-dropdown .dropdown-menu {
   margin-left: 0;
 }
 
+.modal-dialog {
+  margin: 0;
+  width: auto;
+}
+
 /* Main nav tweaks */
 
 .navbar-fixed-top [hawtio-main-nav] {
