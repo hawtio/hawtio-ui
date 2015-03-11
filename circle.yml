@@ -9,17 +9,11 @@ dependencies:
     - npm install
     - bower install
   override:
-    - gulp build
+    - gulp build site deploy
 
 test:
   override:
     - echo yes
 
-deployment:
-  website:
-    branch: master
-    owner: hawtio
-    commands:
-      - gulp build site deploy
 
 
