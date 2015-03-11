@@ -206,7 +206,7 @@ gulp.task('site', ['build'], function() {
   });
 });
 
-gulp.task('deploy', ['build', 'site'], function() {
+gulp.task('deploy', function() {
   return gulp.src(['site/**', 'site/**/*.*', 'site/*.*'], { base: 'site' })
     .pipe(plugins.debug({title: 'deploy'}))
     .pipe(plugins.ghPages({

@@ -24,7 +24,7 @@ deployment:
     branch: master
     owner: hawtio
     commands:
-      - mkdir site
+      - gulp site
       - gulp deploy
 
 
