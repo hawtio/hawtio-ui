@@ -186,7 +186,7 @@ gulp.task('clean-site', function() {
 });
 
 gulp.task('site', ['clean-site', 'build'], function() {
-  gulp.src(['index.html', 'css/**', 'images/**', 'img/**', 'libs/**', 'dist/**'], {base: '.'}).pipe(gulp.dest('site'));
+  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**', 'dist/**'], {base: '.'}).pipe(gulp.dest('site'));
 
   var dirs = fs.readdirSync('./libs');
   dirs.forEach(function(dir) {
