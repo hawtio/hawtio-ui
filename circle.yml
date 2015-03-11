@@ -3,6 +3,10 @@ machine:
     version: 0.10.33
   services:
 
+branches:
+  ignore:
+    - gh-pages
+
 dependencies:
   pre:
     - npm install -g bower gulp
