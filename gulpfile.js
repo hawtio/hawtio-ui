@@ -180,14 +180,14 @@ gulp.task('embed-images', ['concat'], function() {
   .pipe(gulp.dest(config.dist));
 });
 
-/*
-gulp.task('clean-site', function() {
-  gulp.src(['site'], { read: false })
-    .pipe(plugins.clean());
-});
+gulp.task('site', ['build'], function() {
+  gulp.src('website/.gitignore')
+    .pipe(gulp.dest('site'));
+  gulp.src('website/*')
+    .pipe(gulp.dest('site'));
 
-gulp.task('site', ['clean-site', 'build'], function() {
-  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**', 'dist/**'], {base: '.'}).pipe(gulp.dest('site'));
+  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**/*.js', 'libs/**/*.css', 'libs/**/*.swf', 'libs/**/*.woff', 'libs/**/*.ttf', 'libs/**/*.map', 'dist/**'], {base: '.'})
+    .pipe(gulp.dest('site'));
 
   var dirs = fs.readdirSync('./libs');
   dirs.forEach(function(dir) {
@@ -203,10 +203,9 @@ gulp.task('site', ['clean-site', 'build'], function() {
     }
   });
 });
-*/
 
-gulp.task('deploy', function() {
-  return gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**/*.js', 'libs/**/*.css', 'dist/**'], {base: '.'})
+gulp.task('deploy', ['build', 'site'], function() {
+  return gulp.src(['./site/**', './site/**/*.*', './site/*.*'], { base: 'site' })
     .pipe(plugins.debug({title: 'deploy'}))
     .pipe(plugins.ghPages());
 });
