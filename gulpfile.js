@@ -207,7 +207,7 @@ gulp.task('site', ['build'], function() {
 });
 
 gulp.task('deploy', ['build', 'site'], function() {
-  return gulp.src(['./site/**', './site/**/*.*', './site/*.*'], { base: 'site' })
+  return gulp.src(['site/**', 'site/**/*.*', 'site/*.*'], { base: 'site' })
     .pipe(plugins.debug({title: 'deploy'}))
     .pipe(plugins.ghPages({
       message: "[ci skip] Update site"                     
