@@ -180,6 +180,29 @@ gulp.task('embed-images', ['concat'], function() {
   .pipe(gulp.dest(config.dist));
 });
 
+gulp.task('clean-site', function() {
+  return gulp.src(['site'], { read: false })
+    .pipe(plugins.clean());
+});
+
+gulp.task('site', ['clean-site', 'build'], function() {
+  gulp.src(['index.html', 'css/**', 'images/**', 'img/**', 'libs/**', 'dist/**'], {base: '.'}).pipe(gulp.dest('site'));
+
+  var dirs = fs.readdirSync('./libs');
+  dirs.forEach(function(dir) {
+    var path = './libs/' + dir + "/img";
+    try {
+      if (fs.statSync(path).isDirectory()) {
+        console.log("found image dir: " + path);
+        var pattern = 'libs/' + dir + "/img/**";
+        gulp.src([pattern]).pipe(gulp.dest('site/img'));
+      }
+    } catch (e) {
+      // ignore, file does not exist
+    }
+  });
+});
+
 gulp.task('build', ['bower', 'path-adjust', 'tsc', 'template', 'concat', 'clean', 'embed-images']);
 
 gulp.task('default', ['connect']);
