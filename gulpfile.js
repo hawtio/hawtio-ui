@@ -203,6 +203,11 @@ gulp.task('site', ['clean-site', 'build'], function() {
   });
 });
 
+gulp.task('deploy', ['site'], function() {
+  return gulp.src('./site/**')
+    .pipe(plugins.ghPages());
+});
+
 gulp.task('build', ['bower', 'path-adjust', 'tsc', 'template', 'concat', 'clean', 'embed-images']);
 
 gulp.task('default', ['connect']);
