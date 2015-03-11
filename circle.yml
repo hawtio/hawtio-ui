@@ -11,6 +11,10 @@ dependencies:
   override:
     - gulp build
 
+general:
+  artifacts:
+    - "site/**"
+
 test:
   override:
     - echo yes
@@ -20,6 +24,6 @@ deployment:
     branch: master
     owner: hawtio
     commands:
-      - gulp build site deploy
+      - gulp deploy
 
 
