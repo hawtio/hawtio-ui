@@ -11,10 +11,6 @@ dependencies:
   override:
     - gulp build
 
-general:
-  artifacts:
-    - "site/**"
-
 test:
   override:
     - echo yes
