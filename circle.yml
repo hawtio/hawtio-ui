@@ -15,4 +15,11 @@ test:
   override:
     - echo yes
 
+deployment:
+  website:
+    branch: master
+    owner: hawtio
+    commands:
+      - gulp deploy
+
 
