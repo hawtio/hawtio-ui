@@ -180,8 +180,9 @@ gulp.task('embed-images', ['concat'], function() {
   .pipe(gulp.dest(config.dist));
 });
 
+/*
 gulp.task('clean-site', function() {
-  return gulp.src(['site'], { read: false })
+  gulp.src(['site'], { read: false })
     .pipe(plugins.clean());
 });
 
@@ -202,9 +203,11 @@ gulp.task('site', ['clean-site', 'build'], function() {
     }
   });
 });
+*/
 
-gulp.task('deploy', ['site'], function() {
-  return gulp.src('./site/**')
+gulp.task('deploy', function() {
+  return gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**/*.js', 'libs/**/*.css', 'dist/**'], {base: '.'})
+    .pipe(plugins.debug({title: 'deploy'}))
     .pipe(plugins.ghPages());
 });
 
