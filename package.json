@@ -16,6 +16,7 @@
     "gulp-img64": "0.0.6",
     "gulp-load-plugins": "^0.8.0",
     "gulp-notify": "^2.1.0",
+    "gulp-rename": "^1.2.0",
     "gulp-replace-task": "^0.1.0",
     "gulp-typescript": "^2.3.0",
     "gulp-watch": "^3.0.0",

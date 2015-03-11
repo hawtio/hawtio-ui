@@ -20,6 +20,6 @@ deployment:
     branch: master
     owner: hawtio
     commands:
-      - gulp deploy
+      - gulp build site deploy
 
 

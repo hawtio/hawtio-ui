@@ -185,8 +185,10 @@ gulp.task('site', ['build'], function() {
     .pipe(gulp.dest('site'));
   gulp.src('website/*')
     .pipe(gulp.dest('site'));
-
-  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**/*.js', 'libs/**/*.css', 'libs/**/*.swf', 'libs/**/*.woff', 'libs/**/*.ttf', 'libs/**/*.map', 'dist/**'], {base: '.'})
+  gulp.src('index.html')
+    .pipe(plugins.rename('404.html'))
+    .pipe(gulp.dest('site'));
+  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**/*.js', 'libs/**/*.css', 'libs/**/*.swf', 'libs/**/*.woff','libs/**/*.woff2', 'libs/**/*.ttf', 'libs/**/*.map', 'dist/**'], {base: '.'})
     .pipe(gulp.dest('site'));
 
   var dirs = fs.readdirSync('./libs');
