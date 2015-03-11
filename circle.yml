@@ -9,7 +9,7 @@ dependencies:
     - npm install
     - bower install
   override:
-    - mkdir site
+    - if [ -d 'site' ]; then mkdir site; fi
     - gulp build
 
 general:
@@ -25,7 +25,6 @@ deployment:
     branch: master
     owner: hawtio
     commands:
-      - mkdir site
       - gulp deploy
 
 
