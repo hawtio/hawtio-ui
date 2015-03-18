@@ -275,8 +275,12 @@ var hawtioPluginLoader = (function(self, window, undefined) {
    */
   self.tasks = [];
 
-  self.registerPreBootstrapTask = function(task) {
-    self.tasks.push(task);
+  self.registerPreBootstrapTask = function(task, front) {
+    if (!front) {
+      self.tasks.push(task);
+    } else {
+      self.tasks.unshift(task);
+    }
   };
 
   self.addModule = function(module) {
@@ -561,9 +565,12 @@ var HawtioCore;
 
     // Placeholder user details service
     _module.factory('userDetails', function() {
-      return {};
+      return {
+        logout: function() {
+          log.debug("Dummy userDetails.logout()");
+        }
+      };
     });
-
 
     hawtioPluginLoader.addModule("ng");
     hawtioPluginLoader.addModule("ngSanitize");

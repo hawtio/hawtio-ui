@@ -424,8 +424,8 @@ var HawtioMainNav;
           welcomePageFallback();
           return;
         }
-        var item = candidates[0];
-        var remaining = candidates.slice(1);
+        var item = candidates.pop();
+        var remaining = candidates;
         log.debug("Trying candidate: ", item, " remaining: ", remaining);
         if (!item) {
           welcomePageFallback();
@@ -450,7 +450,7 @@ var HawtioMainNav;
         }
       }
       evalCandidates(candidates);
-    }, 50);
+    }, 500);
   }]);
 
   _module.controller('HawtioNav.ViewController', ['$scope', '$route', '$location', 'layoutFull', 'viewRegistry', function($scope, $route, $location, layoutFull, viewRegistry) {
