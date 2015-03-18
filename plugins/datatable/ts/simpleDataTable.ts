@@ -104,7 +104,7 @@ module DataTable {
         config.selectedItems = reSelectedItems;
       };
 
-      scope.$watch(dataName, listener);
+      scope.$watchCollection(dataName, listener);
 
       // lets add a separate event so we can force updates
       // if we find cases where the delta logic doesn't work
