@@ -8,6 +8,7 @@
     "dist/site-base.css",
     "dist/default.css",
     "dist/hawtio-ui.css",
+    "dist/jquery-ui.custom.js",
     "dist/ui-bootstrap.js",
     "dist/ui-bootstrap-tpls.js",
     "dist/transition.js",
