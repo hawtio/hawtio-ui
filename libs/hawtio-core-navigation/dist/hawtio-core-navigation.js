@@ -283,7 +283,7 @@ var HawtioMainNav;
         this.self.tabs = [];
       }
       var tab = {
-        id: '',
+        id: parent.id + '-' + path,
         title: function() {
           return title;
         },
@@ -578,22 +578,29 @@ var HawtioMainNav;
   function addIsSelected($location, item) {
     if (!('isSelected' in item) && 'href' in item) {
       item.isSelected = function() {
-        var href = new URI(item.href());
+        // item.href() might be relative, in which
+        // case we should let the browser resolve
+        // what the full path should be
+        var tmpLink = $('<a>')
+          .attr("href", item.href());
+        var href = new URI(tmpLink[0].href);
+
         var current = new URI();
         var path = current.path();
         var query = current.query(true);
         var mainTab = query['main-tab'];
         var subTab = query['sub-tab'];
         var answer = false;
+
         if (item.isSubTab) {
           if (!subTab) {
-            answer = _.endsWith(path, href.path());
+            answer = _.startsWith(path, href.path());
           } else {
             answer = subTab === item.id;
           }
         } else {
           if (!mainTab) {
-            answer = _.endsWith(path, href.path());
+            answer = _.startsWith(path, href.path());
           } else {
             answer = mainTab === item.id;
           }
@@ -651,20 +658,34 @@ var HawtioMainNav;
     return {
       restrict: 'A',
       controller: ['$scope', function($scope) {
-        $scope.nav = HawtioNav;
         $scope.redraw = true;
-        $scope.$watchCollection('nav.selected()', function(selected) {
-          $scope.redraw = true;
+        $scope.$watch(function() {
+          if ($scope.redraw) {
+            return;
+          }
+          var selected = HawtioNav.selected();
+          if (selected) {
+            var tabs = selected.tabs;
+            if (tabs) {
+              var tabsJson = angular.toJson(tabs);
+              if (tabsJson !== $scope.tabsJson) {
+                $scope.redraw = true;
+              }
+            } 
+          }
         });
         $scope.$on('hawtio-nav-redraw', function() {
+          log.debug("got event, redrawing sub-tabs");
           $scope.redraw = true;
         });
       }],
       link: function(scope, element, attrs) {
-        scope.$watch('redraw', function(redraw) {
+        scope.$watch('redraw', function() {
+          log.debug("Redrawing sub-tabs");
           element.empty();
           var selectedNav = HawtioNav.selected();
           if (selectedNav && selectedNav.tabs) {
+            scope.tabsJson = angular.toJson(selectedNav.tabs);
             if (attrs['showHeading']) {
               var heading = angular.extend({}, selectedNav, {
                 template: function() { return $templateCache.get('templates/main-nav/subTabHeader.html'); }});
