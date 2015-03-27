@@ -1,6 +1,949 @@
 /// <reference path="../libs/hawtio-utilities/defs.d.ts"/>
 
 /// <reference path="../../includes.ts"/>
+/**
+ * @module DataTable
+ * @main DataTable
+ */
+var DataTable;
+(function (DataTable) {
+    DataTable.pluginName = 'datatable';
+    DataTable.log = Logger.get("DataTable");
+    DataTable._module = angular.module(DataTable.pluginName, []);
+    DataTable._module.config(["$routeProvider", function ($routeProvider) {
+        $routeProvider.when('/datatable/test', { templateUrl: 'plugins/datatable/html/test.html' });
+    }]);
+    hawtioPluginLoader.addModule(DataTable.pluginName);
+})(DataTable || (DataTable = {}));
+
+/// <reference path="datatablePlugin.ts"/>
+/**
+ * @module DataTable
+ */
+var DataTable;
+(function (DataTable) {
+    var SimpleDataTable = (function () {
+        function SimpleDataTable($compile) {
+            var _this = this;
+            this.$compile = $compile;
+            this.restrict = 'A';
+            this.scope = {
+                config: '=hawtioSimpleTable',
+                target: '@',
+                showFiles: '@'
+            };
+            // necessary to ensure 'this' is this object <sigh>
+            this.link = function ($scope, $element, $attrs) {
+                return _this.doLink($scope, $element, $attrs);
+            };
+        }
+        SimpleDataTable.prototype.doLink = function ($scope, $element, $attrs) {
+            var defaultPrimaryKeyFn = function (entity, idx) {
+                // default function to use id/_id/name as primary key, and fallback to use index
+                return entity["id"] || entity["_id"] || entity["name"] || idx;
+            };
+            var config = $scope.config;
+            var dataName = config.data || "data";
+            // need to remember which rows has been selected as the config.data / config.selectedItems
+            // so we can re-select them when data is changed/updated, and entity may be new instances
+            // so we need a primary key function to generate a 'primary key' of the entity
+            var primaryKeyFn = config.primaryKeyFn || defaultPrimaryKeyFn;
+            $scope.rows = [];
+            var scope = $scope.$parent || $scope;
+            var listener = function (otherValue) {
+                var value = Core.pathGet(scope, dataName);
+                if (value && !angular.isArray(value)) {
+                    value = [value];
+                    Core.pathSet(scope, dataName, value);
+                }
+                if (!('sortInfo' in config) && 'columnDefs' in config) {
+                    // an optional defaultSort can be used to indicate a column
+                    // should not automatic be the default sort
+                    var ds = config.columnDefs.first()['defaultSort'];
+                    var sortField;
+                    if (angular.isUndefined(ds) || ds === true) {
+                        sortField = config.columnDefs.first()['field'];
+                    }
+                    else {
+                        sortField = config.columnDefs.slice(1).first()['field'];
+                    }
+                    config['sortInfo'] = {
+                        sortBy: sortField,
+                        ascending: true
+                    };
+                }
+                else {
+                    config['sortInfo'] = {
+                        sortBy: '',
+                        ascending: true
+                    };
+                }
+                var sortInfo = $scope.config.sortInfo;
+                // enrich the rows with information about their index
+                var idx = -1;
+                $scope.rows = (value || []).sortBy(sortInfo.sortBy, !sortInfo.ascending).map(function (entity) {
+                    idx++;
+                    return {
+                        entity: entity,
+                        index: idx,
+                        getProperty: function (name) {
+                            return entity[name];
+                        }
+                    };
+                });
+                Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], $scope.rows);
+                // okay the data was changed/updated so we need to re-select previously selected items
+                // and for that we need to evaluate the primary key function so we can match new data with old data.
+                var reSelectedItems = [];
+                $scope.rows.forEach(function (row, idx) {
+                    var rpk = primaryKeyFn(row.entity, row.index);
+                    var selected = config.selectedItems.some(function (s) {
+                        var spk = primaryKeyFn(s, s.index);
+                        return angular.equals(rpk, spk);
+                    });
+                    if (selected) {
+                        // need to enrich entity with index, as we push row.entity to the re-selected items
+                        row.entity.index = row.index;
+                        reSelectedItems.push(row.entity);
+                        DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
+                    }
+                });
+                config.selectedItems = reSelectedItems;
+            };
+            scope.$watchCollection(dataName, listener);
+            // lets add a separate event so we can force updates
+            // if we find cases where the delta logic doesn't work
+            // (such as for nested hawtioinput-input-table)
+            scope.$on("hawtio.datatable." + dataName, listener);
+            function getSelectionArray() {
+                var selectionArray = config.selectedItems;
+                if (!selectionArray) {
+                    selectionArray = [];
+                    config.selectedItems = selectionArray;
+                }
+                if (angular.isString(selectionArray)) {
+                    var name = selectionArray;
+                    selectionArray = Core.pathGet(scope, name);
+                    if (!selectionArray) {
+                        selectionArray = [];
+                        scope[name] = selectionArray;
+                    }
+                }
+                return selectionArray;
+            }
+            function isMultiSelect() {
+                var multiSelect = $scope.config.multiSelect;
+                if (angular.isUndefined(multiSelect)) {
+                    multiSelect = true;
+                }
+                return multiSelect;
+            }
+            $scope.toggleAllSelections = function () {
+                var allRowsSelected = $scope.config.allRowsSelected;
+                var newFlag = allRowsSelected;
+                var selectionArray = getSelectionArray();
+                selectionArray.splice(0, selectionArray.length);
+                angular.forEach($scope.rows, function (row) {
+                    row.selected = newFlag;
+                    if (allRowsSelected) {
+                        selectionArray.push(row.entity);
+                    }
+                });
+            };
+            $scope.toggleRowSelection = function (row) {
+                if (row) {
+                    var selectionArray = getSelectionArray();
+                    if (!isMultiSelect()) {
+                        // lets clear all other selections
+                        selectionArray.splice(0, selectionArray.length);
+                        angular.forEach($scope.rows, function (r) {
+                            if (r !== row) {
+                                r.selected = false;
+                            }
+                        });
+                    }
+                    var entity = row.entity;
+                    if (entity) {
+                        var idx = selectionArray.indexOf(entity);
+                        if (row.selected) {
+                            if (idx < 0) {
+                                selectionArray.push(entity);
+                            }
+                        }
+                        else {
+                            // clear the all selected checkbox
+                            $scope.config.allRowsSelected = false;
+                            if (idx >= 0) {
+                                selectionArray.splice(idx, 1);
+                            }
+                        }
+                    }
+                }
+            };
+            $scope.sortBy = function (field) {
+                if ($scope.config.sortInfo.sortBy === field) {
+                    $scope.config.sortInfo.ascending = !$scope.config.sortInfo.ascending;
+                }
+                else {
+                    $scope.config.sortInfo.sortBy = field;
+                    $scope.config.sortInfo.ascending = true;
+                }
+                $scope.$emit("hawtio.datatable." + dataName);
+            };
+            $scope.getClass = function (field) {
+                if ('sortInfo' in $scope.config) {
+                    if ($scope.config.sortInfo.sortBy === field) {
+                        if ($scope.config.sortInfo.ascending) {
+                            return 'asc';
+                        }
+                        else {
+                            return 'desc';
+                        }
+                    }
+                }
+                return '';
+            };
+            $scope.showRow = function (row) {
+                var filter = Core.pathGet($scope, ['config', 'filterOptions', 'filterText']);
+                if (Core.isBlank(filter)) {
+                    return true;
+                }
+                var data = null;
+                try {
+                    data = row['entity']['title'];
+                }
+                catch (e) {
+                }
+                if (!data) {
+                    // use the row as-is
+                    data = row.entity;
+                }
+                var match = FilterHelpers.search(data, filter);
+                return match;
+            };
+            $scope.isSelected = function (row) {
+                return config.selectedItems.some(row.entity);
+            };
+            $scope.onRowSelected = function (row) {
+                var idx = config.selectedItems.indexOf(row.entity);
+                if (idx >= 0) {
+                    DataTable.log.debug("De-selecting row at index " + row.index);
+                    config.selectedItems.splice(idx, 1);
+                }
+                else {
+                    if (!config.multiSelect) {
+                        config.selectedItems.length = 0;
+                    }
+                    DataTable.log.debug("Selecting row at index " + row.index);
+                    // need to enrich entity with index, as we push row.entity to the selected items
+                    row.entity.index = row.index;
+                    config.selectedItems.push(row.entity);
+                }
+            };
+            // lets add the header and row cells
+            var rootElement = $element;
+            rootElement.empty();
+            var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
+            var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
+            var onMouseDown;
+            if (enableRowClickSelection) {
+                onMouseDown = "ng-mousedown='onRowSelected(row)' ";
+            }
+            else {
+                onMouseDown = "";
+            }
+            var headHtml = "<thead><tr>";
+            // use a function to check if a row is selected so the UI can be kept up to date asap
+            var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " + onMouseDown + "ng-class=\"{'selected': isSelected(row)}\" >";
+            var idx = 0;
+            if (showCheckBox) {
+                var toggleAllHtml = isMultiSelect() ? "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' ng-change='toggleAllSelections()'>" : "";
+                headHtml += "\n<th class='simple-table-checkbox'>" + toggleAllHtml + "</th>";
+                bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' ng-change='toggleRowSelection(row)'></td>";
+            }
+            angular.forEach(config.columnDefs, function (colDef) {
+                var field = colDef.field;
+                var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
+                headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>";
+                bodyHtml += "\n<td>" + cellTemplate + "</td>";
+                idx += 1;
+            });
+            var html = headHtml + "\n</tr></thead>\n" + bodyHtml + "\n</tr></tbody>";
+            var newContent = this.$compile(html)($scope);
+            rootElement.html(newContent);
+        };
+        return SimpleDataTable;
+    })();
+    DataTable.SimpleDataTable = SimpleDataTable;
+    /**
+     * Returns the first property value defined in the given object or the default value if none are defined
+     *
+     * @param object the object to look for properties
+     * @param names the array of property names to look for
+     * @param defaultValue the value if no property values are defined
+     * @return {*} the first defined property value or the defaultValue if none are defined
+     */
+    function firstValueDefined(object, names, defaultValue) {
+        var answer = defaultValue;
+        var found = false;
+        angular.forEach(names, function (name) {
+            var value = object[name];
+            if (!found && angular.isDefined(value)) {
+                answer = value;
+                found = true;
+            }
+        });
+        return answer;
+    }
+    DataTable._module.directive('hawtioSimpleTable', ["$compile", function ($compile) { return new DataTable.SimpleDataTable($compile); }]);
+})(DataTable || (DataTable = {}));
+
+/// <reference path="datatablePlugin.ts"/>
+var DataTable;
+(function (DataTable) {
+    DataTable._module.controller('DataTable.SimpleTableTestController', ['$scope', '$location', function ($scope, $location) {
+        $scope.myData = [
+            { name: "James", twitter: "jstrachan" },
+            { name: "Stan", twitter: "gashcrumb" },
+            { name: "Claus", twitter: "davsclaus" }
+        ];
+        $scope.selectedItems = [];
+        $scope.mygrid = {
+            data: 'myData',
+            showFilter: false,
+            showColumnMenu: false,
+            multiSelect: ($location.search()["multi"] || "").startsWith("f") ? false : true,
+            filterOptions: {
+                filterText: "",
+                useExternalFilter: false
+            },
+            selectedItems: $scope.selectedItems,
+            rowHeight: 32,
+            selectWithCheckboxOnly: true,
+            columnDefs: [
+                {
+                    field: 'name',
+                    displayName: 'Name',
+                    width: "***"
+                },
+                {
+                    field: 'twitter',
+                    displayName: 'Twitter',
+                    cellTemplate: '<div class="ngCellText">@{{row.entity.twitter}}</div>',
+                    //width: 400
+                    width: "***"
+                }
+            ]
+        };
+    }]);
+})(DataTable || (DataTable = {}));
+
+/// <reference path="../../includes.ts"/>
+/**
+ * Module that contains several helper functions related to hawtio's code editor
+ *
+ * @module CodeEditor
+ * @main CodeEditor
+ */
+var CodeEditor;
+(function (CodeEditor) {
+    /**
+     * @property GlobalCodeMirrorOptions
+     * @for CodeEditor
+     * @type CodeMirrorOptions
+     */
+    CodeEditor.GlobalCodeMirrorOptions = {
+        theme: "default",
+        tabSize: 4,
+        lineNumbers: true,
+        indentWithTabs: true,
+        lineWrapping: true,
+        autoCloseTags: true
+    };
+    /**
+     * Tries to figure out what kind of text we're going to render in the editor, either
+     * text, javascript or XML.
+     *
+     * @method detectTextFormat
+     * @for CodeEditor
+     * @static
+     * @param value
+     * @returns {string}
+     */
+    function detectTextFormat(value) {
+        var answer = "text";
+        if (value) {
+            answer = "javascript";
+            var trimmed = value.toString().trimLeft().trimRight();
+            if (trimmed && trimmed.first() === '<' && trimmed.last() === '>') {
+                answer = "xml";
+            }
+        }
+        return answer;
+    }
+    CodeEditor.detectTextFormat = detectTextFormat;
+    /**
+     * Auto formats the CodeMirror editor content to pretty print
+     *
+     * @method autoFormatEditor
+     * @for CodeEditor
+     * @static
+     * @param {CodeMirrorEditor} editor
+     * @return {void}
+     */
+    function autoFormatEditor(editor) {
+        if (editor) {
+            var totalLines = editor.lineCount();
+            //var totalChars = editor.getValue().length;
+            var start = { line: 0, ch: 0 };
+            var end = { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length };
+            editor.autoFormatRange(start, end);
+            editor.setSelection(start, start);
+        }
+    }
+    CodeEditor.autoFormatEditor = autoFormatEditor;
+    /**
+     * Used to configures the default editor settings (per Editor Instance)
+     *
+     * @method createEditorSettings
+     * @for CodeEditor
+     * @static
+     * @param {Object} options
+     * @return {Object}
+     */
+    function createEditorSettings(options) {
+        if (options === void 0) { options = {}; }
+        options.extraKeys = options.extraKeys || {};
+        // Handle Mode
+        (function (mode) {
+            mode = mode || { name: "text" };
+            if (typeof mode !== "object") {
+                mode = { name: mode };
+            }
+            var modeName = mode.name;
+            if (modeName === "javascript") {
+                angular.extend(mode, {
+                    "json": true
+                });
+            }
+        })(options.mode);
+        // Handle Code folding folding
+        (function (options) {
+            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
+            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
+            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
+            // So don't have to listen to the options model and deal with re-attaching events etc...
+            var foldFunction = function (codeMirror, line) {
+                var mode = codeMirror.getOption("mode");
+                var modeName = mode["name"];
+                if (!mode || !modeName)
+                    return;
+                if (modeName === 'javascript') {
+                    javascriptFolding(codeMirror, line);
+                }
+                else if (modeName === "xml" || modeName.startsWith("html")) {
+                    xmlFolding(codeMirror, line);
+                }
+                ;
+            };
+            options.onGutterClick = foldFunction;
+            options.extraKeys = angular.extend(options.extraKeys, {
+                "Ctrl-Q": function (codeMirror) {
+                    foldFunction(codeMirror, codeMirror.getCursor().line);
+                }
+            });
+        })(options);
+        var readOnly = options.readOnly;
+        if (!readOnly) {
+            /*
+             options.extraKeys = angular.extend(options.extraKeys, {
+             "'>'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '>');
+             },
+             "'/'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '/');
+             }
+             });
+             */
+            options.matchBrackets = true;
+        }
+        // Merge the global config in to this instance of CodeMirror
+        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
+        return options;
+    }
+    CodeEditor.createEditorSettings = createEditorSettings;
+})(CodeEditor || (CodeEditor = {}));
+
+/// <reference path="../../includes.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor.pluginName = "hawtio-editor";
+    HawtioEditor.templatePath = "plugins/editor/html";
+    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="editorGlobals.ts"/>
+/// <reference path="CodeEditor.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
+    HawtioEditor._module.run(function () {
+        HawtioEditor.log.debug("loaded");
+    });
+    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="editorPlugin.ts"/>
+/// <reference path="CodeEditor.ts"/>
+/**
+ * @module HawtioEditor
+ */
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
+        return HawtioEditor.Editor($parse);
+    }]);
+    function Editor($parse) {
+        return {
+            restrict: 'A',
+            replace: true,
+            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
+            scope: {
+                text: '=hawtioEditor',
+                mode: '=',
+                outputEditor: '@',
+                name: '@'
+            },
+            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                $scope.codeMirror = null;
+                $scope.doc = null;
+                $scope.options = [];
+                UI.observe($scope, $attrs, 'name', 'editor');
+                $scope.applyOptions = function () {
+                    if ($scope.codeMirror) {
+                        $scope.options.each(function (option) {
+                            $scope.codeMirror.setOption(option.key, option['value']);
+                        });
+                        $scope.options = [];
+                    }
+                };
+                $scope.$watch('doc', function () {
+                    if ($scope.doc) {
+                        $scope.codeMirror.on('change', function (changeObj) {
+                            $scope.text = $scope.doc.getValue();
+                            $scope.dirty = !$scope.doc.isClean();
+                            Core.$apply($scope);
+                        });
+                    }
+                });
+                $scope.$watch('codeMirror', function () {
+                    if ($scope.codeMirror) {
+                        $scope.doc = $scope.codeMirror.getDoc();
+                    }
+                });
+                $scope.$watch('text', function (oldValue, newValue) {
+                    if ($scope.codeMirror && $scope.doc) {
+                        if (!$scope.codeMirror.hasFocus()) {
+                            var text = $scope.text || "";
+                            if (angular.isArray(text) || angular.isObject(text)) {
+                                text = JSON.stringify(text, null, "  ");
+                                $scope.mode = "javascript";
+                                $scope.codeMirror.setOption("mode", "javascript");
+                            }
+                            $scope.doc.setValue(text);
+                        }
+                    }
+                });
+            }],
+            link: function ($scope, $element, $attrs) {
+                if ('dirty' in $attrs) {
+                    $scope.dirtyTarget = $attrs['dirty'];
+                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            $scope.dirty = newValue;
+                        }
+                    });
+                }
+                var config = _.cloneDeep($attrs);
+                delete config['$$element'];
+                delete config['$attr'];
+                delete config['class'];
+                delete config['hawtioEditor'];
+                delete config['mode'];
+                delete config['dirty'];
+                delete config['outputEditor'];
+                if ('onChange' in $attrs) {
+                    var onChange = $attrs['onChange'];
+                    delete config['onChange'];
+                    $scope.options.push({
+                        onChange: function (codeMirror) {
+                            var func = $parse(onChange);
+                            if (func) {
+                                func($scope.$parent, { codeMirror: codeMirror });
+                            }
+                        }
+                    });
+                }
+                angular.forEach(config, function (value, key) {
+                    $scope.options.push({
+                        key: key,
+                        'value': value
+                    });
+                });
+                $scope.$watch('mode', function () {
+                    if ($scope.mode) {
+                        if (!$scope.codeMirror) {
+                            $scope.options.push({
+                                key: 'mode',
+                                'value': $scope.mode
+                            });
+                        }
+                        else {
+                            $scope.codeMirror.setOption('mode', $scope.mode);
+                        }
+                    }
+                });
+                $scope.$watch('dirty', function (newValue, oldValue) {
+                    if ($scope.dirty && !$scope.doc.isClean()) {
+                        $scope.doc.markClean();
+                    }
+                    if (newValue !== oldValue && 'dirtyTarget' in $scope) {
+                        $scope.$parent[$scope.dirtyTarget] = $scope.dirty;
+                    }
+                });
+                $scope.$watch(function () {
+                    return $element.is(':visible');
+                }, function (newValue, oldValue) {
+                    if (newValue !== oldValue && $scope.codeMirror) {
+                        $scope.codeMirror.refresh();
+                    }
+                });
+                $scope.$watch('text', function () {
+                    if (!$scope.codeMirror) {
+                        var options = {
+                            value: $scope.text
+                        };
+                        options = CodeEditor.createEditorSettings(options);
+                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
+                        var outputEditor = $scope.outputEditor;
+                        if (outputEditor) {
+                            var outputScope = $scope.$parent || $scope;
+                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
+                        }
+                        $scope.applyOptions();
+                    }
+                });
+            }
+        };
+    }
+    HawtioEditor.Editor = Editor;
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="../../includes.ts"/>
+/// <reference path="forceGraphDirective.ts"/>
+/**
+ * Force Graph plugin & directive
+ *
+ * @module ForceGraph
+ */
+var ForceGraph;
+(function (ForceGraph) {
+    var pluginName = 'forceGraph';
+    ForceGraph._module = angular.module(pluginName, []);
+    ForceGraph._module.directive('hawtioForceGraph', function () {
+        return new ForceGraph.ForceGraphDirective();
+    });
+    hawtioPluginLoader.addModule(pluginName);
+})(ForceGraph || (ForceGraph = {}));
+
+///<reference path="forceGraphPlugin.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    var log = Logger.get("ForceGraph");
+    var ForceGraphDirective = (function () {
+        function ForceGraphDirective() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.transclude = false;
+            this.scope = {
+                graph: '=graph',
+                nodesize: '@',
+                selectedModel: '@',
+                linkDistance: '@',
+                markerKind: '@',
+                charge: '@'
+            };
+            this.link = function ($scope, $element, $attrs) {
+                $scope.trans = [0, 0];
+                $scope.scale = 1;
+                $scope.$watch('graph', function (oldVal, newVal) {
+                    updateGraph();
+                });
+                $scope.redraw = function () {
+                    $scope.trans = d3.event.translate;
+                    $scope.scale = d3.event.scale;
+                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
+                };
+                // This is a callback for the animation
+                $scope.tick = function () {
+                    // provide curvy lines as curves are kind of hawt
+                    $scope.graphEdges.attr("d", function (d) {
+                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
+                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                    });
+                    // apply the translates coming from the layouter
+                    $scope.graphNodes.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    $scope.graphLabels.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    // Only run this in IE
+                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
+                        $scope.svg.selectAll(".link").each(function () {
+                            this.parentNode.insertBefore(this, this);
+                        });
+                    }
+                };
+                $scope.mover = function (d) {
+                    if (d.popup != null) {
+                        $("#pop-up").fadeOut(100, function () {
+                            // Popup content
+                            if (d.popup.title != null) {
+                                $("#pop-up-title").html(d.popup.title);
+                            }
+                            else {
+                                $("#pop-up-title").html("");
+                            }
+                            if (d.popup.content != null) {
+                                $("#pop-up-content").html(d.popup.content);
+                            }
+                            else {
+                                $("#pop-up-content").html("");
+                            }
+                            // Popup position
+                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
+                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
+                            $("#pop-up").css({ "left": popLeft, "top": popTop });
+                            $("#pop-up").fadeIn(100);
+                        });
+                    }
+                };
+                $scope.mout = function (d) {
+                    $("#pop-up").fadeOut(50);
+                    //d3.select(this).attr("fill","url(#ten1)");
+                };
+                var updateGraph = function () {
+                    var canvas = $($element);
+                    // TODO: determine the canvas size dynamically
+                    var h = $($element).parent().height();
+                    var w = $($element).parent().width();
+                    var i = 0;
+                    canvas.children("svg").remove();
+                    // First we create the top level SVG object
+                    // TODO maybe pass in the width/height
+                    $scope.svg = d3.select(canvas[0]).append("svg").attr("width", w).attr("height", h);
+                    // The we add the markers for the arrow tips
+                    var linkTypes = null;
+                    if ($scope.graph) {
+                        linkTypes = $scope.graph.linktypes;
+                    }
+                    if (!linkTypes) {
+                        return;
+                    }
+                    $scope.svg.append("svg:defs").selectAll("marker").data(linkTypes).enter().append("svg:marker").attr("id", String).attr("viewBox", "0 -5 10 10").attr("refX", 15).attr("refY", -1.5).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto").append("svg:path").attr("d", "M0,-5L10,0L0,5");
+                    // The bounding box can't be zoomed or scaled at all
+                    $scope.svg.append("svg:g").append("svg:rect").attr("class", "graphbox.frame").attr('width', w).attr('height', h);
+                    $scope.viewport = $scope.svg.append("svg:g").call(d3.behavior.zoom().on("zoom", $scope.redraw)).append("svg:g");
+                    $scope.viewport.append("svg:rect").attr("width", 1000000).attr("height", 1000000).attr("class", "graphbox").attr("transform", "translate(-50000, -500000)");
+                    // Only do this if we have a graph object
+                    if ($scope.graph) {
+                        var ownerScope = $scope.$parent || $scope;
+                        var selectedModel = $scope.selectedModel || "selectedNode";
+                        // kick off the d3 forced graph layout
+                        $scope.force = d3.layout.force().nodes($scope.graph.nodes).links($scope.graph.links).size([w, h]).on("tick", $scope.tick);
+                        if (angular.isDefined($scope.linkDistance)) {
+                            $scope.force.linkDistance($scope.linkDistance);
+                        }
+                        if (angular.isDefined($scope.charge)) {
+                            $scope.force.charge($scope.charge);
+                        }
+                        var markerTypeName = $scope.markerKind || "marker-end";
+                        // Add all edges to the viewport
+                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path").data($scope.force.links()).enter().append("svg:path").attr("class", function (d) {
+                            return "link " + d.type;
+                        }).attr(markerTypeName, function (d) {
+                            return "url(#" + d.type + ")";
+                        });
+                        // add all nodes to the viewport
+                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle").data($scope.force.nodes()).enter().append("a").attr("xlink:href", function (d) {
+                            return d.navUrl;
+                        }).on("mouseover.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', true);
+                            ownerScope[selectedModel] = d;
+                            Core.pathSet(ownerScope, selectedModel, d);
+                            Core.$apply(ownerScope);
+                        }).on("mouseout.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', false);
+                        });
+                        function hasImage(d) {
+                            return d.image && d.image.url;
+                        }
+                        // Add the images if they are set
+                        $scope.graphNodes.filter(function (d) {
+                            return d.image != null;
+                        }).append("image").attr("xlink:href", function (d) {
+                            return d.image.url;
+                        }).attr("x", function (d) {
+                            return -(d.image.width / 2);
+                        }).attr("y", function (d) {
+                            return -(d.image.height / 2);
+                        }).attr("width", function (d) {
+                            return d.image.width;
+                        }).attr("height", function (d) {
+                            return d.image.height;
+                        });
+                        // if we don't have an image add a circle
+                        $scope.graphNodes.filter(function (d) { return !hasImage(d); }).append("circle").attr("class", function (d) {
+                            return d.type;
+                        }).attr("r", function (d) {
+                            return d.size || $scope.nodesize;
+                        });
+                        // Add the labels to the viewport
+                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g").data($scope.force.nodes()).enter().append("svg:g");
+                        // A copy of the text with a thick white stroke for legibility.
+                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").attr("class", "shadow").text(function (d) {
+                            return d.name;
+                        });
+                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").text(function (d) {
+                            return d.name;
+                        });
+                        // animate, then stop
+                        $scope.force.start();
+                        $scope.graphNodes.call($scope.force.drag).on("mouseover", $scope.mover).on("mouseout", $scope.mout);
+                    }
+                };
+            };
+        }
+        return ForceGraphDirective;
+    })();
+    ForceGraph.ForceGraphDirective = ForceGraphDirective;
+})(ForceGraph || (ForceGraph = {}));
+
+/// <reference path="../../includes.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    /**
+     * GraphBuilder
+     *
+     * @class GraphBuilder
+     */
+    var GraphBuilder = (function () {
+        function GraphBuilder() {
+            this.nodes = {};
+            this.links = [];
+            this.linkTypes = {};
+        }
+        /**
+         * Adds a node to this graph
+         * @method addNode
+         * @param {Object} node
+         */
+        GraphBuilder.prototype.addNode = function (node) {
+            if (!this.nodes[node.id]) {
+                this.nodes[node.id] = node;
+            }
+        };
+        GraphBuilder.prototype.getNode = function (id) {
+            return this.nodes[id];
+        };
+        GraphBuilder.prototype.hasLinks = function (id) {
+            var _this = this;
+            var result = false;
+            this.links.forEach(function (link) {
+                if (link.source.id == id || link.target.id == id) {
+                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
+                }
+            });
+            return result;
+        };
+        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
+            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
+                this.links.push({
+                    source: this.nodes[srcId],
+                    target: this.nodes[targetId],
+                    type: linkType
+                });
+                if (!this.linkTypes[linkType]) {
+                    this.linkTypes[linkType] = {
+                        used: true
+                    };
+                }
+                ;
+            }
+        };
+        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
+            var result = -1;
+            var index = 0;
+            for (index = 0; index < nodes.length; index++) {
+                var node = nodes[index];
+                if (node.id == id) {
+                    result = index;
+                    break;
+                }
+            }
+            return result;
+        };
+        GraphBuilder.prototype.filterNodes = function (filter) {
+            var filteredNodes = {};
+            var newLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (filter(node)) {
+                    filteredNodes[node.id] = node;
+                }
+            });
+            this.links.forEach(function (link) {
+                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
+                    newLinks.push(link);
+                }
+            });
+            this.nodes = filteredNodes;
+            this.links = newLinks;
+        };
+        GraphBuilder.prototype.buildGraph = function () {
+            var _this = this;
+            var graphNodes = [];
+            var linktypes = d3.keys(this.linkTypes);
+            var graphLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (node.includeInGraph == null || node.includeInGraph) {
+                    node.includeInGraph = true;
+                    graphNodes.push(node);
+                }
+            });
+            this.links.forEach(function (link) {
+                if (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null && _this.nodes[link.source.id].includeInGraph && _this.nodes[link.target.id].includeInGraph) {
+                    graphLinks.push({
+                        source: _this.nodeIndex(link.source.id, graphNodes),
+                        target: _this.nodeIndex(link.target.id, graphNodes),
+                        type: link.type
+                    });
+                }
+            });
+            return {
+                nodes: graphNodes,
+                links: graphLinks,
+                linktypes: linktypes
+            };
+        };
+        return GraphBuilder;
+    })();
+    ForceGraph.GraphBuilder = GraphBuilder;
+})(ForceGraph || (ForceGraph = {}));
+
+/// <reference path="../../includes.ts"/>
 var Toastr;
 (function (Toastr) {
     var pluginName = 'hawtio-toastr';
@@ -41,6 +984,17 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
+
+/// <reference path="../../includes.ts"/>
+var UIBootstrap;
+(function (UIBootstrap) {
+    var pluginName = "hawtio-ui-bootstrap";
+    angular.module(pluginName, ["ui.bootstrap"]);
+    hawtioPluginLoader.addModule(pluginName);
+    hawtioPluginLoader.addModule("hawtio-compat.transition");
+    hawtioPluginLoader.addModule("hawtio-compat.dialog");
+    hawtioPluginLoader.addModule("hawtio-compat.modal");
+})(UIBootstrap || (UIBootstrap = {}));
 
 /**
  * @module UI
@@ -3127,960 +4081,6 @@ var UI;
     }
     UI.ZeroClipboardDirective = ZeroClipboardDirective;
 })(UI || (UI = {}));
-
-/// <reference path="../../includes.ts"/>
-var UIBootstrap;
-(function (UIBootstrap) {
-    var pluginName = "hawtio-ui-bootstrap";
-    angular.module(pluginName, ["ui.bootstrap"]);
-    hawtioPluginLoader.addModule(pluginName);
-    hawtioPluginLoader.addModule("hawtio-compat.transition");
-    hawtioPluginLoader.addModule("hawtio-compat.dialog");
-    hawtioPluginLoader.addModule("hawtio-compat.modal");
-})(UIBootstrap || (UIBootstrap = {}));
-
-/// <reference path="../../includes.ts"/>
-/**
- * @module DataTable
- * @main DataTable
- */
-var DataTable;
-(function (DataTable) {
-    DataTable.pluginName = 'datatable';
-    DataTable.log = Logger.get("DataTable");
-    DataTable._module = angular.module(DataTable.pluginName, []);
-    DataTable._module.config(["$routeProvider", function ($routeProvider) {
-        $routeProvider.when('/datatable/test', { templateUrl: 'plugins/datatable/html/test.html' });
-    }]);
-    hawtioPluginLoader.addModule(DataTable.pluginName);
-})(DataTable || (DataTable = {}));
-
-/// <reference path="datatablePlugin.ts"/>
-/**
- * @module DataTable
- */
-var DataTable;
-(function (DataTable) {
-    var SimpleDataTable = (function () {
-        function SimpleDataTable($compile) {
-            var _this = this;
-            this.$compile = $compile;
-            this.restrict = 'A';
-            this.scope = {
-                config: '=hawtioSimpleTable',
-                target: '@',
-                showFiles: '@'
-            };
-            // necessary to ensure 'this' is this object <sigh>
-            this.link = function ($scope, $element, $attrs) {
-                return _this.doLink($scope, $element, $attrs);
-            };
-        }
-        SimpleDataTable.prototype.doLink = function ($scope, $element, $attrs) {
-            var defaultPrimaryKeyFn = function (entity, idx) {
-                // default function to use id/_id/name as primary key, and fallback to use index
-                return entity["id"] || entity["_id"] || entity["name"] || idx;
-            };
-            var config = $scope.config;
-            var dataName = config.data || "data";
-            // need to remember which rows has been selected as the config.data / config.selectedItems
-            // so we can re-select them when data is changed/updated, and entity may be new instances
-            // so we need a primary key function to generate a 'primary key' of the entity
-            var primaryKeyFn = config.primaryKeyFn || defaultPrimaryKeyFn;
-            $scope.rows = [];
-            var scope = $scope.$parent || $scope;
-            var listener = function (otherValue) {
-                var value = Core.pathGet(scope, dataName);
-                if (value && !angular.isArray(value)) {
-                    value = [value];
-                    Core.pathSet(scope, dataName, value);
-                }
-                if (!('sortInfo' in config) && 'columnDefs' in config) {
-                    // an optional defaultSort can be used to indicate a column
-                    // should not automatic be the default sort
-                    var ds = config.columnDefs.first()['defaultSort'];
-                    var sortField;
-                    if (angular.isUndefined(ds) || ds === true) {
-                        sortField = config.columnDefs.first()['field'];
-                    }
-                    else {
-                        sortField = config.columnDefs.slice(1).first()['field'];
-                    }
-                    config['sortInfo'] = {
-                        sortBy: sortField,
-                        ascending: true
-                    };
-                }
-                else {
-                    config['sortInfo'] = {
-                        sortBy: '',
-                        ascending: true
-                    };
-                }
-                var sortInfo = $scope.config.sortInfo;
-                // enrich the rows with information about their index
-                var idx = -1;
-                $scope.rows = (value || []).sortBy(sortInfo.sortBy, !sortInfo.ascending).map(function (entity) {
-                    idx++;
-                    return {
-                        entity: entity,
-                        index: idx,
-                        getProperty: function (name) {
-                            return entity[name];
-                        }
-                    };
-                });
-                Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], $scope.rows);
-                // okay the data was changed/updated so we need to re-select previously selected items
-                // and for that we need to evaluate the primary key function so we can match new data with old data.
-                var reSelectedItems = [];
-                $scope.rows.forEach(function (row, idx) {
-                    var rpk = primaryKeyFn(row.entity, row.index);
-                    var selected = config.selectedItems.some(function (s) {
-                        var spk = primaryKeyFn(s, s.index);
-                        return angular.equals(rpk, spk);
-                    });
-                    if (selected) {
-                        // need to enrich entity with index, as we push row.entity to the re-selected items
-                        row.entity.index = row.index;
-                        reSelectedItems.push(row.entity);
-                        DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
-                    }
-                });
-                config.selectedItems = reSelectedItems;
-            };
-            scope.$watchCollection(dataName, listener);
-            // lets add a separate event so we can force updates
-            // if we find cases where the delta logic doesn't work
-            // (such as for nested hawtioinput-input-table)
-            scope.$on("hawtio.datatable." + dataName, listener);
-            function getSelectionArray() {
-                var selectionArray = config.selectedItems;
-                if (!selectionArray) {
-                    selectionArray = [];
-                    config.selectedItems = selectionArray;
-                }
-                if (angular.isString(selectionArray)) {
-                    var name = selectionArray;
-                    selectionArray = Core.pathGet(scope, name);
-                    if (!selectionArray) {
-                        selectionArray = [];
-                        scope[name] = selectionArray;
-                    }
-                }
-                return selectionArray;
-            }
-            function isMultiSelect() {
-                var multiSelect = $scope.config.multiSelect;
-                if (angular.isUndefined(multiSelect)) {
-                    multiSelect = true;
-                }
-                return multiSelect;
-            }
-            $scope.toggleAllSelections = function () {
-                var allRowsSelected = $scope.config.allRowsSelected;
-                var newFlag = allRowsSelected;
-                var selectionArray = getSelectionArray();
-                selectionArray.splice(0, selectionArray.length);
-                angular.forEach($scope.rows, function (row) {
-                    row.selected = newFlag;
-                    if (allRowsSelected) {
-                        selectionArray.push(row.entity);
-                    }
-                });
-            };
-            $scope.toggleRowSelection = function (row) {
-                if (row) {
-                    var selectionArray = getSelectionArray();
-                    if (!isMultiSelect()) {
-                        // lets clear all other selections
-                        selectionArray.splice(0, selectionArray.length);
-                        angular.forEach($scope.rows, function (r) {
-                            if (r !== row) {
-                                r.selected = false;
-                            }
-                        });
-                    }
-                    var entity = row.entity;
-                    if (entity) {
-                        var idx = selectionArray.indexOf(entity);
-                        if (row.selected) {
-                            if (idx < 0) {
-                                selectionArray.push(entity);
-                            }
-                        }
-                        else {
-                            // clear the all selected checkbox
-                            $scope.config.allRowsSelected = false;
-                            if (idx >= 0) {
-                                selectionArray.splice(idx, 1);
-                            }
-                        }
-                    }
-                }
-            };
-            $scope.sortBy = function (field) {
-                if ($scope.config.sortInfo.sortBy === field) {
-                    $scope.config.sortInfo.ascending = !$scope.config.sortInfo.ascending;
-                }
-                else {
-                    $scope.config.sortInfo.sortBy = field;
-                    $scope.config.sortInfo.ascending = true;
-                }
-                $scope.$emit("hawtio.datatable." + dataName);
-            };
-            $scope.getClass = function (field) {
-                if ('sortInfo' in $scope.config) {
-                    if ($scope.config.sortInfo.sortBy === field) {
-                        if ($scope.config.sortInfo.ascending) {
-                            return 'asc';
-                        }
-                        else {
-                            return 'desc';
-                        }
-                    }
-                }
-                return '';
-            };
-            $scope.showRow = function (row) {
-                var filter = Core.pathGet($scope, ['config', 'filterOptions', 'filterText']);
-                if (Core.isBlank(filter)) {
-                    return true;
-                }
-                var data = null;
-                try {
-                    data = row['entity']['title'];
-                }
-                catch (e) {
-                }
-                if (!data) {
-                    // use the row as-is
-                    data = row.entity;
-                }
-                var match = FilterHelpers.search(data, filter);
-                return match;
-            };
-            $scope.isSelected = function (row) {
-                return config.selectedItems.some(row.entity);
-            };
-            $scope.onRowSelected = function (row) {
-                var idx = config.selectedItems.indexOf(row.entity);
-                if (idx >= 0) {
-                    DataTable.log.debug("De-selecting row at index " + row.index);
-                    config.selectedItems.splice(idx, 1);
-                }
-                else {
-                    if (!config.multiSelect) {
-                        config.selectedItems.length = 0;
-                    }
-                    DataTable.log.debug("Selecting row at index " + row.index);
-                    // need to enrich entity with index, as we push row.entity to the selected items
-                    row.entity.index = row.index;
-                    config.selectedItems.push(row.entity);
-                }
-            };
-            // lets add the header and row cells
-            var rootElement = $element;
-            rootElement.empty();
-            var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
-            var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
-            var onMouseDown;
-            if (enableRowClickSelection) {
-                onMouseDown = "ng-mousedown='onRowSelected(row)' ";
-            }
-            else {
-                onMouseDown = "";
-            }
-            var headHtml = "<thead><tr>";
-            // use a function to check if a row is selected so the UI can be kept up to date asap
-            var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " + onMouseDown + "ng-class=\"{'selected': isSelected(row)}\" >";
-            var idx = 0;
-            if (showCheckBox) {
-                var toggleAllHtml = isMultiSelect() ? "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' ng-change='toggleAllSelections()'>" : "";
-                headHtml += "\n<th class='simple-table-checkbox'>" + toggleAllHtml + "</th>";
-                bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' ng-change='toggleRowSelection(row)'></td>";
-            }
-            angular.forEach(config.columnDefs, function (colDef) {
-                var field = colDef.field;
-                var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
-                headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>";
-                bodyHtml += "\n<td>" + cellTemplate + "</td>";
-                idx += 1;
-            });
-            var html = headHtml + "\n</tr></thead>\n" + bodyHtml + "\n</tr></tbody>";
-            var newContent = this.$compile(html)($scope);
-            rootElement.html(newContent);
-        };
-        return SimpleDataTable;
-    })();
-    DataTable.SimpleDataTable = SimpleDataTable;
-    /**
-     * Returns the first property value defined in the given object or the default value if none are defined
-     *
-     * @param object the object to look for properties
-     * @param names the array of property names to look for
-     * @param defaultValue the value if no property values are defined
-     * @return {*} the first defined property value or the defaultValue if none are defined
-     */
-    function firstValueDefined(object, names, defaultValue) {
-        var answer = defaultValue;
-        var found = false;
-        angular.forEach(names, function (name) {
-            var value = object[name];
-            if (!found && angular.isDefined(value)) {
-                answer = value;
-                found = true;
-            }
-        });
-        return answer;
-    }
-    DataTable._module.directive('hawtioSimpleTable', ["$compile", function ($compile) { return new DataTable.SimpleDataTable($compile); }]);
-})(DataTable || (DataTable = {}));
-
-/// <reference path="datatablePlugin.ts"/>
-var DataTable;
-(function (DataTable) {
-    DataTable._module.controller('DataTable.SimpleTableTestController', ['$scope', '$location', function ($scope, $location) {
-        $scope.myData = [
-            { name: "James", twitter: "jstrachan" },
-            { name: "Stan", twitter: "gashcrumb" },
-            { name: "Claus", twitter: "davsclaus" }
-        ];
-        $scope.selectedItems = [];
-        $scope.mygrid = {
-            data: 'myData',
-            showFilter: false,
-            showColumnMenu: false,
-            multiSelect: ($location.search()["multi"] || "").startsWith("f") ? false : true,
-            filterOptions: {
-                filterText: "",
-                useExternalFilter: false
-            },
-            selectedItems: $scope.selectedItems,
-            rowHeight: 32,
-            selectWithCheckboxOnly: true,
-            columnDefs: [
-                {
-                    field: 'name',
-                    displayName: 'Name',
-                    width: "***"
-                },
-                {
-                    field: 'twitter',
-                    displayName: 'Twitter',
-                    cellTemplate: '<div class="ngCellText">@{{row.entity.twitter}}</div>',
-                    //width: 400
-                    width: "***"
-                }
-            ]
-        };
-    }]);
-})(DataTable || (DataTable = {}));
-
-/// <reference path="../../includes.ts"/>
-/**
- * Module that contains several helper functions related to hawtio's code editor
- *
- * @module CodeEditor
- * @main CodeEditor
- */
-var CodeEditor;
-(function (CodeEditor) {
-    /**
-     * @property GlobalCodeMirrorOptions
-     * @for CodeEditor
-     * @type CodeMirrorOptions
-     */
-    CodeEditor.GlobalCodeMirrorOptions = {
-        theme: "default",
-        tabSize: 4,
-        lineNumbers: true,
-        indentWithTabs: true,
-        lineWrapping: true,
-        autoCloseTags: true
-    };
-    /**
-     * Tries to figure out what kind of text we're going to render in the editor, either
-     * text, javascript or XML.
-     *
-     * @method detectTextFormat
-     * @for CodeEditor
-     * @static
-     * @param value
-     * @returns {string}
-     */
-    function detectTextFormat(value) {
-        var answer = "text";
-        if (value) {
-            answer = "javascript";
-            var trimmed = value.toString().trimLeft().trimRight();
-            if (trimmed && trimmed.first() === '<' && trimmed.last() === '>') {
-                answer = "xml";
-            }
-        }
-        return answer;
-    }
-    CodeEditor.detectTextFormat = detectTextFormat;
-    /**
-     * Auto formats the CodeMirror editor content to pretty print
-     *
-     * @method autoFormatEditor
-     * @for CodeEditor
-     * @static
-     * @param {CodeMirrorEditor} editor
-     * @return {void}
-     */
-    function autoFormatEditor(editor) {
-        if (editor) {
-            var totalLines = editor.lineCount();
-            //var totalChars = editor.getValue().length;
-            var start = { line: 0, ch: 0 };
-            var end = { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length };
-            editor.autoFormatRange(start, end);
-            editor.setSelection(start, start);
-        }
-    }
-    CodeEditor.autoFormatEditor = autoFormatEditor;
-    /**
-     * Used to configures the default editor settings (per Editor Instance)
-     *
-     * @method createEditorSettings
-     * @for CodeEditor
-     * @static
-     * @param {Object} options
-     * @return {Object}
-     */
-    function createEditorSettings(options) {
-        if (options === void 0) { options = {}; }
-        options.extraKeys = options.extraKeys || {};
-        // Handle Mode
-        (function (mode) {
-            mode = mode || { name: "text" };
-            if (typeof mode !== "object") {
-                mode = { name: mode };
-            }
-            var modeName = mode.name;
-            if (modeName === "javascript") {
-                angular.extend(mode, {
-                    "json": true
-                });
-            }
-        })(options.mode);
-        // Handle Code folding folding
-        (function (options) {
-            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
-            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
-            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
-            // So don't have to listen to the options model and deal with re-attaching events etc...
-            var foldFunction = function (codeMirror, line) {
-                var mode = codeMirror.getOption("mode");
-                var modeName = mode["name"];
-                if (!mode || !modeName)
-                    return;
-                if (modeName === 'javascript') {
-                    javascriptFolding(codeMirror, line);
-                }
-                else if (modeName === "xml" || modeName.startsWith("html")) {
-                    xmlFolding(codeMirror, line);
-                }
-                ;
-            };
-            options.onGutterClick = foldFunction;
-            options.extraKeys = angular.extend(options.extraKeys, {
-                "Ctrl-Q": function (codeMirror) {
-                    foldFunction(codeMirror, codeMirror.getCursor().line);
-                }
-            });
-        })(options);
-        var readOnly = options.readOnly;
-        if (!readOnly) {
-            /*
-             options.extraKeys = angular.extend(options.extraKeys, {
-             "'>'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '>');
-             },
-             "'/'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '/');
-             }
-             });
-             */
-            options.matchBrackets = true;
-        }
-        // Merge the global config in to this instance of CodeMirror
-        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
-        return options;
-    }
-    CodeEditor.createEditorSettings = createEditorSettings;
-})(CodeEditor || (CodeEditor = {}));
-
-/// <reference path="../../includes.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor.pluginName = "hawtio-editor";
-    HawtioEditor.templatePath = "plugins/editor/html";
-    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorGlobals.ts"/>
-/// <reference path="CodeEditor.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
-    HawtioEditor._module.run(function () {
-        HawtioEditor.log.debug("loaded");
-    });
-    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorPlugin.ts"/>
-/// <reference path="CodeEditor.ts"/>
-/**
- * @module HawtioEditor
- */
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
-        return HawtioEditor.Editor($parse);
-    }]);
-    function Editor($parse) {
-        return {
-            restrict: 'A',
-            replace: true,
-            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
-            scope: {
-                text: '=hawtioEditor',
-                mode: '=',
-                outputEditor: '@',
-                name: '@'
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                $scope.codeMirror = null;
-                $scope.doc = null;
-                $scope.options = [];
-                UI.observe($scope, $attrs, 'name', 'editor');
-                $scope.applyOptions = function () {
-                    if ($scope.codeMirror) {
-                        $scope.options.each(function (option) {
-                            $scope.codeMirror.setOption(option.key, option['value']);
-                        });
-                        $scope.options = [];
-                    }
-                };
-                $scope.$watch('doc', function () {
-                    if ($scope.doc) {
-                        $scope.codeMirror.on('change', function (changeObj) {
-                            $scope.text = $scope.doc.getValue();
-                            $scope.dirty = !$scope.doc.isClean();
-                            Core.$apply($scope);
-                        });
-                    }
-                });
-                $scope.$watch('codeMirror', function () {
-                    if ($scope.codeMirror) {
-                        $scope.doc = $scope.codeMirror.getDoc();
-                    }
-                });
-                $scope.$watch('text', function (oldValue, newValue) {
-                    if ($scope.codeMirror && $scope.doc) {
-                        if (!$scope.codeMirror.hasFocus()) {
-                            var text = $scope.text || "";
-                            if (angular.isArray(text) || angular.isObject(text)) {
-                                text = JSON.stringify(text, null, "  ");
-                                $scope.mode = "javascript";
-                                $scope.codeMirror.setOption("mode", "javascript");
-                            }
-                            $scope.doc.setValue(text);
-                        }
-                    }
-                });
-            }],
-            link: function ($scope, $element, $attrs) {
-                if ('dirty' in $attrs) {
-                    $scope.dirtyTarget = $attrs['dirty'];
-                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            $scope.dirty = newValue;
-                        }
-                    });
-                }
-                var config = _.cloneDeep($attrs);
-                delete config['$$element'];
-                delete config['$attr'];
-                delete config['class'];
-                delete config['hawtioEditor'];
-                delete config['mode'];
-                delete config['dirty'];
-                delete config['outputEditor'];
-                if ('onChange' in $attrs) {
-                    var onChange = $attrs['onChange'];
-                    delete config['onChange'];
-                    $scope.options.push({
-                        onChange: function (codeMirror) {
-                            var func = $parse(onChange);
-                            if (func) {
-                                func($scope.$parent, { codeMirror: codeMirror });
-                            }
-                        }
-                    });
-                }
-                angular.forEach(config, function (value, key) {
-                    $scope.options.push({
-                        key: key,
-                        'value': value
-                    });
-                });
-                $scope.$watch('mode', function () {
-                    if ($scope.mode) {
-                        if (!$scope.codeMirror) {
-                            $scope.options.push({
-                                key: 'mode',
-                                'value': $scope.mode
-                            });
-                        }
-                        else {
-                            $scope.codeMirror.setOption('mode', $scope.mode);
-                        }
-                    }
-                });
-                $scope.$watch('dirty', function (newValue, oldValue) {
-                    if ($scope.dirty && !$scope.doc.isClean()) {
-                        $scope.doc.markClean();
-                    }
-                    if (newValue !== oldValue && 'dirtyTarget' in $scope) {
-                        $scope.$parent[$scope.dirtyTarget] = $scope.dirty;
-                    }
-                });
-                $scope.$watch(function () {
-                    return $element.is(':visible');
-                }, function (newValue, oldValue) {
-                    if (newValue !== oldValue && $scope.codeMirror) {
-                        $scope.codeMirror.refresh();
-                    }
-                });
-                $scope.$watch('text', function () {
-                    if (!$scope.codeMirror) {
-                        var options = {
-                            value: $scope.text
-                        };
-                        options = CodeEditor.createEditorSettings(options);
-                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
-                        var outputEditor = $scope.outputEditor;
-                        if (outputEditor) {
-                            var outputScope = $scope.$parent || $scope;
-                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
-                        }
-                        $scope.applyOptions();
-                    }
-                });
-            }
-        };
-    }
-    HawtioEditor.Editor = Editor;
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="../../includes.ts"/>
-/// <reference path="forceGraphDirective.ts"/>
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-var ForceGraph;
-(function (ForceGraph) {
-    var pluginName = 'forceGraph';
-    ForceGraph._module = angular.module(pluginName, []);
-    ForceGraph._module.directive('hawtioForceGraph', function () {
-        return new ForceGraph.ForceGraphDirective();
-    });
-    hawtioPluginLoader.addModule(pluginName);
-})(ForceGraph || (ForceGraph = {}));
-
-///<reference path="forceGraphPlugin.ts"/>
-var ForceGraph;
-(function (ForceGraph) {
-    var log = Logger.get("ForceGraph");
-    var ForceGraphDirective = (function () {
-        function ForceGraphDirective() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.transclude = false;
-            this.scope = {
-                graph: '=graph',
-                nodesize: '@',
-                selectedModel: '@',
-                linkDistance: '@',
-                markerKind: '@',
-                charge: '@'
-            };
-            this.link = function ($scope, $element, $attrs) {
-                $scope.trans = [0, 0];
-                $scope.scale = 1;
-                $scope.$watch('graph', function (oldVal, newVal) {
-                    updateGraph();
-                });
-                $scope.redraw = function () {
-                    $scope.trans = d3.event.translate;
-                    $scope.scale = d3.event.scale;
-                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
-                };
-                // This is a callback for the animation
-                $scope.tick = function () {
-                    // provide curvy lines as curves are kind of hawt
-                    $scope.graphEdges.attr("d", function (d) {
-                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
-                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
-                    });
-                    // apply the translates coming from the layouter
-                    $scope.graphNodes.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    $scope.graphLabels.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    // Only run this in IE
-                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
-                        $scope.svg.selectAll(".link").each(function () {
-                            this.parentNode.insertBefore(this, this);
-                        });
-                    }
-                };
-                $scope.mover = function (d) {
-                    if (d.popup != null) {
-                        $("#pop-up").fadeOut(100, function () {
-                            // Popup content
-                            if (d.popup.title != null) {
-                                $("#pop-up-title").html(d.popup.title);
-                            }
-                            else {
-                                $("#pop-up-title").html("");
-                            }
-                            if (d.popup.content != null) {
-                                $("#pop-up-content").html(d.popup.content);
-                            }
-                            else {
-                                $("#pop-up-content").html("");
-                            }
-                            // Popup position
-                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
-                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
-                            $("#pop-up").css({ "left": popLeft, "top": popTop });
-                            $("#pop-up").fadeIn(100);
-                        });
-                    }
-                };
-                $scope.mout = function (d) {
-                    $("#pop-up").fadeOut(50);
-                    //d3.select(this).attr("fill","url(#ten1)");
-                };
-                var updateGraph = function () {
-                    var canvas = $($element);
-                    // TODO: determine the canvas size dynamically
-                    var h = $($element).parent().height();
-                    var w = $($element).parent().width();
-                    var i = 0;
-                    canvas.children("svg").remove();
-                    // First we create the top level SVG object
-                    // TODO maybe pass in the width/height
-                    $scope.svg = d3.select(canvas[0]).append("svg").attr("width", w).attr("height", h);
-                    // The we add the markers for the arrow tips
-                    var linkTypes = null;
-                    if ($scope.graph) {
-                        linkTypes = $scope.graph.linktypes;
-                    }
-                    if (!linkTypes) {
-                        return;
-                    }
-                    $scope.svg.append("svg:defs").selectAll("marker").data(linkTypes).enter().append("svg:marker").attr("id", String).attr("viewBox", "0 -5 10 10").attr("refX", 15).attr("refY", -1.5).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto").append("svg:path").attr("d", "M0,-5L10,0L0,5");
-                    // The bounding box can't be zoomed or scaled at all
-                    $scope.svg.append("svg:g").append("svg:rect").attr("class", "graphbox.frame").attr('width', w).attr('height', h);
-                    $scope.viewport = $scope.svg.append("svg:g").call(d3.behavior.zoom().on("zoom", $scope.redraw)).append("svg:g");
-                    $scope.viewport.append("svg:rect").attr("width", 1000000).attr("height", 1000000).attr("class", "graphbox").attr("transform", "translate(-50000, -500000)");
-                    // Only do this if we have a graph object
-                    if ($scope.graph) {
-                        var ownerScope = $scope.$parent || $scope;
-                        var selectedModel = $scope.selectedModel || "selectedNode";
-                        // kick off the d3 forced graph layout
-                        $scope.force = d3.layout.force().nodes($scope.graph.nodes).links($scope.graph.links).size([w, h]).on("tick", $scope.tick);
-                        if (angular.isDefined($scope.linkDistance)) {
-                            $scope.force.linkDistance($scope.linkDistance);
-                        }
-                        if (angular.isDefined($scope.charge)) {
-                            $scope.force.charge($scope.charge);
-                        }
-                        var markerTypeName = $scope.markerKind || "marker-end";
-                        // Add all edges to the viewport
-                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path").data($scope.force.links()).enter().append("svg:path").attr("class", function (d) {
-                            return "link " + d.type;
-                        }).attr(markerTypeName, function (d) {
-                            return "url(#" + d.type + ")";
-                        });
-                        // add all nodes to the viewport
-                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle").data($scope.force.nodes()).enter().append("a").attr("xlink:href", function (d) {
-                            return d.navUrl;
-                        }).on("mouseover.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', true);
-                            ownerScope[selectedModel] = d;
-                            Core.pathSet(ownerScope, selectedModel, d);
-                            Core.$apply(ownerScope);
-                        }).on("mouseout.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', false);
-                        });
-                        function hasImage(d) {
-                            return d.image && d.image.url;
-                        }
-                        // Add the images if they are set
-                        $scope.graphNodes.filter(function (d) {
-                            return d.image != null;
-                        }).append("image").attr("xlink:href", function (d) {
-                            return d.image.url;
-                        }).attr("x", function (d) {
-                            return -(d.image.width / 2);
-                        }).attr("y", function (d) {
-                            return -(d.image.height / 2);
-                        }).attr("width", function (d) {
-                            return d.image.width;
-                        }).attr("height", function (d) {
-                            return d.image.height;
-                        });
-                        // if we don't have an image add a circle
-                        $scope.graphNodes.filter(function (d) { return !hasImage(d); }).append("circle").attr("class", function (d) {
-                            return d.type;
-                        }).attr("r", function (d) {
-                            return d.size || $scope.nodesize;
-                        });
-                        // Add the labels to the viewport
-                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g").data($scope.force.nodes()).enter().append("svg:g");
-                        // A copy of the text with a thick white stroke for legibility.
-                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").attr("class", "shadow").text(function (d) {
-                            return d.name;
-                        });
-                        $scope.graphLabels.append("svg:text").attr("x", 8).attr("y", ".31em").text(function (d) {
-                            return d.name;
-                        });
-                        // animate, then stop
-                        $scope.force.start();
-                        $scope.graphNodes.call($scope.force.drag).on("mouseover", $scope.mover).on("mouseout", $scope.mout);
-                    }
-                };
-            };
-        }
-        return ForceGraphDirective;
-    })();
-    ForceGraph.ForceGraphDirective = ForceGraphDirective;
-})(ForceGraph || (ForceGraph = {}));
-
-/// <reference path="../../includes.ts"/>
-var ForceGraph;
-(function (ForceGraph) {
-    /**
-     * GraphBuilder
-     *
-     * @class GraphBuilder
-     */
-    var GraphBuilder = (function () {
-        function GraphBuilder() {
-            this.nodes = {};
-            this.links = [];
-            this.linkTypes = {};
-        }
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        GraphBuilder.prototype.addNode = function (node) {
-            if (!this.nodes[node.id]) {
-                this.nodes[node.id] = node;
-            }
-        };
-        GraphBuilder.prototype.getNode = function (id) {
-            return this.nodes[id];
-        };
-        GraphBuilder.prototype.hasLinks = function (id) {
-            var _this = this;
-            var result = false;
-            this.links.forEach(function (link) {
-                if (link.source.id == id || link.target.id == id) {
-                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
-                }
-            });
-            return result;
-        };
-        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
-            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
-                this.links.push({
-                    source: this.nodes[srcId],
-                    target: this.nodes[targetId],
-                    type: linkType
-                });
-                if (!this.linkTypes[linkType]) {
-                    this.linkTypes[linkType] = {
-                        used: true
-                    };
-                }
-                ;
-            }
-        };
-        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
-            var result = -1;
-            var index = 0;
-            for (index = 0; index < nodes.length; index++) {
-                var node = nodes[index];
-                if (node.id == id) {
-                    result = index;
-                    break;
-                }
-            }
-            return result;
-        };
-        GraphBuilder.prototype.filterNodes = function (filter) {
-            var filteredNodes = {};
-            var newLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (filter(node)) {
-                    filteredNodes[node.id] = node;
-                }
-            });
-            this.links.forEach(function (link) {
-                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
-                    newLinks.push(link);
-                }
-            });
-            this.nodes = filteredNodes;
-            this.links = newLinks;
-        };
-        GraphBuilder.prototype.buildGraph = function () {
-            var _this = this;
-            var graphNodes = [];
-            var linktypes = d3.keys(this.linkTypes);
-            var graphLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (node.includeInGraph == null || node.includeInGraph) {
-                    node.includeInGraph = true;
-                    graphNodes.push(node);
-                }
-            });
-            this.links.forEach(function (link) {
-                if (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null && _this.nodes[link.source.id].includeInGraph && _this.nodes[link.target.id].includeInGraph) {
-                    graphLinks.push({
-                        source: _this.nodeIndex(link.source.id, graphNodes),
-                        target: _this.nodeIndex(link.target.id, graphNodes),
-                        type: link.type
-                    });
-                }
-            });
-            return {
-                nodes: graphNodes,
-                links: graphLinks,
-                linktypes: linktypes
-            };
-        };
-        return GraphBuilder;
-    })();
-    ForceGraph.GraphBuilder = GraphBuilder;
-})(ForceGraph || (ForceGraph = {}));
 
 angular.module("hawtio-ui-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("plugins/datatable/html/test.html","<div ng-controller=\"DataTable.SimpleTableTestController\">\n  <div class=\"row\">\n    <div class=\"section-header\">\n\n      <div class=\"section-filter\">\n        <input type=\"text\" class=\"search-query\" placeholder=\"Filter...\" ng-model=\"mygrid.filterOptions.filterText\">\n        <i class=\"fa fa-remove clickable\" title=\"Clear filter\" ng-click=\"mygrid.filterOptions.filterText = \'\'\"></i>\n      </div>\n\n    </div>\n  </div>\n\n  <h3>hawtio-simple-table example</h3>\n\n  <table class=\"table table-striped\" hawtio-simple-table=\"mygrid\"></table>\n\n  <div class=\"row\">\n    <p>Selected folks:</p>\n    <ul>\n      <li ng-repeat=\"person in selectedItems\">{{person.name}}</li>\n    </ul>\n\n    <p>\n       <a class=\"btn\" href=\"#/datatable/test?multi={{!mygrid.multiSelect}}\">multi select is: {{mygrid.multiSelect}}</a>\n    </p>\n  </div>\n</div>\n");
 $templateCache.put("plugins/editor/html/editor.html","<div class=\"editor-autoresize\">\n  <textarea name=\"{{name}}\" ng-model=\"text\"></textarea>\n</div>\n");
