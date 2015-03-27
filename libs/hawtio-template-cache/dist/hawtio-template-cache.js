@@ -12,27 +12,27 @@ var templateCache;
       var oldPut = $delegate.put;
       $delegate.watches = {};
       $delegate.put = function(id, template) {
-        log.debug("Adding template: ", id); //, " with content: ", template);
+        ////log.debug("Adding template: ", id); //, " with content: ", template);
         /*
         if (!template) {
-          log.debug("Template is undefined, ignoring");
+          //log.debug("Template is undefined, ignoring");
           return;
         }
         */
         oldPut(id, template);
         if (id in $delegate.watches) {
-          log.debug("Found watches for id: ", id);
+          //log.debug("Found watches for id: ", id);
           var func = _.forEach($delegate.watches[id], function(func) {
             func(template);
           });
-          log.debug("Removing watches for id: ", id);
+          //log.debug("Removing watches for id: ", id);
           delete $delegate.watches[id];
         }
       };
       var oldGet = $delegate.get;
       $delegate.get = function(id) {
         var answer = oldGet(id);
-        log.debug("Getting template: ", id); //, " returning: ", answer);
+        //log.debug("Getting template: ", id); //, " returning: ", answer);
         return answer;
       };
       return $delegate;
@@ -43,18 +43,18 @@ var templateCache;
     $provide.decorator('$templateRequest', ['$rootScope', '$timeout', '$q', '$templateCache', '$delegate', function($rootScope, $timeout, $q, $templateCache, $delegate) {
       return function(url, ignore) {
         var log = Logger.get('$templateRequest');
-        log.debug("request for template at: ", url);
+        //log.debug("request for template at: ", url);
         var answer = $templateCache.get(url);
         var deferred = $q.defer();
         if (!angular.isDefined(answer)) {
-          log.debug("No template in cache for URL: ", url);
+          //log.debug("No template in cache for URL: ", url);
           if ('watches' in $templateCache) {
-            log.debug("Adding watch to $templateCache for url: ", url);
+            //log.debug("Adding watch to $templateCache for url: ", url);
             if (!$templateCache.watches[url]) {
               $templateCache.watches[url] = [];
             }
             $templateCache.watches[url].push(function(template) {
-                log.debug("Resolving watch on template: ", url);
+                //log.debug("Resolving watch on template: ", url);
                 deferred.resolve(template);
             });
             return deferred.promise;
@@ -63,7 +63,7 @@ var templateCache;
             return $delegate(url, ignore);
           }
         } else {
-          log.debug("Found template for URL: ", url);
+          //log.debug("Found template for URL: ", url);
           $timeout(function() {
             deferred.resolve(answer);
           }, 1);
