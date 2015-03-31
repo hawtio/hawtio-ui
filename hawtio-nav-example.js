@@ -40,18 +40,27 @@ var UITestPages;
       id: 'project-link',
       isSelected: function() { return false; },
       title: function() { return 'github'; },
-      click: function() { window.location.href = 'https://github.com/hawtio/hawtio-ui'; },
+      attributes: {
+        class: 'pull-right'
+      },
+      linkAttributes: {
+        target: '_blank'
+      },
       href: function() { return 'https://github.com/hawtio/hawtio-ui'; }
     });
     nav.add({
       id: 'hawtio-link',
       isSelected: function() { return false; },
       title: function() { return 'hawtio'; },
-      click: function() { window.location.href = 'http://hawt.io'; },
+      attributes: {
+        class: 'pull-right'
+      },
+      linkAttributes: {
+        target: '_blank'
+      },
       href: function() { return 'http://hawt.io'; }
     });
   }]);
-
 
   hawtioPluginLoader.addModule(UITestPages.pluginName);
 
