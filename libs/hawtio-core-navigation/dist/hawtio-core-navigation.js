@@ -228,6 +228,10 @@ var HawtioMainNav;
       this.self.title = title;
       return this;
     };
+    NavItemBuilderImpl.prototype.tooltip = function(tooltip) {
+      this.self.tooltip = tooltip;
+      return this;
+    };
     NavItemBuilderImpl.prototype.page = function(page) {
       this.self.page = page;
       return this;
@@ -341,7 +345,11 @@ var HawtioMainNav;
 
   _module.constant('layoutFull', 'templates/main-nav/layoutFull.html');
 
-  _module.config(['$routeProvider', function($routeProvider) {
+  _module.config(['$locationProvider', '$routeProvider', function($locationProvider, $routeProvider) {
+    $locationProvider.html5Mode({
+      enabled: true,
+      requireBase: true
+    });
     $routeProvider.otherwise({ templateUrl: 'templates/main-nav/welcome.html' });
   }]);
 
@@ -545,11 +553,35 @@ var HawtioMainNav;
     }
   }]);
 
-  _module.run(['HawtioNav', '$rootScope', '$route', function(HawtioNav, $rootScope, $route) {
+  _module.run(['HawtioNav', '$rootScope', '$route', '$document', function(HawtioNav, $rootScope, $route, $document) {
     HawtioNav.on(HawtioMainNav.Actions.CHANGED, "$apply", function(item) {
       if(!$rootScope.$$phase) {
         $rootScope.$apply();
       }
+    });
+
+    var base = $document.find('base');
+    var href = base.attr('href');
+
+    function applyBaseHref(item) {
+      if (!item.preBase) {
+        item.preBase = item.href;
+        item.href = function() {
+          if (href) {
+            var preBase = item.preBase();
+            if (preBase && preBase.charAt(0) === '/') {
+              preBase = preBase.substr(1);
+            }
+            return href + preBase;
+          } else {
+            return item.preBase();
+          }
+        };
+      }
+    }
+    HawtioNav.on(HawtioMainNav.Actions.ADD, "htmlBaseRewriter", function(item) {
+      applyBaseHref(item);
+      _.forEach(item.tabs, applyBaseHref);
     });
     HawtioNav.on(HawtioMainNav.Actions.ADD, "$apply", function(item) {
       var oldClick = item.click;
@@ -592,12 +624,28 @@ var HawtioMainNav;
         var tmpLink = $('<a>')
           .attr("href", item.href());
         var href = new URI(tmpLink[0].href);
+        var itemPath = Core.trimLeading(href.path(), '/');
 
         var current = new URI();
-        var path = current.path();
+        var path = Core.trimLeading(current.path(), '/');
         var query = current.query(true);
         var mainTab = query['main-tab'];
         var subTab = query['sub-tab'];
+
+        if (itemPath !== '' && !mainTab && !subTab) {
+          if (item.isSubTab && _.startsWith(path, itemPath)) {
+            return true;
+          }
+          if (item.tabs) {
+            var answer = _.any(item.tabs, function(item) {
+              return item.isSelected();
+            });
+            if (answer) {
+              return true;
+            }
+          }
+        }
+
         var answer = false;
 
         if (item.isSubTab) {
@@ -947,6 +995,6 @@ var HawtioMainNav;
 
 angular.module("hawtio-nav").run(["$templateCache", function($templateCache) {$templateCache.put("templates/main-nav/layoutFull.html","<div ng-view></div>\n\n\n");
 $templateCache.put("templates/main-nav/layoutTest.html","<div>\n  <h1>Test Layout</h1>\n  <div ng-view>\n\n\n  </div>\n</div>\n\n\n");
-$templateCache.put("templates/main-nav/navItem.html","<li ng-class=\"{ active: item.isSelected() }\" ng-hide=\"item.hide()\">\n  <a ng-href=\"{{item.href()}}\" ng-click=\"item.click($event)\" ng-bind-html=\"item.title()\"></a>\n</li>\n");
+$templateCache.put("templates/main-nav/navItem.html","<li ng-class=\"{ active: item.isSelected() }\" ng-hide=\"item.hide()\">\n  <a ng-href=\"{{item.href()}}\" ng-click=\"item.click($event)\" ng-bind-html=\"item.title()\" title=\"{{item.tooltip()}}\"></a>\n</li>\n");
 $templateCache.put("templates/main-nav/subTabHeader.html","<li class=\"header\">\n  <a href=\"\"><strong>{{item.title()}}</strong></a>\n</li>\n");
 $templateCache.put("templates/main-nav/welcome.html","<div ng-controller=\"HawtioNav.WelcomeController\"></div>\n");}]);
