@@ -5,6 +5,7 @@
     "hawtio"
   ],
   "main": [
+    "dist/font-awesome.css",
     "dist/OpenSans.css",
     "dist/DroidSansMono.css",
     "dist/site-base.css",
@@ -38,7 +39,6 @@
     "codemirror": "~4.11.0",
     "dagre": "~0.7.1",
     "zeroclipboard": "~2.2.0",
-    "font-awesome": "~4.3.0",
     "toastr": "~2.1.0"
   },
   "devDependencies": {
