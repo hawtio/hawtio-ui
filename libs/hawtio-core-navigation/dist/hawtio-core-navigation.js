@@ -1,3 +1,9 @@
+/* global _ */
+/* global angular */
+/* global jQuery */
+
+/*globals window document Logger CustomEvent URI _ $ angular hawtioPluginLoader jQuery*/
+
 // Polyfill custom event if necessary since we kinda need it
 (function () {
   if (!window.CustomEvent) {
@@ -16,6 +22,20 @@
 
 var HawtioMainNav;
 (function(HawtioMainNav) {
+
+  function documentBase($document) {
+    var base = $document.find('base');
+    return base.attr('href');
+  }
+
+  function trimLeading(text, prefix) {
+    if (text && prefix) {
+      if (_.startsWith(text, prefix) || text.indexOf(prefix) === 0) {
+        return text.substring(prefix.length);
+      }
+    }
+    return text;
+  }
 
   HawtioMainNav.pluginName = 'hawtio-nav';
   var log = Logger.get(HawtioMainNav.pluginName);
@@ -353,11 +373,12 @@ var HawtioMainNav;
     $routeProvider.otherwise({ templateUrl: 'templates/main-nav/welcome.html' });
   }]);
 
-  _module.controller('HawtioNav.WelcomeController', ['$scope', '$location', 'WelcomePageRegistry', 'HawtioNav', '$timeout', function($scope, $location, welcome, nav, $timeout) {
+  _module.controller('HawtioNav.WelcomeController', ['$scope', '$location', 'WelcomePageRegistry', 'HawtioNav', '$timeout', '$document', function($scope, $location, welcome, nav, $timeout, $document) {
 
     function gotoNavItem(item) {
       if (item && item.href) {
-        var uri = new URI(item.href());
+        var href = trimLeading(item.href(), documentBase($document));
+        var uri = new URI(href);
         var search = _.merge($location.search(), uri.query(true));
         log.debug("Going to item id: ", item.id, " href: ", uri.path(), " query: ", search);
         $timeout(function() {
@@ -367,7 +388,6 @@ var HawtioMainNav;
     }
 
     function gotoFirstAvailableNav() {
-      var found = false;
       var candidates = [];
       nav.iterate(function(item) {
         var isValid = item.isValid || function() { return true; };
@@ -429,7 +449,7 @@ var HawtioMainNav;
           return true;
         });
         if (page) {
-          gotoNavItem(item);
+          gotoNavItem(page);
         } else {
           gotoFirstAvailableNav();
         }
@@ -519,7 +539,7 @@ var HawtioMainNav;
               answer = value;
             }
           } catch (e) {
-            log.debug("Invalid RegExp " + text + " for viewRegistry value: " + value);
+            log.debug("Invalid RegExp " + key + " for viewRegistry value: " + value);
           }
         }
       });
@@ -560,8 +580,7 @@ var HawtioMainNav;
       }
     });
 
-    var base = $document.find('base');
-    var href = base.attr('href');
+    var href = documentBase($document);
 
     function applyBaseHref(item) {
       if (!item.preBase) {
@@ -571,17 +590,18 @@ var HawtioMainNav;
             var preBase = item.preBase();
             if (preBase && preBase.charAt(0) === '/') {
               preBase = preBase.substr(1);
+	            return href + preBase;
             }
-            return href + preBase;
-          } else {
-            return item.preBase();
           }
+          return item.preBase();
         };
       }
     }
     HawtioNav.on(HawtioMainNav.Actions.ADD, "htmlBaseRewriter", function(item) {
-      applyBaseHref(item);
-      _.forEach(item.tabs, applyBaseHref);
+			if (item.href) {
+	      applyBaseHref(item);
+	      _.forEach(item.tabs, applyBaseHref);
+			}
     });
     HawtioNav.on(HawtioMainNav.Actions.ADD, "$apply", function(item) {
       var oldClick = item.click;
@@ -624,10 +644,10 @@ var HawtioMainNav;
         var tmpLink = $('<a>')
           .attr("href", item.href());
         var href = new URI(tmpLink[0].href);
-        var itemPath = Core.trimLeading(href.path(), '/');
+        var itemPath = trimLeading(href.path(), '/');
 
         var current = new URI();
-        var path = Core.trimLeading(current.path(), '/');
+        var path = trimLeading(current.path(), '/');
         var query = current.query(true);
         var mainTab = query['main-tab'];
         var subTab = query['sub-tab'];
