@@ -37,19 +37,20 @@ module HawtioEditor {
           }
         };
 
-        $scope.$watch('doc', () => {
-          if ($scope.doc) {
+        $scope.$watch(_.debounce(() => {
+          if ($scope.codeMirror) {
+              $scope.codeMirror.refresh();
+          }
+        }, 100, { trailing: true}));
+
+        $scope.$watch('codeMirror', () => {
+          if ($scope.codeMirror) {
+            $scope.doc = $scope.codeMirror.getDoc();
             $scope.codeMirror.on('change', function(changeObj) {
               $scope.text = $scope.doc.getValue();
               $scope.dirty = !$scope.doc.isClean();
               Core.$apply($scope);
             });
-          }
-        });
-
-        $scope.$watch('codeMirror', () => {
-          if ($scope.codeMirror) {
-            $scope.doc = $scope.codeMirror.getDoc();
           }
         });
 
@@ -124,11 +125,13 @@ module HawtioEditor {
             $scope.$parent[$scope.dirtyTarget] = $scope.dirty;
           }
         });
+        /*
         $scope.$watch(() => { return $element.is(':visible'); }, (newValue, oldValue) => {
           if (newValue !== oldValue && $scope.codeMirror) {
               $scope.codeMirror.refresh();
           }
         });
+        */
         $scope.$watch('text', function() {
           if (!$scope.codeMirror) {
 

@@ -527,18 +527,19 @@ var HawtioEditor;
                         $scope.options = [];
                     }
                 };
-                $scope.$watch('doc', function () {
-                    if ($scope.doc) {
+                $scope.$watch(_.debounce(function () {
+                    if ($scope.codeMirror) {
+                        $scope.codeMirror.refresh();
+                    }
+                }, 100, { trailing: true }));
+                $scope.$watch('codeMirror', function () {
+                    if ($scope.codeMirror) {
+                        $scope.doc = $scope.codeMirror.getDoc();
                         $scope.codeMirror.on('change', function (changeObj) {
                             $scope.text = $scope.doc.getValue();
                             $scope.dirty = !$scope.doc.isClean();
                             Core.$apply($scope);
                         });
-                    }
-                });
-                $scope.$watch('codeMirror', function () {
-                    if ($scope.codeMirror) {
-                        $scope.doc = $scope.codeMirror.getDoc();
                     }
                 });
                 $scope.$watch('text', function (oldValue, newValue) {
@@ -611,13 +612,13 @@ var HawtioEditor;
                         $scope.$parent[$scope.dirtyTarget] = $scope.dirty;
                     }
                 });
-                $scope.$watch(function () {
-                    return $element.is(':visible');
-                }, function (newValue, oldValue) {
-                    if (newValue !== oldValue && $scope.codeMirror) {
-                        $scope.codeMirror.refresh();
-                    }
+                /*
+                $scope.$watch(() => { return $element.is(':visible'); }, (newValue, oldValue) => {
+                  if (newValue !== oldValue && $scope.codeMirror) {
+                      $scope.codeMirror.refresh();
+                  }
                 });
+                */
                 $scope.$watch('text', function () {
                     if (!$scope.codeMirror) {
                         var options = {
