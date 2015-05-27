@@ -828,7 +828,12 @@ var HawtioMainNav;
       if (item.href && !item.oldHref) {
         item.oldHref = item.href;
         item.href = function() {
-          var uri = new URI(item.oldHref());
+          var oldHref = item.oldHref();
+          if (!oldHref) {
+            log.debug("Item: ", item.id, " returning null for href()");
+            return "";
+          }
+          var uri = new URI(oldHref);
           if (uri.path() === "") {
             return "";
           }
