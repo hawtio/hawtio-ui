@@ -8,7 +8,7 @@
          ng-class='options.actionClass'
          ng-bind='options.action'></p>
       <ul>
-        <li ng-repeat="item in options.collection">{{item[options.index]}}</li>
+        <li ng-repeat="item in options.collection" ng-bind="getName(item)"></li>
       </ul>
       <p ng-show="options.custom" 
          ng-class="options.customClass" 
