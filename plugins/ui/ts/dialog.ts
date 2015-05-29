@@ -68,6 +68,9 @@ module UI {
           dialog.close();
           options.onClose(result);
         };
+        $scope.getName = (item) => {
+          return Core.pathGet(item, options.index.split('.'));
+        }
       }]
     });
   }
