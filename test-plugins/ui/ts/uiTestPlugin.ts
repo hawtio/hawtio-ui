@@ -1,3 +1,4 @@
+/// <reference path="../../includes.ts"/>
 var UITestPages;
 (function (UITestPages) {
   UITestPages.templatePath = 'plugins/ui/html/test';
