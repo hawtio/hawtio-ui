@@ -1,7 +1,7 @@
 /// <reference path="../../includes.ts"/>
 var UITestPages;
 (function (UITestPages) {
-  UITestPages.templatePath = 'plugins/ui/html/test';
+  UITestPages.templatePath = 'test-plugins/ui/html';
   var path = UITestPages.templatePath;
   UITestPages.pluginName = 'hawtio-ui-test-pages';
   UITestPages._module = angular.module(UITestPages.pluginName, []);

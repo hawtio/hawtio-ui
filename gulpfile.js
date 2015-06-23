@@ -149,14 +149,14 @@ gulp.task('clean', ['concat'], function() {
 });
 
 gulp.task('watch', ['build', 'build-example'], function() {
-  plugins.watch(['libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + '*'], function() {
-    gulp.start('reload');
-  });
   plugins.watch(['libs/**/*.d.ts', config.ts, config.templates], function() {
     gulp.start(['tsc', 'template', 'concat', 'clean']);
   });
   plugins.watch([config.testTs, config.testTemplates], function() {
     gulp.start([ 'example-template', 'example-concat', 'example-clean']);
+  });
+  plugins.watch(['libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + '*'], function() {
+    gulp.start('reload');
   });
 });
 
