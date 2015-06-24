@@ -3418,7 +3418,7 @@ var UI;
                     _.forEach(tagValues, function (values) {
                         tags = _.union(tags, values);
                     });
-                    UI.log.debug("tags: ", tags);
+                    //log.debug("tags: ", tags);
                     $scope.tags = tags;
                 });
                 $scope.$watchCollection('tags', function (newValue, oldValue) {
@@ -3429,7 +3429,7 @@ var UI;
                 });
                 $scope.$watchCollection('selected', function (selected) {
                     $scope.selected = _.uniq(selected);
-                    UI.log.debug("newValue: ", $scope.selected);
+                    //log.debug("newValue: ", $scope.selected);
                     //TODO
                     /*
                     if (!Core.isBlank($scope.saveAs)) {
@@ -3466,11 +3466,17 @@ var UI;
                         scope.selected.push(tag);
                     }
                 };
+                scope.isSelected = function (tag) {
+                    if (!scope.selected) {
+                        return 'badge-success';
+                    }
+                    return _.any(scope.selected, function (item) { return tag === item; }) ? 'badge-success' : '';
+                };
                 scope.removeTag = function (tag) {
                     scope.tags.remove(tag);
                 };
                 scope.$watchCollection('tags', function (tags) {
-                    UI.log.debug("Collection changed: ", tags);
+                    //log.debug("Collection changed: ", tags);
                     var tmp = angular.element("<div></div>");
                     tags.forEach(function (tag) {
                         var func = $interpolate(tagBase);
@@ -3953,6 +3959,6 @@ $templateCache.put("plugins/ui/html/pane.html","<div class=\"pane\">\n  <div cla
 $templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{direction || \'right\'}}\">\n  <div class=slideout-title>\n    <div class=\"mouse-pointer pull-right\" ng-click=\"hidePanel($event)\" title=\"Close panel\">\n      <i class=\"fa fa-remove\"></i>\n    </div>\n    <span>{{title}}</span>\n  </div>\n  <div class=\"slideout-content\">\n    <div class=\"slideout-body\"></div>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/tablePager.html","<div class=\"hawtio-pager clearfix\">\n  <label>{{rowIndex() + 1}} / {{tableLength()}}</label>\n  <div class=btn-group>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"first()\"><i class=\"fa fa-fast-backward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"previous()\"><i class=\"fa fa-step-backward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"next()\"><i class=\"fa fa-step-forward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"last()\"><i class=\"fa fa-fast-forward\"></i></button>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/tagFilter.html","<div>\n  <ul class=\"list-unstyled label-list\">\n    <li ng-repeat=\"tag in visibleTags | orderBy:\'tag.id || tag\'\"\n        class=\"mouse-pointer\"\n        ng-click=\"toggleSelectionFromGroup(selected, tag.id || tag)\">\n              <span class=\"badge\"\n                    ng-class=\"isInGroup(selected, tag.id || tag, \'badge-success\', \'\')\"\n                      >{{tag.id || tag}}</span>\n              <span class=\"pull-right\"\n                    ng-show=\"tag.count\">{{tag.count}}&nbsp;</span>\n    </li>\n  </ul>\n  <div class=\"mouse-pointer\"\n       ng-show=\"selected.length\"\n       ng-click=\"clearGroup(selected)\">\n    <i class=\"fa fa-remove\" ></i> Clear Tags\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/tagList.html","<span>\n<script type=\"text/ng-template\" id=\"tagBase.html\">\n  <span class=\"badge badge-success mouse-pointer\">{{tag}}</span>\n</script>\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\n</script>\n</span>\n");
+$templateCache.put("plugins/ui/html/tagList.html","<span>\n<script type=\"text/ng-template\" id=\"tagBase.html\">\n  <span class=\"badge mouse-pointer\" ng-class=\"isSelected(\'{{tag}}\')\">{{tag}}</span>\n</script>\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\n</script>\n</span>\n");
 $templateCache.put("plugins/ui/html/toc.html","<div>\n  <div ng-repeat=\"item in myToc\">\n    <div id=\"{{item[\'href\']}}Target\" ng-bind-html=\"item.text\">\n    </div>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui-bootstrap/html/message.html","<div class=\"modal-header\">\n	<h3>{{ title }}</h3>\n</div>\n<div class=\"modal-body\">\n	<p>{{ message }}</p>\n</div>\n<div class=\"modal-footer\">\n	<button ng-repeat=\"btn in buttons\" ng-click=\"close(btn.result)\" class=\"btn\" ng-class=\"btn.cssClass\">{{ btn.label }}</button>\n</div>\n");}]); hawtioPluginLoader.addModule("hawtio-ui-templates");
