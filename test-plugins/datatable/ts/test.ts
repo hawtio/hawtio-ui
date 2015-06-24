@@ -8,9 +8,6 @@ module DatatableTest {
       { name: "Claus", twitter: "davsclaus" }
     ];
 
-    $scope.selectedItems = [];
-
-
     $scope.mygrid = {
       data: 'myData',
       showFilter: false,
@@ -20,7 +17,7 @@ module DatatableTest {
         filterText: "",
         useExternalFilter: false
       },
-      selectedItems: $scope.selectedItems,
+      selectedItems: [],
       rowHeight: 32,
       selectWithCheckboxOnly: true,
       columnDefs: [

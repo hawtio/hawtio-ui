@@ -28,7 +28,7 @@ module DataTable {
 
         var scope = $scope.$parent || $scope;
 
-        var listener = (otherValue) => {
+        var listener = () => {
           var value = Core.pathGet(scope, dataName);
           if (value && !angular.isArray(value)) {
             value = [value];
@@ -49,18 +49,11 @@ module DataTable {
               sortBy: sortField,
               ascending: true
             }
-          } else {
-            config['sortInfo'] = {
-              sortBy: '',
-              ascending: true
-            }
           }
-
-          var sortInfo = $scope.config.sortInfo;
-
+          var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
           // enrich the rows with information about their index
           var idx = -1;
-          $scope.rows = (value || []).sortBy(sortInfo.sortBy, !sortInfo.ascending).map(entity => {
+          var rows = (value || []).sortBy(sortInfo.sortBy, !sortInfo.ascending).map(entity => {
             idx++;
             return {
               entity: entity,
@@ -71,12 +64,10 @@ module DataTable {
             };
           });
 
-          Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], $scope.rows);
-
           // okay the data was changed/updated so we need to re-select previously selected items
           // and for that we need to evaluate the primary key function so we can match new data with old data.
           var reSelectedItems = [];
-          $scope.rows.forEach((row, idx) => {
+          rows.forEach((row, idx) => {
             var rpk = primaryKeyFn(row.entity, row.index);
             var selected = config.selectedItems.some(s => {
               var spk = primaryKeyFn(s, s.index);
@@ -90,6 +81,9 @@ module DataTable {
             }
           });
           config.selectedItems = reSelectedItems;
+
+          Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], rows);
+          $scope.rows = rows;
         };
 
         scope.$watchCollection(dataName, listener);
@@ -174,7 +168,7 @@ module DataTable {
             $scope.config.sortInfo.sortBy = field;
             $scope.config.sortInfo.ascending = true;
           }
-          $scope.$emit("hawtio.datatable." + dataName);
+          scope.$broadcast("hawtio.datatable." + dataName);
         };
 
         $scope.getClass = (field) => {
@@ -235,46 +229,49 @@ module DataTable {
           }
         };
 
-        // lets add the header and row cells
-        var rootElement = $element;
-        rootElement.empty();
+        $scope.$watchCollection('rows', () => {
+          // lets add the header and row cells
+          var rootElement = $element;
+          rootElement.empty();
 
-        var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
-        var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
+          var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
+          var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
 
-        var onMouseDown;
-        if (enableRowClickSelection) {
-          onMouseDown = "ng-mousedown='onRowSelected(row)' ";
-        } else {
-          onMouseDown = "";
-        }
-        var headHtml = "<thead><tr>";
-        // use a function to check if a row is selected so the UI can be kept up to date asap
-        var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " + onMouseDown + "ng-class=\"{'selected': isSelected(row)}\" >";
-        var idx = 0;
-        if (showCheckBox) {
-          var toggleAllHtml = isMultiSelect() ?
-            "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' ng-change='toggleAllSelections()'>" : "";
+          var onMouseDown;
+          if (enableRowClickSelection) {
+            onMouseDown = "ng-mousedown='onRowSelected(row)' ";
+          } else {
+            onMouseDown = "";
+          }
+          var headHtml = "<thead><tr>";
+          // use a function to check if a row is selected so the UI can be kept up to date asap
+          var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " + onMouseDown + "ng-class=\"{'selected': isSelected(row)}\" >";
+          var idx = 0;
+          if (showCheckBox) {
+            var toggleAllHtml = isMultiSelect() ?
+              "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' ng-change='toggleAllSelections()'>" : "";
 
-          headHtml += "\n<th class='simple-table-checkbox'>" +
-            toggleAllHtml +
-            "</th>"
-          bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' ng-change='toggleRowSelection(row)'></td>"
-        }
-        angular.forEach(config.columnDefs, (colDef) => {
-          var field = colDef.field;
-          var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
+            headHtml += "\n<th class='simple-table-checkbox'>" +
+              toggleAllHtml +
+              "</th>"
+            bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' ng-change='toggleRowSelection(row)'></td>"
+          }
+          angular.forEach(config.columnDefs, (colDef) => {
+            var field = colDef.field;
+            var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
 
-          headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>"
+            headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>"
 
-          bodyHtml += "\n<td>" + cellTemplate + "</td>"
-          idx += 1;
+            bodyHtml += "\n<td>" + cellTemplate + "</td>"
+            idx += 1;
+          });
+          var html = headHtml + "\n</tr></thead>\n" +
+            bodyHtml + "\n</tr></tbody>";
+
+          var newContent = $compile(html)($scope);
+          rootElement.html(newContent);
         });
-        var html = headHtml + "\n</tr></thead>\n" +
-          bodyHtml + "\n</tr></tbody>";
 
-        var newContent = $compile(html)($scope);
-        rootElement.html(newContent);
       }
     };
   }]);
