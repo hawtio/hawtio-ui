@@ -1,6 +1,6 @@
 <span>
 <script type="text/ng-template" id="tagBase.html">
-  <span class="badge badge-success mouse-pointer">{{tag}}</span>
+  <span class="badge mouse-pointer" ng-class="isSelected('{{tag}}')">{{tag}}</span>
 </script>
 <script type="text/ng-template" id="tagRemove.html">
   <i class="fa fa-remove" ng-click="removeTag({{tag}})"></i>

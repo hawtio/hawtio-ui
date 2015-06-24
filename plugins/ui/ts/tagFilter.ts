@@ -94,7 +94,7 @@ module UI {
           _.forEach(tagValues, (values) => {
             tags = _.union(tags, values);
           });
-          log.debug("tags: ", tags);
+          //log.debug("tags: ", tags);
           $scope.tags = tags;
 
         });
@@ -107,7 +107,7 @@ module UI {
         $scope.$watchCollection('selected', (selected) => {
           $scope.selected = _.uniq(selected);
 
-          log.debug("newValue: ", $scope.selected);
+          //log.debug("newValue: ", $scope.selected);
           //TODO
           /*
           if (!Core.isBlank($scope.saveAs)) {

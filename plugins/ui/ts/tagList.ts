@@ -18,11 +18,17 @@ module UI {
             scope.selected.push(tag);
           }
         };
+        scope.isSelected = (tag) => {
+          if (!scope.selected) {
+            return 'badge-success'
+          }
+          return _.any(scope.selected, (item) => tag === item) ? 'badge-success' : '';
+        }
         scope.removeTag = (tag) => {
           scope.tags.remove(tag);
         };
         scope.$watchCollection('tags', (tags) => {
-          log.debug("Collection changed: ", tags);
+          //log.debug("Collection changed: ", tags);
           var tmp = angular.element("<div></div>");
           tags.forEach((tag) => {
             var func = $interpolate(tagBase);

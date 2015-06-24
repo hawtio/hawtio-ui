@@ -1,33 +1,42 @@
+<div class="row">
+  <div class="col-md-12">
+    <h2>Tags</h2>
+  </div>
+</div>
 <div class="row" ng-controller="UITest.TagsController">
   <div class="col-md-4">
+    <p>Directives that can be helpful for providing the user a way to narrow down the number of items in a list.  Tags are handled via 2 directives and a filter.  The hawtioTagList directive will will display a list of tags for an item, and provide click handlers to update a list of selected tabs.  The hawtioTagFilter directive builds an available list of tags, and manages the list of selected tags, providing the user a way of managing which tags are selectedTags.  Finally the selectedTags filter is used to hide list elements.</p>
+    <h5>Example Markup</h5>
+    <script type="text/ng-template" id="tag-ex-template.html">
+      <div class="row">
+        <div class="col-md-6">
+          <ul>
+            <li ng-repeat="item in data | selectedTags:'tags':selected">
+              {{item.id}}
+              <hawtio-tag-list tags="item.tags" selected="selected"></hawtio-tag-list>
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <hawtio-tag-filter tags="tags"
+                             selected="selected"
+                             collection="data"
+                             collection-property="tags"></hawtio-tag-filter>
+         </div>
+      </div>
+    </script>
+    <div hawtio-editor="template" mode="html"></div>
+  </div>
+  <div class="col-md-4">
     <div class="row">
-      <h5>Data</h5>
+      <h5>Example Data</h5>
       <div hawtio-editor="toJson(data, true)" read-only="true" mode="javascript"></div>
     </div>
   </div>
   <div class="col-md-4">
-    <script type="text/ng-template" id="tag-ex-template.html">
-      <div>
-        <ul>
-          <li ng-repeat="item in data | selectedTags:'tags':selected">
-            {{item.id}}
-            <hawtio-tag-list tags="item.tags" selected="selected"></hawtio-tag-list>
-          </li>
-        </ul>
-
-        <hawtio-tag-filter tags="tags"
-                           selected="selected"
-                           collection="data"
-                           collection-property="tags"
-                           save-as="ui-example-tag-filter"></hawtio-tag-filter>
-
-      </div>
-    </script>
-    <div hawtio-editor="template" mode="html"></div>
+    <p>Click on any of the tags below to limit the visible items in the list</p>
     <div class="directive-example">
       <div compile="template"></div>
     </div>
-  </div>
-  <div class="col-md-4">
   </div>
 </div>
