@@ -1,7 +1,7 @@
 /// <reference path="datatablePlugin.ts"/>
-module DataTable {
+module DatatableTest {
 
-  _module.controller('DataTable.SimpleTableTestController', ['$scope', '$location', ($scope, $location) => {
+  _module.controller('DatatableTest.SimpleTableTestController', ['$scope', '$location', ($scope, $location) => {
     $scope.myData = [
       { name: "James", twitter: "jstrachan" },
       { name: "Stan", twitter: "gashcrumb" },
