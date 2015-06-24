@@ -40,7 +40,6 @@
 /// <reference path="d.ts/ui/ts/tagFilter.d.ts"/>
 /// <reference path="d.ts/ui/ts/tagList.d.ts"/>
 /// <reference path="d.ts/ui/ts/templatePopover.d.ts"/>
-/// <reference path="d.ts/ui/ts/testController.d.ts"/>
 /// <reference path="d.ts/ui/ts/toc.d.ts"/>
 /// <reference path="d.ts/ui/ts/viewport.d.ts"/>
 /// <reference path="d.ts/ui/ts/zeroclipboard.d.ts"/>

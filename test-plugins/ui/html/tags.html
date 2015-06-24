@@ -1,0 +1,33 @@
+<div class="row" ng-controller="UITest.TagsController">
+  <div class="col-md-4">
+    <div class="row">
+      <h5>Data</h5>
+      <div hawtio-editor="toJson(data, true)" read-only="true" mode="javascript"></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <script type="text/ng-template" id="tag-ex-template.html">
+      <div>
+        <ul>
+          <li ng-repeat="item in data | selectedTags:'tags':selected">
+            {{item.id}}
+            <hawtio-tag-list tags="item.tags" selected="selected"></hawtio-tag-list>
+          </li>
+        </ul>
+
+        <hawtio-tag-filter tags="tags"
+                           selected="selected"
+                           collection="data"
+                           collection-property="tags"
+                           save-as="ui-example-tag-filter"></hawtio-tag-filter>
+
+      </div>
+    </script>
+    <div hawtio-editor="template" mode="html"></div>
+    <div class="directive-example">
+      <div compile="template"></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+  </div>
+</div>

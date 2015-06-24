@@ -1,10 +1,6 @@
-/**
- * @module UI
- */
-/// <reference path="uiPlugin.ts"/>
-/// <reference path="dropDown.ts"/>
+/// <reference path="uiTestPlugin.ts"/>
 /// <reference path="../../includes.ts"/>
-module UI {
+module UITest {
 
     _module.controller("UI.UITestController2", ["$scope", "$templateCache", ($scope, $templateCache) => {
 

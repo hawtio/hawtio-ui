@@ -1,47 +1,42 @@
 /// <reference path="uiPlugin.ts"/>
-
 module UI {
-  export var hawtioTagList = _module.directive("hawtioTagList", ['$interpolate', '$compile', ($interpolate:ng.IInterpolateService, $compile:ng.ICompileService) => {
+  export var hawtioTagList = _module.directive("hawtioTagList", ['$interpolate', '$compile', '$templateCache', ($interpolate:ng.IInterpolateService, $compile:ng.ICompileService, $templateCache:ng.ITemplateCacheService) => {
     return {
       restrict: 'E',
       replace: true,
+      templateUrl: UrlHelpers.join(templatePath, 'tagList.html'),
       scope: {
-        ngModel: '=?',
-        property: '@',
-        onChange: '&'
+        tags: '=',
+        remove: '=?',
+        selected: '=?'
       },
       link: (scope, $element, attr) => {
-
-        if (!scope.ngModel || !scope.property || !scope.ngModel[scope.property]) {
-          // bail out
-          return;
-        }
-
-        scope.collection = scope.ngModel[scope.property];
-
-        scope.removeTag = (tag) => {
-          //log.debug("Removing: ", tag);
-          scope.ngModel[scope.property].remove(tag);
-          if (scope.onChange) {
-            scope.$eval(scope.onChange);
+        var tagBase = $templateCache.get('tagBase.html');
+        var tagRemove = $templateCache.get('tagRemove.html');
+        scope.addSelected = (tag) => {
+          if (scope.selected) {
+            scope.selected.push(tag);
           }
         };
-        scope.$watch('collection', (newValue, oldValue) => {
-          if (!scope.ngModel || !scope.property || !scope.ngModel[scope.property]) {
-            // bail out
-            return;
-          }
-          var tags = scope.ngModel[scope.property];
-          //log.debug("Collection changed: ", tags);
+        scope.removeTag = (tag) => {
+          scope.tags.remove(tag);
+        };
+        scope.$watchCollection('tags', (tags) => {
+          log.debug("Collection changed: ", tags);
           var tmp = angular.element("<div></div>");
           tags.forEach((tag) => {
-            var func = $interpolate('<span class="badge badge-success mouse-pointer">{{tag}} <i class="fa fa-remove" ng-click="removeTag(\'{{tag}}\')"></i></span>&nbsp;');
-            tmp.append(func({
-              tag: tag
-            }));
+            var func = $interpolate(tagBase);
+            var el = angular.element(func({ tag: tag }));
+            if (scope.remove) {
+              el.append($interpolate(tagRemove)({ tag: tag}));
+            }
+            if (scope.selected) {
+              el.attr('ng-click', 'addSelected(\'' + tag + '\')');
+            }
+            tmp.append(el);
           });
           $element.html($compile(tmp.children())(scope));
-        }, true);
+        });
       }
     }
   }]);
