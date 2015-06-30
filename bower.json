@@ -17,7 +17,7 @@
     "dist/transition.js",
     "dist/dialog.js",
     "dist/modal.js",
-    "dist/jquery.jsPlumb-1.7.2.js",
+    "dist/jquery.jsPlumb-1.7.5.js",
     "dist/marked.js",
     "dist/d3.js",
     "dist/tabbable.js",
