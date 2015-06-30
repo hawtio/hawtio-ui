@@ -4616,6 +4616,9 @@
             if (jsPlumbUtil.isString(spec)) {
                 spec = [ spec, { } ];
             }
+            if (spec.length === 1) {
+                spec.push({});
+            }
             spec[1].id = spec[1].id || jsPlumbUtil.uuid();
             return spec;
         },
