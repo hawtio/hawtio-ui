@@ -14,6 +14,7 @@ declare module UI {
             top: string;
             height: string;
             title: string;
+            close: string;
         };
         controller: (string | (($scope: any, $element: any, $attrs: any, $transclude: any, $compile: any) => void))[];
         link: ($scope: any, $element: any, $attrs: any) => void;

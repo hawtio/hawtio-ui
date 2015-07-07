@@ -2,6 +2,287 @@
 
 /// <reference path="../../includes.ts"/>
 /**
+ * @module DataTable
+ * @main DataTable
+ */
+var DataTable;
+(function (DataTable) {
+    DataTable.pluginName = 'datatable';
+    DataTable.log = Logger.get("DataTable");
+    DataTable._module = angular.module(DataTable.pluginName, []);
+    hawtioPluginLoader.addModule(DataTable.pluginName);
+})(DataTable || (DataTable = {}));
+
+/// <reference path="datatablePlugin.ts"/>
+/**
+ * @module DataTable
+ */
+var DataTable;
+(function (DataTable) {
+    DataTable._module.directive('hawtioSimpleTable', ["$compile", function ($compile) {
+        return {
+            restrict: 'A',
+            scope: {
+                config: '=hawtioSimpleTable'
+            },
+            link: function ($scope, $element, $attrs) {
+                var defaultPrimaryKeyFn = function (entity, idx) {
+                    // default function to use id/_id/name as primary key, and fallback to use index
+                    return entity["id"] || entity["_id"] || entity["name"] || idx;
+                };
+                var config = $scope.config;
+                var dataName = config.data || "data";
+                // need to remember which rows has been selected as the config.data / config.selectedItems
+                // so we can re-select them when data is changed/updated, and entity may be new instances
+                // so we need a primary key function to generate a 'primary key' of the entity
+                var primaryKeyFn = config.primaryKeyFn || defaultPrimaryKeyFn;
+                $scope.rows = [];
+                var scope = $scope.$parent || $scope;
+                var listener = function () {
+                    var value = Core.pathGet(scope, dataName);
+                    if (value && !angular.isArray(value)) {
+                        value = [value];
+                        Core.pathSet(scope, dataName, value);
+                    }
+                    if (!('sortInfo' in config) && 'columnDefs' in config) {
+                        // an optional defaultSort can be used to indicate a column
+                        // should not automatic be the default sort
+                        var ds = config.columnDefs.first()['defaultSort'];
+                        var sortField;
+                        if (angular.isUndefined(ds) || ds === true) {
+                            sortField = config.columnDefs.first()['field'];
+                        }
+                        else {
+                            sortField = config.columnDefs.slice(1).first()['field'];
+                        }
+                        config['sortInfo'] = {
+                            sortBy: sortField,
+                            ascending: true
+                        };
+                    }
+                    var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
+                    // enrich the rows with information about their index
+                    var idx = -1;
+                    var rows = (value || []).sortBy(sortInfo.sortBy, !sortInfo.ascending).map(function (entity) {
+                        idx++;
+                        return {
+                            entity: entity,
+                            index: idx,
+                            getProperty: function (name) {
+                                return entity[name];
+                            }
+                        };
+                    });
+                    // okay the data was changed/updated so we need to re-select previously selected items
+                    // and for that we need to evaluate the primary key function so we can match new data with old data.
+                    var reSelectedItems = [];
+                    rows.forEach(function (row, idx) {
+                        var rpk = primaryKeyFn(row.entity, row.index);
+                        var selected = config.selectedItems.some(function (s) {
+                            var spk = primaryKeyFn(s, s.index);
+                            return angular.equals(rpk, spk);
+                        });
+                        if (selected) {
+                            // need to enrich entity with index, as we push row.entity to the re-selected items
+                            row.entity.index = row.index;
+                            reSelectedItems.push(row.entity);
+                            DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
+                        }
+                    });
+                    config.selectedItems = reSelectedItems;
+                    Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], rows);
+                    $scope.rows = rows;
+                };
+                scope.$watchCollection(dataName, listener);
+                // lets add a separate event so we can force updates
+                // if we find cases where the delta logic doesn't work
+                // (such as for nested hawtioinput-input-table)
+                scope.$on("hawtio.datatable." + dataName, listener);
+                function getSelectionArray() {
+                    var selectionArray = config.selectedItems;
+                    if (!selectionArray) {
+                        selectionArray = [];
+                        config.selectedItems = selectionArray;
+                    }
+                    if (angular.isString(selectionArray)) {
+                        var name = selectionArray;
+                        selectionArray = Core.pathGet(scope, name);
+                        if (!selectionArray) {
+                            selectionArray = [];
+                            scope[name] = selectionArray;
+                        }
+                    }
+                    return selectionArray;
+                }
+                function isMultiSelect() {
+                    var multiSelect = $scope.config.multiSelect;
+                    if (angular.isUndefined(multiSelect)) {
+                        multiSelect = true;
+                    }
+                    return multiSelect;
+                }
+                $scope.toggleAllSelections = function () {
+                    var allRowsSelected = $scope.config.allRowsSelected;
+                    var newFlag = allRowsSelected;
+                    var selectionArray = getSelectionArray();
+                    selectionArray.splice(0, selectionArray.length);
+                    angular.forEach($scope.rows, function (row) {
+                        row.selected = newFlag;
+                        if (allRowsSelected) {
+                            selectionArray.push(row.entity);
+                        }
+                    });
+                };
+                $scope.toggleRowSelection = function (row) {
+                    if (row) {
+                        var selectionArray = getSelectionArray();
+                        if (!isMultiSelect()) {
+                            // lets clear all other selections
+                            selectionArray.splice(0, selectionArray.length);
+                            angular.forEach($scope.rows, function (r) {
+                                if (r !== row) {
+                                    r.selected = false;
+                                }
+                            });
+                        }
+                        var entity = row.entity;
+                        if (entity) {
+                            var idx = selectionArray.indexOf(entity);
+                            if (row.selected) {
+                                if (idx < 0) {
+                                    selectionArray.push(entity);
+                                }
+                            }
+                            else {
+                                // clear the all selected checkbox
+                                $scope.config.allRowsSelected = false;
+                                if (idx >= 0) {
+                                    selectionArray.splice(idx, 1);
+                                }
+                            }
+                        }
+                    }
+                };
+                $scope.sortBy = function (field) {
+                    if ($scope.config.sortInfo.sortBy === field) {
+                        $scope.config.sortInfo.ascending = !$scope.config.sortInfo.ascending;
+                    }
+                    else {
+                        $scope.config.sortInfo.sortBy = field;
+                        $scope.config.sortInfo.ascending = true;
+                    }
+                    scope.$broadcast("hawtio.datatable." + dataName);
+                };
+                $scope.getClass = function (field) {
+                    if ('sortInfo' in $scope.config) {
+                        if ($scope.config.sortInfo.sortBy === field) {
+                            if ($scope.config.sortInfo.ascending) {
+                                return 'asc';
+                            }
+                            else {
+                                return 'desc';
+                            }
+                        }
+                    }
+                    return '';
+                };
+                $scope.showRow = function (row) {
+                    var filter = Core.pathGet($scope, ['config', 'filterOptions', 'filterText']);
+                    if (Core.isBlank(filter)) {
+                        return true;
+                    }
+                    var data = null;
+                    try {
+                        data = row['entity']['title'];
+                    }
+                    catch (e) {
+                    }
+                    if (!data) {
+                        // use the row as-is
+                        data = row.entity;
+                    }
+                    var match = FilterHelpers.search(data, filter);
+                    return match;
+                };
+                $scope.isSelected = function (row) {
+                    return config.selectedItems.some(row.entity);
+                };
+                $scope.onRowSelected = function (row) {
+                    var idx = config.selectedItems.indexOf(row.entity);
+                    if (idx >= 0) {
+                        DataTable.log.debug("De-selecting row at index " + row.index);
+                        config.selectedItems.splice(idx, 1);
+                    }
+                    else {
+                        if (!config.multiSelect) {
+                            config.selectedItems.length = 0;
+                        }
+                        DataTable.log.debug("Selecting row at index " + row.index);
+                        // need to enrich entity with index, as we push row.entity to the selected items
+                        row.entity.index = row.index;
+                        config.selectedItems.push(row.entity);
+                    }
+                };
+                $scope.$watchCollection('rows', function () {
+                    // lets add the header and row cells
+                    var rootElement = $element;
+                    rootElement.empty();
+                    var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
+                    var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
+                    var onMouseDown;
+                    if (enableRowClickSelection) {
+                        onMouseDown = "ng-mousedown='onRowSelected(row)' ";
+                    }
+                    else {
+                        onMouseDown = "";
+                    }
+                    var headHtml = "<thead><tr>";
+                    // use a function to check if a row is selected so the UI can be kept up to date asap
+                    var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " + onMouseDown + "ng-class=\"{'selected': isSelected(row)}\" >";
+                    var idx = 0;
+                    if (showCheckBox) {
+                        var toggleAllHtml = isMultiSelect() ? "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' ng-change='toggleAllSelections()'>" : "";
+                        headHtml += "\n<th class='simple-table-checkbox'>" + toggleAllHtml + "</th>";
+                        bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' ng-change='toggleRowSelection(row)'></td>";
+                    }
+                    angular.forEach(config.columnDefs, function (colDef) {
+                        var field = colDef.field;
+                        var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
+                        headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>";
+                        bodyHtml += "\n<td>" + cellTemplate + "</td>";
+                        idx += 1;
+                    });
+                    var html = headHtml + "\n</tr></thead>\n" + bodyHtml + "\n</tr></tbody>";
+                    var newContent = $compile(html)($scope);
+                    rootElement.html(newContent);
+                });
+            }
+        };
+    }]);
+    /**
+     * Returns the first property value defined in the given object or the default value if none are defined
+     *
+     * @param object the object to look for properties
+     * @param names the array of property names to look for
+     * @param defaultValue the value if no property values are defined
+     * @return {*} the first defined property value or the defaultValue if none are defined
+     */
+    function firstValueDefined(object, names, defaultValue) {
+        var answer = defaultValue;
+        var found = false;
+        angular.forEach(names, function (name) {
+            var value = object[name];
+            if (!found && angular.isDefined(value)) {
+                answer = value;
+                found = true;
+            }
+        });
+        return answer;
+    }
+})(DataTable || (DataTable = {}));
+
+/// <reference path="../../includes.ts"/>
+/**
  * Module that contains several helper functions related to hawtio's code editor
  *
  * @module CodeEditor
@@ -607,287 +888,6 @@ var ForceGraph;
 })(ForceGraph || (ForceGraph = {}));
 
 /// <reference path="../../includes.ts"/>
-/**
- * @module DataTable
- * @main DataTable
- */
-var DataTable;
-(function (DataTable) {
-    DataTable.pluginName = 'datatable';
-    DataTable.log = Logger.get("DataTable");
-    DataTable._module = angular.module(DataTable.pluginName, []);
-    hawtioPluginLoader.addModule(DataTable.pluginName);
-})(DataTable || (DataTable = {}));
-
-/// <reference path="datatablePlugin.ts"/>
-/**
- * @module DataTable
- */
-var DataTable;
-(function (DataTable) {
-    DataTable._module.directive('hawtioSimpleTable', ["$compile", function ($compile) {
-        return {
-            restrict: 'A',
-            scope: {
-                config: '=hawtioSimpleTable'
-            },
-            link: function ($scope, $element, $attrs) {
-                var defaultPrimaryKeyFn = function (entity, idx) {
-                    // default function to use id/_id/name as primary key, and fallback to use index
-                    return entity["id"] || entity["_id"] || entity["name"] || idx;
-                };
-                var config = $scope.config;
-                var dataName = config.data || "data";
-                // need to remember which rows has been selected as the config.data / config.selectedItems
-                // so we can re-select them when data is changed/updated, and entity may be new instances
-                // so we need a primary key function to generate a 'primary key' of the entity
-                var primaryKeyFn = config.primaryKeyFn || defaultPrimaryKeyFn;
-                $scope.rows = [];
-                var scope = $scope.$parent || $scope;
-                var listener = function () {
-                    var value = Core.pathGet(scope, dataName);
-                    if (value && !angular.isArray(value)) {
-                        value = [value];
-                        Core.pathSet(scope, dataName, value);
-                    }
-                    if (!('sortInfo' in config) && 'columnDefs' in config) {
-                        // an optional defaultSort can be used to indicate a column
-                        // should not automatic be the default sort
-                        var ds = config.columnDefs.first()['defaultSort'];
-                        var sortField;
-                        if (angular.isUndefined(ds) || ds === true) {
-                            sortField = config.columnDefs.first()['field'];
-                        }
-                        else {
-                            sortField = config.columnDefs.slice(1).first()['field'];
-                        }
-                        config['sortInfo'] = {
-                            sortBy: sortField,
-                            ascending: true
-                        };
-                    }
-                    var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
-                    // enrich the rows with information about their index
-                    var idx = -1;
-                    var rows = (value || []).sortBy(sortInfo.sortBy, !sortInfo.ascending).map(function (entity) {
-                        idx++;
-                        return {
-                            entity: entity,
-                            index: idx,
-                            getProperty: function (name) {
-                                return entity[name];
-                            }
-                        };
-                    });
-                    // okay the data was changed/updated so we need to re-select previously selected items
-                    // and for that we need to evaluate the primary key function so we can match new data with old data.
-                    var reSelectedItems = [];
-                    rows.forEach(function (row, idx) {
-                        var rpk = primaryKeyFn(row.entity, row.index);
-                        var selected = config.selectedItems.some(function (s) {
-                            var spk = primaryKeyFn(s, s.index);
-                            return angular.equals(rpk, spk);
-                        });
-                        if (selected) {
-                            // need to enrich entity with index, as we push row.entity to the re-selected items
-                            row.entity.index = row.index;
-                            reSelectedItems.push(row.entity);
-                            DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
-                        }
-                    });
-                    config.selectedItems = reSelectedItems;
-                    Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], rows);
-                    $scope.rows = rows;
-                };
-                scope.$watchCollection(dataName, listener);
-                // lets add a separate event so we can force updates
-                // if we find cases where the delta logic doesn't work
-                // (such as for nested hawtioinput-input-table)
-                scope.$on("hawtio.datatable." + dataName, listener);
-                function getSelectionArray() {
-                    var selectionArray = config.selectedItems;
-                    if (!selectionArray) {
-                        selectionArray = [];
-                        config.selectedItems = selectionArray;
-                    }
-                    if (angular.isString(selectionArray)) {
-                        var name = selectionArray;
-                        selectionArray = Core.pathGet(scope, name);
-                        if (!selectionArray) {
-                            selectionArray = [];
-                            scope[name] = selectionArray;
-                        }
-                    }
-                    return selectionArray;
-                }
-                function isMultiSelect() {
-                    var multiSelect = $scope.config.multiSelect;
-                    if (angular.isUndefined(multiSelect)) {
-                        multiSelect = true;
-                    }
-                    return multiSelect;
-                }
-                $scope.toggleAllSelections = function () {
-                    var allRowsSelected = $scope.config.allRowsSelected;
-                    var newFlag = allRowsSelected;
-                    var selectionArray = getSelectionArray();
-                    selectionArray.splice(0, selectionArray.length);
-                    angular.forEach($scope.rows, function (row) {
-                        row.selected = newFlag;
-                        if (allRowsSelected) {
-                            selectionArray.push(row.entity);
-                        }
-                    });
-                };
-                $scope.toggleRowSelection = function (row) {
-                    if (row) {
-                        var selectionArray = getSelectionArray();
-                        if (!isMultiSelect()) {
-                            // lets clear all other selections
-                            selectionArray.splice(0, selectionArray.length);
-                            angular.forEach($scope.rows, function (r) {
-                                if (r !== row) {
-                                    r.selected = false;
-                                }
-                            });
-                        }
-                        var entity = row.entity;
-                        if (entity) {
-                            var idx = selectionArray.indexOf(entity);
-                            if (row.selected) {
-                                if (idx < 0) {
-                                    selectionArray.push(entity);
-                                }
-                            }
-                            else {
-                                // clear the all selected checkbox
-                                $scope.config.allRowsSelected = false;
-                                if (idx >= 0) {
-                                    selectionArray.splice(idx, 1);
-                                }
-                            }
-                        }
-                    }
-                };
-                $scope.sortBy = function (field) {
-                    if ($scope.config.sortInfo.sortBy === field) {
-                        $scope.config.sortInfo.ascending = !$scope.config.sortInfo.ascending;
-                    }
-                    else {
-                        $scope.config.sortInfo.sortBy = field;
-                        $scope.config.sortInfo.ascending = true;
-                    }
-                    scope.$broadcast("hawtio.datatable." + dataName);
-                };
-                $scope.getClass = function (field) {
-                    if ('sortInfo' in $scope.config) {
-                        if ($scope.config.sortInfo.sortBy === field) {
-                            if ($scope.config.sortInfo.ascending) {
-                                return 'asc';
-                            }
-                            else {
-                                return 'desc';
-                            }
-                        }
-                    }
-                    return '';
-                };
-                $scope.showRow = function (row) {
-                    var filter = Core.pathGet($scope, ['config', 'filterOptions', 'filterText']);
-                    if (Core.isBlank(filter)) {
-                        return true;
-                    }
-                    var data = null;
-                    try {
-                        data = row['entity']['title'];
-                    }
-                    catch (e) {
-                    }
-                    if (!data) {
-                        // use the row as-is
-                        data = row.entity;
-                    }
-                    var match = FilterHelpers.search(data, filter);
-                    return match;
-                };
-                $scope.isSelected = function (row) {
-                    return config.selectedItems.some(row.entity);
-                };
-                $scope.onRowSelected = function (row) {
-                    var idx = config.selectedItems.indexOf(row.entity);
-                    if (idx >= 0) {
-                        DataTable.log.debug("De-selecting row at index " + row.index);
-                        config.selectedItems.splice(idx, 1);
-                    }
-                    else {
-                        if (!config.multiSelect) {
-                            config.selectedItems.length = 0;
-                        }
-                        DataTable.log.debug("Selecting row at index " + row.index);
-                        // need to enrich entity with index, as we push row.entity to the selected items
-                        row.entity.index = row.index;
-                        config.selectedItems.push(row.entity);
-                    }
-                };
-                $scope.$watchCollection('rows', function () {
-                    // lets add the header and row cells
-                    var rootElement = $element;
-                    rootElement.empty();
-                    var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
-                    var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
-                    var onMouseDown;
-                    if (enableRowClickSelection) {
-                        onMouseDown = "ng-mousedown='onRowSelected(row)' ";
-                    }
-                    else {
-                        onMouseDown = "";
-                    }
-                    var headHtml = "<thead><tr>";
-                    // use a function to check if a row is selected so the UI can be kept up to date asap
-                    var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " + onMouseDown + "ng-class=\"{'selected': isSelected(row)}\" >";
-                    var idx = 0;
-                    if (showCheckBox) {
-                        var toggleAllHtml = isMultiSelect() ? "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' ng-change='toggleAllSelections()'>" : "";
-                        headHtml += "\n<th class='simple-table-checkbox'>" + toggleAllHtml + "</th>";
-                        bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' ng-change='toggleRowSelection(row)'></td>";
-                    }
-                    angular.forEach(config.columnDefs, function (colDef) {
-                        var field = colDef.field;
-                        var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
-                        headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>";
-                        bodyHtml += "\n<td>" + cellTemplate + "</td>";
-                        idx += 1;
-                    });
-                    var html = headHtml + "\n</tr></thead>\n" + bodyHtml + "\n</tr></tbody>";
-                    var newContent = $compile(html)($scope);
-                    rootElement.html(newContent);
-                });
-            }
-        };
-    }]);
-    /**
-     * Returns the first property value defined in the given object or the default value if none are defined
-     *
-     * @param object the object to look for properties
-     * @param names the array of property names to look for
-     * @param defaultValue the value if no property values are defined
-     * @return {*} the first defined property value or the defaultValue if none are defined
-     */
-    function firstValueDefined(object, names, defaultValue) {
-        var answer = defaultValue;
-        var found = false;
-        angular.forEach(names, function (name) {
-            var value = object[name];
-            if (!found && angular.isDefined(value)) {
-                answer = value;
-                found = true;
-            }
-        });
-        return answer;
-    }
-})(DataTable || (DataTable = {}));
-
-/// <reference path="../../includes.ts"/>
 var Toastr;
 (function (Toastr) {
     var pluginName = 'hawtio-toastr';
@@ -928,17 +928,6 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
-
-/// <reference path="../../includes.ts"/>
-var UIBootstrap;
-(function (UIBootstrap) {
-    var pluginName = "hawtio-ui-bootstrap";
-    angular.module(pluginName, ["ui.bootstrap"]);
-    hawtioPluginLoader.addModule(pluginName);
-    hawtioPluginLoader.addModule("hawtio-compat.transition");
-    hawtioPluginLoader.addModule("hawtio-compat.dialog");
-    hawtioPluginLoader.addModule("hawtio-compat.modal");
-})(UIBootstrap || (UIBootstrap = {}));
 
 /**
  * @module UI
@@ -3153,7 +3142,8 @@ var UI;
                 direction: '@',
                 top: '@',
                 height: '@',
-                title: '@'
+                title: '@',
+                close: '@'
             };
             this.controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", function ($scope, $element, $attrs, $transclude, $compile) {
                 $scope.clone = null;
@@ -3168,6 +3158,7 @@ var UI;
                     $element.css('height', value);
                 });
                 UI.observe($scope, $attrs, 'title', '');
+                UI.observe($scope, $attrs, 'close', 'true');
                 $scope.$watch('show', function () {
                     if ($scope.show) {
                         $scope.body = $element.find('.slideout-body');
@@ -3882,6 +3873,17 @@ var UI;
     UI.ZeroClipboardDirective = ZeroClipboardDirective;
 })(UI || (UI = {}));
 
+/// <reference path="../../includes.ts"/>
+var UIBootstrap;
+(function (UIBootstrap) {
+    var pluginName = "hawtio-ui-bootstrap";
+    angular.module(pluginName, ["ui.bootstrap"]);
+    hawtioPluginLoader.addModule(pluginName);
+    hawtioPluginLoader.addModule("hawtio-compat.transition");
+    hawtioPluginLoader.addModule("hawtio-compat.dialog");
+    hawtioPluginLoader.addModule("hawtio-compat.modal");
+})(UIBootstrap || (UIBootstrap = {}));
+
 angular.module("hawtio-ui-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("plugins/editor/html/editor.html","<div class=\"editor-autoresize\">\n  <textarea name=\"{{name}}\" ng-model=\"text\"></textarea>\n</div>\n");
 $templateCache.put("plugins/ui/html/breadcrumbs.html","<span class=\"hawtio-breadcrumb\">\n  <li ng-repeat=\"(level, config) in levels track by level\" ng-show=\"config\">\n    <div hawtio-drop-down=\"config\" process-submenus=\"false\"></div>\n  </li>\n</span>\n");
 $templateCache.put("plugins/ui/html/colorPicker.html","<div class=\"color-picker\">\n  <div class=\"wrapper\">\n    <div class=\"selected-color\" style=\"background-color: {{property}};\" ng-click=\"popout = !popout\"></div>\n  </div>\n  <div class=\"color-picker-popout\">\n    <table>\n      <tr>\n        <td ng-repeat=\"color in colorList\">\n          <div class=\"{{color.select}}\" style=\"background-color: {{color.color}};\"\n               ng-click=\"selectColor(color)\">\n          </div>\n        <td>\n        <td>\n          <i class=\"fa fa-remove clickable\" ng-click=\"popout = !popout\"></i>\n        </td>\n      </tr>\n    </table>\n  </div>\n</div>\n");
@@ -3898,7 +3900,7 @@ $templateCache.put("plugins/ui/html/list.html","<div>\n\n  <!-- begin cell templ
 $templateCache.put("plugins/ui/html/multiItemConfirmActionDialog.html","<div>\n  <form class=\"no-bottom-margin\">\n    <div class=\"modal-header\">\n      <span>{{options.title || \'Are you sure?\'}}</span>\n    </div>\n    <div class=\"modal-body\">\n      <p ng-show=\'options.action\'\n         ng-class=\'options.actionClass\'\n         ng-bind=\'options.action\'></p>\n      <ul>\n        <li ng-repeat=\"item in options.collection\" ng-bind=\"getName(item)\"></li>\n      </ul>\n      <p ng-show=\"options.custom\" \n         ng-class=\"options.customClass\" \n         ng-bind=\"options.custom\"></p>\n    </div>\n    <div class=\"modal-footer\">\n      <button class=\"btn\" \n              ng-class=\"options.okClass\" \n              ng-click=\"close(true)\">{{options.okText || \'Ok\'}}</button>\n      <button class=\"btn\" \n              ng-class=\"options.cancelClass\"\n              ng-click=\"close(false)\">{{options.cancelText || \'Cancel\'}}</button>\n    </div>\n  </form>\n</div>\n");
 $templateCache.put("plugins/ui/html/object.html","<div>\n  <script type=\"text/ng-template\" id=\"primitiveValueTemplate.html\">\n    <span ng-show=\"data\" object-path=\"{{path}}\">{{data}}</span>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayValueListTemplate.html\">\n    <ul class=\"zebra-list\" ng-show=\"data\" object-path=\"{{path}}\">\n      <li ng-repeat=\"item in data\">\n        <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\n      </li>\n    </ul>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayValueTableTemplate.html\">\n    <table class=\"table table-striped\" object-path=\"{{path}}\">\n      <thead>\n      </thead>\n      <tbody>\n      </tbody>\n    </table>\n  </script>\n  <script type=\"text/ng-template\" id=\"dateAttributeTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd ng-show=\"data && data.getTime() > 0\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</dd>\n      <dd ng-show=\"data && data.getTime() <= 0\"></dd>\n\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"dateValueTemplate.html\">\n    <span ng-show=\"data\">\n      <span ng-show=\"data && data.getTime() > 0\" object-path=\"{{path}}\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</span>\n      <span ng-show=\"data && data.getTime() <= 0\" object-path=\"{{path}}\"></span>\n    </span>\n  </script>\n  <script type=\"text/ng-template\" id=\"primitiveAttributeTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>{{data}}</dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"objectAttributeTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>\n        <div hawtio-object=\"data\" config=\"config\" path=\"path\" row=\"row\"></div>\n      </dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayAttributeListTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>\n        <ul class=\"zebra-list\">\n          <li ng-repeat=\"item in data\" ng-init=\"path = path + \'/\' + $index\">\n            <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\n          </li>\n        </ul>\n      </dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"arrayAttributeTableTemplate.html\">\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\n      <dt>{{key}}</dt>\n      <dd>\n        <table class=\"table table-striped\">\n          <thead>\n          </thead>\n          <tbody>\n          </tbody>\n        </table>\n      </dd>\n    </dl>\n  </script>\n  <script type=\"text/ng-template\" id=\"headerTemplate.html\">\n    <th object-path=\"{{path}}\">{{key}}</th>\n  </script>\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\n    <tr object-path=\"{{path}}\"></tr>\n  </script>\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\n    <td object-path=\"{{path}}\"></td>\n  </script>\n</div>\n");
 $templateCache.put("plugins/ui/html/pane.html","<div class=\"pane\">\n  <div class=\"pane-wrapper\">\n    <div class=\"pane-header-wrapper\">\n    </div>\n    <div class=\"pane-viewport\">\n      <div class=\"pane-content\">\n      </div>\n    </div>\n    <div class=\"pane-bar\"\n         ng-mousedown=\"startMoving($event)\"\n         ng-click=\"toggle()\"></div>\n  </div>\n</div>\n");
-$templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{direction || \'right\'}}\">\n  <div class=slideout-title>\n    <div class=\"mouse-pointer pull-right\" ng-click=\"hidePanel($event)\" title=\"Close panel\">\n      <i class=\"fa fa-remove\"></i>\n    </div>\n    <span>{{title}}</span>\n  </div>\n  <div class=\"slideout-content\">\n    <div class=\"slideout-body\"></div>\n  </div>\n</div>\n");
+$templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{direction || \'right\'}}\">\n  <div class=slideout-title>\n    <div ng-show=\"{{close || \'true\'}}\" class=\"mouse-pointer pull-right\" ng-click=\"hidePanel($event)\" title=\"Close panel\">\n      <i class=\"fa fa-remove\"></i>\n    </div>\n    <span>{{title}}</span>\n  </div>\n  <div class=\"slideout-content\">\n    <div class=\"slideout-body\"></div>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/tablePager.html","<div class=\"hawtio-pager clearfix\">\n  <label>{{rowIndex() + 1}} / {{tableLength()}}</label>\n  <div class=btn-group>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"first()\"><i class=\"fa fa-fast-backward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"previous()\"><i class=\"fa fa-step-backward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"next()\"><i class=\"fa fa-step-forward\"></i></button>\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"last()\"><i class=\"fa fa-fast-forward\"></i></button>\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/tagFilter.html","<div>\n  <ul class=\"list-unstyled label-list\">\n    <li ng-repeat=\"tag in visibleTags | orderBy:\'tag.id || tag\'\"\n        class=\"mouse-pointer\"\n        ng-click=\"toggleSelectionFromGroup(selected, tag.id || tag)\">\n              <span class=\"badge\"\n                    ng-class=\"isInGroup(selected, tag.id || tag, \'badge-success\', \'\')\"\n                      >{{tag.id || tag}}</span>\n              <span class=\"pull-right\"\n                    ng-show=\"tag.count\">{{tag.count}}&nbsp;</span>\n    </li>\n  </ul>\n  <div class=\"mouse-pointer\"\n       ng-show=\"selected.length\"\n       ng-click=\"clearGroup(selected)\">\n    <i class=\"fa fa-remove\" ></i> Clear Tags\n  </div>\n</div>\n");
 $templateCache.put("plugins/ui/html/tagList.html","<span>\n<script type=\"text/ng-template\" id=\"tagBase.html\">\n  <span class=\"badge mouse-pointer\" ng-class=\"isSelected(\'{{tag}}\')\">{{tag}}</span>\n</script>\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\n</script>\n</span>\n");

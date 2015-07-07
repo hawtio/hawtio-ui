@@ -246,6 +246,16 @@ module UITest {
         '   </div>\n' +
         '</div>\n';
 
+    $scope.sliderEx3 = '' +
+      '<button class="btn" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right no close button</button>\n' +
+      '<div hawtio-slideout="showSlideoutRight" close="false" title="Hey look a slider with no close button!">\n' +
+      '   <div class="dialog-body">\n' +
+      '     <div>\n' +
+      '       Here is some content or whatever {{transcludedValue}}\n' +
+      '     </div>\n' +
+      '   </div>\n' +
+      '</div>';
+
     $scope.editorEx1 = '' +
         'Instance 1\n' +
         '<div class="row-fluid">\n' +

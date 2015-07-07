@@ -20,7 +20,7 @@ module UI {
       top: '@',
       height: '@',
       title: '@',
-      closeButton: '@'
+      close: '@'
     };
 
     public controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", ($scope, $element, $attrs, $transclude, $compile) => {
@@ -38,7 +38,7 @@ module UI {
         $element.css('height', value);
       });
       observe($scope, $attrs, 'title', '');
-      observe($scope, $attrs, 'closeButton', 'true');
+      observe($scope, $attrs, 'close', 'true');
 
       $scope.$watch('show', function() {
         if ($scope.show) {
@@ -50,7 +50,6 @@ module UI {
       $scope.hidePanel = ($event) => {
         log.debug("Event: ", $event);
         $scope.show = false;
-
       };
     }];
 
