@@ -19,7 +19,8 @@ module UI {
       direction: '@',
       top: '@',
       height: '@',
-      title: '@'
+      title: '@',
+      closeButton: '@'
     };
 
     public controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", ($scope, $element, $attrs, $transclude, $compile) => {
@@ -37,6 +38,7 @@ module UI {
         $element.css('height', value);
       });
       observe($scope, $attrs, 'title', '');
+      observe($scope, $attrs, 'closeButton', 'true');
 
       $scope.$watch('show', function() {
         if ($scope.show) {
@@ -62,8 +64,6 @@ module UI {
         }
       });
     };
-
-
 
   }
 
