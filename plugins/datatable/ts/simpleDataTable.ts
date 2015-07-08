@@ -48,12 +48,24 @@ module DataTable {
             config['sortInfo'] = {
               sortBy: sortField,
               ascending: true
-            }
+            };
           }
+
+          // any custom sort function on the field?
+          var customSort:any = config.columnDefs.find(e => {
+            if (e['field'] === config['sortInfo'].sortBy) {
+              return e;
+            }
+          });
+          // the columnDefs may have a custom sort function in the key named customSortField
+          if (angular.isDefined(customSort)) {
+            customSort = customSort['customSortField']
+          }
+
           var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
           // enrich the rows with information about their index
           var idx = -1;
-          var rows = (value || []).sortBy(sortInfo.sortBy, !sortInfo.ascending).map(entity => {
+          var rows = (value || []).sortBy(customSort || sortInfo.sortBy, !sortInfo.ascending).map(entity => {
             idx++;
             return {
               entity: entity,
