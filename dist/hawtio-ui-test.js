@@ -21,9 +21,9 @@ var DatatableTest;
 (function (DatatableTest) {
     DatatableTest._module.controller('DatatableTest.SimpleTableTestController', ['$scope', '$location', function ($scope, $location) {
         $scope.myData = [
-            { name: "James", twitter: "jstrachan" },
-            { name: "Stan", twitter: "gashcrumb" },
-            { name: "Claus", twitter: "davsclaus" }
+            { name: "James", twitter: "jstrachan", city: 'LONDON', ip: '172.17.0.11' },
+            { name: "Stan", twitter: "gashcrumb", city: 'boston', ip: '172.17.0.9' },
+            { name: "Claus", twitter: "davsclaus", city: 'Malmo', ip: '172.17.0.10' }
         ];
         $scope.mygrid = {
             data: 'myData',
@@ -44,11 +44,40 @@ var DatatableTest;
                     width: "***"
                 },
                 {
+                    field: 'city',
+                    displayName: 'City',
+                    width: "***"
+                },
+                {
                     field: 'twitter',
                     displayName: 'Twitter',
                     cellTemplate: '<div class="ngCellText">@{{row.entity.twitter}}</div>',
                     //width: 400
                     width: "***"
+                },
+                {
+                    field: 'ip',
+                    displayName: 'Pod IP',
+                    width: "***",
+                    customSortField: function (field) {
+                        // use a custom sort to sort ip address
+                        var ip = field.ip;
+                        // i guess there is maybe nicer ways of sort this without parsing and slicing
+                        var regex = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
+                        var groups = regex.exec(ip);
+                        if (angular.isDefined(groups)) {
+                            var g1 = ("00" + groups[1]).slice(-3);
+                            var g2 = ("00" + groups[2]).slice(-3);
+                            var g3 = ("00" + groups[3]).slice(-3);
+                            var g4 = ("00" + groups[4]).slice(-3);
+                            var answer = g1 + g2 + g3 + g4;
+                            console.log(answer);
+                            return answer;
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
                 }
             ]
         };
