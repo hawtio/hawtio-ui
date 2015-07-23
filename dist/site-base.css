@@ -2263,11 +2263,11 @@ i.expandable-indicator.folder {
   width: 100%;
 }
 
-.panel {
+.hawtio-panel {
   position: fixed;
 }
 
-.panel.bottom {
+.hawtio-panel.bottom {
   bottom: 0;
 }
 
