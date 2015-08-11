@@ -44,7 +44,7 @@ module DatatableTest {
           field: 'ip',
           displayName: 'Pod IP',
           width: "***",
-          customSortField: (field) => {
+          customSortField: (field):any => {
             // use a custom sort to sort ip address
             var ip = field.ip;
 
