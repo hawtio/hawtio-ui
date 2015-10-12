@@ -36,7 +36,7 @@
     "hawtio-core": "~2.0.0",
     "hawtio-core-navigation": "~2.0.0",
     "hawtio-utilities": "~2.0.0",
-    "codemirror": "~4.11.0",
+    "codemirror": "^5.0",
     "dagre": "~0.7.1",
     "zeroclipboard": "~2.2.0",
     "toastr": "~2.1.0"
