@@ -3924,7 +3924,6 @@ var UI;
                 replace: false,
                 link: function (scope, element, attrs) {
                     var viewportHeight = $window.innerHeight;
-                    console.log("Viewport height: ", viewportHeight);
                     function processElement(el) {
                         var offset = el.offset();
                         if (!offset) {
@@ -3939,15 +3938,14 @@ var UI;
                         }
                     }
                     function layout() {
+                        viewportHeight = $window.innerHeight;
                         element.parents().each(function (index, el) {
                             el = $(el);
                             processElement(el);
                         });
                         processElement(element);
                     }
-                    //layout();
                     scope.$watch(_.debounce(layout, 1000, { trailing: true }));
-                    //$($window).on('resize', layout);
                 }
             };
         }]);
