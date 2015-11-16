@@ -1,4 +1,3 @@
-/// <reference path="d.ts/includes.d.ts"/>
 /// <reference path="d.ts/datatable/ts/datatablePlugin.d.ts"/>
 /// <reference path="d.ts/datatable/ts/simpleDataTable.d.ts"/>
 /// <reference path="d.ts/editor/ts/CodeEditor.d.ts"/>
@@ -41,5 +40,6 @@
 /// <reference path="d.ts/ui/ts/templatePopover.d.ts"/>
 /// <reference path="d.ts/ui/ts/toc.d.ts"/>
 /// <reference path="d.ts/ui/ts/viewport.d.ts"/>
+/// <reference path="d.ts/ui/ts/windowHeight.d.ts"/>
 /// <reference path="d.ts/ui/ts/zeroclipboard.d.ts"/>
 /// <reference path="d.ts/ui-bootstrap/ts/uiBootstrapPlugin.d.ts"/>

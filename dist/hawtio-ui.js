@@ -3914,6 +3914,26 @@ var UI;
     UI.HorizontalViewport = HorizontalViewport;
 })(UI || (UI = {}));
 
+/// <reference path="uiPlugin.ts"/>
+//
+var UI;
+(function (UI) {
+    var log = Logger.get('hawtio-window-height');
+    UI._module.directive('hawtioWindowHeight', ['$window', function ($window) {
+            return {
+                restrict: 'A',
+                replace: false,
+                link: function (scope, element, attrs) {
+                    var viewportHeight = $window.height;
+                    log.debug("Viewport height: ", viewportHeight);
+                    element.parents().attr({
+                        'style': 'height: 100vh'
+                    });
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+
 /**
  * @module UI
  */
