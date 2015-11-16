@@ -7,10 +7,9 @@ module UI {
       restrict: 'A',
       replace: false,
       link: (scope, element, attrs) => {
-  
-        var viewportHeight = $window.innerHeight;
-        console.log("Viewport height: ", viewportHeight);
 
+        var viewportHeight = $window.innerHeight;
+  
         function processElement(el) {
           var offset = el.offset();
           if (!offset) {
@@ -26,15 +25,14 @@ module UI {
         }
 
         function layout() {
+          viewportHeight = $window.innerHeight;
           element.parents().each((index, el) => {
             el = $(el);
             processElement(el);
           });
           processElement(element);
         }
-        //layout();
         scope.$watch(_.debounce(layout, 1000, { trailing: true}));
-        //$($window).on('resize', layout);
       }
     };
   }]);
