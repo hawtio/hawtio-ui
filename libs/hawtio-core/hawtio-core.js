@@ -447,14 +447,16 @@ var hawtioPluginLoader = (function(self) {
         }
         if (tObj) {
           self.log.debug("Executing task: '" + tObj.name + "'");
-          executedTasks.push(tObj.name);
           //self.log.debug("ExecutedTasks: ", executedTasks);
-          tObj.task(executeTask);
+          tObj.task(function() { 
+            executedTasks.push(tObj.name);
+            setTimeout(executeTask, 1); 
+          });
         } else {
           self.log.debug("All tasks executed");
         }
       };
-      executeTask();
+      setTimeout(executeTask, 1);
     };
 
     var loadScripts = function() {
@@ -621,6 +623,18 @@ var HawtioCore;
     };
     HawtioCore.dummyLocalStorage = dummyLocalStorage;
 
+    HawtioCore.documentBase = function() {
+      var base = $('head').find('base');
+      var answer = '/'
+      if (base && base.length > 0) {
+        answer = base.attr('href');
+      } else {
+        log.warn("Document is missing a 'base' tag, defaulting to '/'");
+      }
+      log.debug("Document base: ", answer);
+      return answer;
+    }
+
     /**
      * services, mostly stubs
      */
@@ -633,17 +647,9 @@ var HawtioCore;
 
     // Holds the document base so plugins can easily
     // figure out absolute URLs when needed
-    _module.factory('documentBase', ['$document', function($document) {
-      var base = $document.find('base');
-      var answer = '/'
-      if (base && base.length > 0) {
-        answer = base.attr('href');
-      } else {
-        log.warn("Document is missing a 'base' tag, defaulting to '/'");
-      }
-      log.debug("Document base: ", answer);
-      return answer;
-    }]);
+    _module.factory('documentBase', function() {
+      return HawtioCore.documentBase();
+    });
 
 
     // Holds a mapping of plugins to layouts, plugins use 
@@ -768,7 +774,13 @@ var HawtioCore;
       
       hawtioPluginLoader.loadPlugins(function() {
         if (!HawtioCore.injector) {
-          HawtioCore.injector = angular.bootstrap(document, hawtioPluginLoader.getModules());
+          var strictDi = localStorage['hawtioCoreStrictDi'] || false;
+          if (strictDi) {
+            log.debug("Using strict dependency injection");
+          }
+          HawtioCore.injector = angular.bootstrap(document, hawtioPluginLoader.getModules(), {
+            strictDi: strictDi
+          });
           log.debug("Bootstrapped application");
         } else {
           log.debug("Application already bootstrapped");
