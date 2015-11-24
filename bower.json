@@ -8,8 +8,6 @@
     "dist/font-awesome.css",
     "dist/OpenSans.css",
     "dist/DroidSansMono.css",
-    "dist/site-base.css",
-    "dist/default.css",
     "dist/hawtio-ui.css",
     "dist/jquery-ui.custom.js",
     "dist/ui-bootstrap.js",
