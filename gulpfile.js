@@ -19,7 +19,7 @@ var config = {
   main: '.',
   ts: ['plugins/**/*.ts'],
   testTs: ['test-plugins/**/*.ts'],
-  less: './plugins/**/*.less',
+  less: ['plugins/**/*.less'],
   templates: ['plugins/**/*.html'],
   testTemplates: ['test-plugins/**/*.html'],
   templateModule: pkg.name + '-templates',
@@ -134,7 +134,8 @@ gulp.task('less', function () {
     .on('error', plugins.notify.onError({
       message: '<%= error.message %>',
       title: 'less file compilation error'
-    })   .pipe(plugins.concat(config.css))
+    }))
+    .pipe(plugins.concat(config.css))
     .pipe(gulp.dest('./dist'));
 });
 
@@ -162,7 +163,13 @@ gulp.task('clean', ['concat'], function() {
     .pipe(plugins.clean());
 });
 
-gulp.task('watch', ['build', 'build-example'], function() {
+gulp.task('watch-less', function() {
+  return plugins.watch(config.less, function() {
+    gulp.start('less');
+  });
+});
+
+gulp.task('watch', ['build', 'build-example', 'watch-less'], function() {
   plugins.watch(['libs/**/*.d.ts', config.ts, config.templates], function() {
     gulp.start(['tsc', 'template', 'concat', 'clean']);
   });
@@ -171,9 +178,6 @@ gulp.task('watch', ['build', 'build-example'], function() {
   });
   plugins.watch(['libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + '*'], function() {
     gulp.start('reload');
-  });
-  plugins.watch(config.less, function() {
-    gulp.start('less');
   });
 });
 
