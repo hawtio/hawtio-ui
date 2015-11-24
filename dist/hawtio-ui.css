@@ -1152,128 +1152,6 @@ img.nodeIcon:hover {
   overflow-y: hidden;
   overflow-x: auto;
 }
-/* slideout directive stuff */
-.slideout {
-  position: fixed;
-  z-index: 120;
-  width: 75%;
-  top: 110px;
-  bottom: 10px;
-}
-.slideout > .slideout-title {
-  min-height: 22px;
-  font-size: 20px;
-  padding: 15px;
-}
-.slideout > .slideout-content {
-  position: relative;
-  min-height: 93%;
-  max-height: 93%;
-  overflow: auto;
-  -webkit-transform: translateZ(0);
-}
-.slideout-title span {
-  width: 97%;
-  display: inline-block;
-  text-align: left;
-}
-.slideout.left > .slideout-content {
-  left: 0;
-  top: 0;
-  margin-right: 2px;
-  margin-left: 0px;
-}
-.slideout.right > .slideout-content {
-  left: 2px;
-  top: 0;
-  margin-left: 2px;
-  margin-right: 0px;
-}
-.slideout > .slideout-content > .slideout-body {
-  margin: 5px;
-  height: 100%;
-}
-.slideout.right {
-  right: 0px;
-  left: 100%;
-}
-.slideout.left {
-  left: -75%;
-}
-.slideout .slideout-title a {
-  display: inline-block;
-}
-.slideout .slideout-title a:hover {
-  text-decoration: none;
-}
-.slideout.right .slideout-title a {
-  margin-left: 5px;
-  float: left;
-}
-.out {
-  transition: left 1s, right 1s ease-in-out;
-}
-.slideout.left .slideout-title a {
-  margin-right: 5px;
-  float: right;
-}
-.slideout.right.out {
-  left: 25%;
-}
-.slideout.left.out {
-  left: 0%;
-}
-.slideout-body .btn-group,
-.btn-group[hawtio-pager] {
-  line-height: normal;
-}
-.color-picker {
-  display: inline-block;
-  position: relative;
-  margin: 0px;
-  line-height: 0px;
-}
-.color-picker .wrapper {
-  display: inline-block;
-  padding: 2px;
-  line-height: 0;
-}
-.selected-color {
-  width: 1em;
-  height: 1em;
-  padding: 4px;
-  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
-  display: inline-block;
-  cursor: pointer;
-}
-.color-picker-popout {
-  transition: opacity 0.25s ease-in-out;
-  position: absolute;
-  top: 0px;
-  overflow: hidden;
-  padding: 0px;
-  line-height: 0;
-  margin: 0px;
-  width: 0px;
-  opacity: 0;
-}
-.popout-open {
-  padding: 1px;
-  width: auto;
-  opacity: 1;
-}
-.color-picker div table tr td div {
-  width: 1em;
-  height: 1em;
-  padding: 3px;
-  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
-}
-.color-picker div table tr td {
-  padding-right: 5px;
-}
-.color-picker div table tr td:last-child {
-  padding-right: 0px;
-}
 .mouse-pointer,
 .pointer {
   cursor: pointer;
@@ -1301,20 +1179,6 @@ img.nodeIcon:hover {
 .clickable:hover {
   opacity: 1;
   text-decoration: none;
-}
-.hawtio-pager {
-  overflow: auto;
-  display: inline-block;
-}
-.hawtio-pager label {
-  min-height: 100%;
-  vertical-align: middle;
-  margin-right: 5px;
-  display: inline-block;
-}
-.directive-example {
-  padding: 10px;
-  margin: 10px;
 }
 .widget-title > .row {
   position: relative;
@@ -1365,88 +1229,8 @@ ol.zebra-list > li:before {
   text-align: center;
   padding-top: 60px;
 }
-.dropdown-menu {
-  padding-top: 0;
-  padding-bottom: 0;
-  margin-top: 0;
-  top: 100%;
-  left: 0;
-  right: 0;
-  border-radius: 0;
-}
-.dropdown-menu > li:hover > a {
-  text-shadow: 0px 0px 1px white;
-}
-.dropdown-menu:before {
-  display: none !important;
-}
-.dropdown-menu:after {
-  display: none !important;
-}
-.dropdown-menu.right {
-  left: auto;
-  right: 0;
-}
-.dropdown-menu.right:before {
-  left: auto !important;
-  right: 9px;
-}
-.dropdown-menu.right:after {
-  left: auto !important;
-  right: 10px;
-}
-.submenu-caret {
-  display: inline-block;
-  width: 0;
-  height: 0;
-}
-.submenu-caret:before {
-  font-family: 'FontAwesome';
-  border: 0;
-  content: "\f054";
-  font-size: 11px;
-  display: block;
-}
-.hawtio-dropdown > ul > li {
-  padding: 3px;
-  padding-left: 5px;
-}
-.hawtio-dropdown > ul > li > .menu-item {
-  position: relative;
-  display: block;
-}
-.hawtio-dropdown > .submenu-caret:before,
-.hawtio-dropdown > ul > li > .menu-item > .submenu-caret:before {
-  position: absolute;
-  top: 0;
-  right: -2px;
-}
-.dropdown-menu .sub-menu {
-  position: absolute;
-  left: 195px;
-  top: -8px;
-}
 .hawtio-breadcrumb > li {
   display: inline-block;
-}
-.dropdown-menu .dropdown .caret {
-  display: none;
-}
-span.hawtio-dropdown {
-  position: relative;
-  display: block;
-  cursor: pointer;
-}
-span.hawtio-dropdown .dropdown-menu {
-  width: auto;
-}
-.btn .hawtio-dropdown > .caret {
-  width: 7px;
-}
-.btn .hawtio-dropdown > .dropdown-menu {
-  left: -10px;
-  margin-top: 5px;
-  text-align: left;
 }
 .hawtio-breadcrumb .caret {
   border: 0;
@@ -1460,92 +1244,8 @@ span.hawtio-dropdown .dropdown-menu {
   font-size: 40px;
   top: -9px;
 }
-/*
- * jquery.tocify.css 1.8.0
- * Author: @gregfranko
- */
-/* The Table of Contents container element */
-.tocify {
-  /* top works for the wiki, may need customization
-     elsewhere */
-  top: 56px;
-  width: 232px;
-  padding-left: 1em;
-  padding-right: 1em;
-  overflow-y: auto;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  position: fixed;
-  bottom: 5px;
-  z-index: 20;
-}
-.tocify h2,
-.tocify h3 {
-  white-space: normal;
-}
-.toc-container {
-  position: relative;
-  width: 100%;
-}
-.toc-content {
-  position: absolute;
-  left: 280px;
-  right: 0;
-}
-.tocify ul {
-  margin-left: 0px;
-}
-.tocify li {
-  list-style-type: none;
-  display: block;
-}
-.tocify li a {
-  display: block;
-  padding: 3px;
-  transition: background, border 0.25s ease-in-out;
-}
-.tocify li a:hover {
-  text-decoration: none;
-}
-.tocify li a.active {
-  font-weight: bolder;
-}
-/* Makes the font smaller for all subheader elements. */
-.tocify-subheader li {
-  font-size: 12px;
-}
-/* Further indents second level subheader elements. */
-.tocify-subheader .tocify-subheader {
-  text-indent: 30px;
-}
-/* Further indents third level subheader elements. You can continue this pattern if you have more nested elements. */
-.tocify-subheader .tocify-subheader .tocify-subheader {
-  text-indent: 40px;
-}
-@media (max-width: 700px) {
-  .tocify {
-    position: static;
-    width: auto;
-    margin-bottom: 1em;
-  }
-  .toc-content {
-    position: static;
-    left: auto;
-  }
-}
 .toast.toast-warning * {
   color: black;
-}
-.hawtio-toc .panel-title {
-  padding: 0;
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-.hawtio-toc .panel-title a {
-  display: block;
-  text-align: center;
-  padding: 10px;
 }
 ._jsPlumb_endpoint {
   z-index: 25;
@@ -1555,70 +1255,6 @@ span.hawtio-dropdown .dropdown-menu {
 }
 ._jsPlumb_overlay {
   z-index: 6;
-}
-.pane {
-  position: fixed;
-  bottom: 0;
-  top: 80px;
-  height: auto;
-  width: 300px;
-}
-.pane > .pane-wrapper {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-.pane-viewport {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  overflow: auto;
-  margin-right: 10px;
-}
-.pane-content {
-  width: auto;
-  height: auto;
-}
-.pane-bar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 5px;
-  cursor: ew-resize;
-  height: 100%;
-}
-.pane-content {
-  float: none;
-  position: static;
-}
-.pane.left {
-  left: 0;
-  z-index: 39;
-}
-.pane.left .pane-viewport {
-  margin-left: 10px;
-  right: 5px;
-  margin-right: 0;
-}
-.pane.left .pane-bar {
-  right: 0;
-}
-.pane.right {
-  right: 0;
-}
-.pane.right .pane-viewport {
-  margin-left: 10px;
-  margin-right: 5px;
-  right: 5px;
-}
-.pane.right .pane-bar {
-  left: 0;
-}
-.pane-header-wrapper {
-  margin-left: 10px;
-  margin-right: 10px;
 }
 .dynatree-container {
   overflow: visible;
@@ -1642,115 +1278,6 @@ span.hawtio-dropdown .dropdown-menu {
   background: #55ddff;
   color: #333333;
 }
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1040;
-  background-color: #000000;
-}
-.modal-backdrop.fade {
-  opacity: 0;
-}
-.modal-backdrop,
-.modal-backdrop.fade.in {
-  opacity: 0.8;
-  filter: alpha(opacity=80);
-}
-.modal {
-  right: auto;
-  bottom: auto;
-  display: block;
-  position: fixed;
-  overflow-y: auto;
-  top: 50%;
-  left: 50%;
-  z-index: 1050;
-  width: 560px;
-  margin: -250px 0 0 -280px;
-  background-color: #ffffff;
-  border: 1px solid #999;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  *border: 1px solid #999;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
-  outline: none;
-  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
-  -webkit-background-clip: padding-box;
-  -moz-background-clip: padding-box;
-  background-clip: padding-box;
-}
-.modal.fade {
-  top: -25%;
-  -webkit-transition: opacity 0.3s linear, top 0.3s ease-out;
-  -moz-transition: opacity 0.3s linear, top 0.3s ease-out;
-  -o-transition: opacity 0.3s linear, top 0.3s ease-out;
-  transition: opacity 0.3s linear, top 0.3s ease-out;
-}
-.modal.fade.in {
-  top: 50%;
-}
-.modal-header {
-  padding: 9px 15px;
-  border-bottom: 1px solid #eee;
-}
-.modal-header .close {
-  margin-top: 2px;
-}
-.modal-header h3 {
-  margin: 0;
-  line-height: 30px;
-}
-.modal-body {
-  max-height: 400px;
-  padding: 15px;
-  overflow-y: auto;
-}
-.modal-form {
-  margin-bottom: 0;
-}
-.modal-footer {
-  padding: 14px 15px 15px;
-  margin-bottom: 0;
-  text-align: right;
-  background-color: #f5f5f5;
-  border-top: 1px solid #ddd;
-  -webkit-border-radius: 0 0 6px 6px;
-  -moz-border-radius: 0 0 6px 6px;
-  border-radius: 0 0 6px 6px;
-  *zoom: 1;
-  -webkit-box-shadow: inset 0 1px 0 #ffffff;
-  -moz-box-shadow: inset 0 1px 0 #ffffff;
-  box-shadow: inset 0 1px 0 #ffffff;
-}
-.modal-footer:before,
-.modal-footer:after {
-  display: table;
-  line-height: 0;
-  content: "";
-}
-.modal-footer:after {
-  clear: both;
-}
-.modal-footer .btn + .btn {
-  margin-bottom: 0;
-  margin-left: 5px;
-}
-.modal-footer .btn-group .btn + .btn {
-  margin-left: -1px;
-}
-.modal-footer .btn-block + .btn-block {
-  margin-left: 0;
-}
-.modal-dialog {
-  margin: 0;
-  width: auto;
-}
 /* Main nav tweaks */
 .navbar-fixed-top [hawtio-main-nav] {
   display: block;
@@ -1768,53 +1295,6 @@ span.hawtio-dropdown .dropdown-menu {
 .row {
   margin-left: auto;
   margin-right: auto;
-}
-.badge {
-  display: inline-block;
-  padding: 2px 4px;
-  font-size: 11.844px;
-  font-weight: bold;
-  line-height: 14px;
-  color: #ffffff;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  white-space: nowrap;
-  vertical-align: baseline;
-  background-color: #999999;
-  padding-right: 9px;
-  padding-left: 9px;
-  -webkit-border-radius: 9px;
-  -moz-border-radius: 9px;
-  border-radius: 9px;
-}
-.badge-important {
-  background-color: #b94a48;
-}
-.badge-important[href] {
-  background-color: #953b39;
-}
-.badge-warning {
-  background-color: #f89406;
-}
-.badge-warning[href] {
-  background-color: #c67605;
-}
-.badge-success {
-  background-color: #468847;
-}
-.badge-success[href] {
-  background-color: #356635;
-}
-.badge-info {
-  background-color: #3a87ad;
-}
-.badge-info[href] {
-  background-color: #0099d3;
-}
-.badge-inverse {
-  background-color: #333333;
-}
-.badge-inverse[href] {
-  background-color: #1a1a1a;
 }
 .hawtio-form input {
   width: 20em;
@@ -1848,81 +1328,6 @@ small table tbody tr td.property-name {
   font-weight: bold;
   text-align: right;
 }
-#log-panel {
-  position: fixed;
-  top: -5px;
-  left: 30px;
-  right: 30px;
-  bottom: 50%;
-  z-index: 10000;
-  background: inherit;
-  transition: bottom 1s ease-in-out;
-}
-#log-panel > div {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-#log-panel #log-panel-statements {
-  margin-left: 0;
-  margin-bottom: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 20px;
-  overflow-y: auto;
-}
-#log-panel-statements li {
-  margin-left: 3px;
-  margin-right: 3px;
-  transition: background 0.25s ease-in-out;
-}
-#log-panel-statements li pre {
-  border-radius: 0;
-  font-size: 11px;
-}
-#log-panel-statements li:hover {
-  background: #111111;
-}
-#log-panel-statements li.DEBUG {
-  color: dodgerblue;
-}
-#log-panel-statements li.INFO {
-  color: white;
-}
-#log-panel-statements li.WARN {
-  color: yellow;
-}
-#log-panel-statements li.ERROR {
-  color: red;
-}
-#log-panel #close {
-  text-align: center;
-  position: absolute;
-  height: 20px;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  box-shadow: 0 1px 13px rgba(0, 0, 0, 0.1) inset;
-  opacity: 1;
-}
-#log-panel #copy {
-  position: absolute;
-  right: 23px;
-  bottom: 26px;
-  background: inherit;
-  transition: opacity 1s ease-in-out;
-  opacity: 0.4;
-  cursor: pointer;
-}
-#log-panel #copy:hover {
-  opacity: 1;
-}
-div.log-stack-trace p {
-  line-height: 14px;
-  margin-bottom: 2px;
-}
 #canvas {
   display: inline-block;
 }
@@ -1930,90 +1335,10 @@ div.log-stack-trace p {
   min-height: 100%;
   height: 100%;
 }
-/* what does this fix... */
-/*
-td {
-  padding-right: 20px;
-}
-*/
-/* end what does this fix... */
 .tab {
   display: block;
   margin-left: 1em;
 }
-/* utility classes */
-.inline {
-  display: inline;
-}
-.inline-block,
-.list-row-select,
-.list-row-contents,
-.list-row-contents > .ngCellText {
-  display: inline-block;
-}
-ol.inline,
-ul.inline {
-  margin-left: 0;
-  list-style: none;
-}
-ol.inline > li,
-ul.inline > li {
-  display: inline-block;
-  padding-right: 2px;
-  padding-left: 2px;
-}
-.red {
-  color: red !important;
-}
-.orange {
-  color: orange !important;
-}
-.yellow {
-  color: yellow !important;
-}
-.green {
-  color: green !important;
-}
-.background-green {
-  color: white;
-  background-color: #51a351;
-}
-.background-light-green {
-  color: white;
-  background-color: #5ab15a;
-}
-.blue {
-  color: dodgerblue !important;
-}
-.background-blue {
-  color: white;
-  background-color: #006dcc;
-}
-.icon1point5x {
-  font-size: 1.5em;
-}
-.centered,
-.align-center {
-  margin-left: auto !important;
-  margin-right: auto !important;
-  text-align: center;
-}
-.align-right {
-  text-align: right;
-}
-.align-left {
-  text-align: left;
-}
-.no-bottom-margin {
-  margin-bottom: 0 !important;
-}
-.no-bottom-margin .control-group {
-  margin-bottom: 4px;
-}
-.bottom-margin {
-  margin-bottom: 20px;
-}
-/* end utility classes */
 .list-row {
   height: 30px;
   white-space: nowrap;
@@ -2033,19 +1358,6 @@ ul.inline > li {
 li.attr-column {
   width: 1em;
 }
-.ngTotalSelectContainer {
-  margin: 0px;
-}
-.ngTopPanel {
-  background: inherit;
-}
-.ngGrid {
-  background: inherit;
-}
-.ngViewport {
-  margin-left: 0px;
-  margin-right: 0px;
-}
 #widgets li div div div div form fieldset div input {
   display: none;
 }
@@ -2064,18 +1376,6 @@ li.attr-column {
 #widgets li div div div div div#attributesGrid div.ngFooterPanel {
   border: none;
   display: none;
-}
-.ngFooterPanel {
-  border-top: none;
-}
-.ngRow .ngCell:last-child {
-  border-right: none;
-}
-.ngRow:last-child {
-  border-bottom: none;
-}
-.ngFooterTotalItems span:first-child {
-  margin-right: .5em;
 }
 /* osgi page stuff */
 .ACTIVE:before {
@@ -2122,45 +1422,43 @@ li.attr-column {
   font-style: normal;
 }
 /* end osgi page stuff */
+/*
 .table-bordered {
   border: none;
   border-radius: 0px;
 }
+
 .table-bordered thead:first-child tr:first-child th:first-child,
 .table-bordered tbody:first-child tr:first-child td:first-child {
   border-radius: 0px;
   border-left: none;
 }
+
 .table-bordered th,
 .table-bordered td {
   border-left: none;
   border-top: none;
 }
+
 .table-bordered th:last-child,
 .table-bordered td:last-child {
   border-left: none;
   border-top: none;
   border-right: none;
 }
+
 table.table thead .sorting {
   background: inherit;
 }
+
 table.table thead .sorting_asc:after {
   background: url('../img/datatable/sort_asc.png') no-repeat top center;
 }
+
 table.table thead .sorting_desc:after {
   background: url('../img/datatable/sort_desc.png') no-repeat top center;
 }
-.dataTables_filter label {
-  margin-bottom: 0px;
-}
-.dataTables_filter label input {
-  padding-right: 14px;
-  padding-right: 4px \9;
-  padding-left: 14px;
-  padding-left: 4px \9;
-  margin-bottom: 0;
-}
+*/
 .navbar-fixed-top {
   margin-bottom: 0px;
 }
@@ -4497,6 +3795,220 @@ ul.nav select {
   margin-top: 10px;
 }
 
+.dataTables_filter label {
+  margin-bottom: 0px;
+}
+.dataTables_filter label input {
+  padding-right: 14px;
+  padding-right: 4px \9;
+  padding-left: 14px;
+  padding-left: 4px \9;
+  margin-bottom: 0;
+}
+
+.ngTotalSelectContainer {
+  margin: 0px;
+}
+.ngTopPanel {
+  background: inherit;
+}
+.ngGrid {
+  background: inherit;
+}
+.ngViewport {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+.ngFooterPanel {
+  border-top: none;
+}
+.ngRow .ngCell:last-child {
+  border-right: none;
+}
+.ngRow:last-child {
+  border-bottom: none;
+}
+.ngFooterTotalItems span:first-child {
+  margin-right: .5em;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 4px;
+  font-size: 11.844px;
+  font-weight: bold;
+  line-height: 14px;
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+  vertical-align: baseline;
+  background-color: #999999;
+  padding-right: 9px;
+  padding-left: 9px;
+  -webkit-border-radius: 9px;
+  -moz-border-radius: 9px;
+  border-radius: 9px;
+}
+.badge-important {
+  background-color: #b94a48;
+}
+.badge-important[href] {
+  background-color: #953b39;
+}
+.badge-warning {
+  background-color: #f89406;
+}
+.badge-warning[href] {
+  background-color: #c67605;
+}
+.badge-success {
+  background-color: #468847;
+}
+.badge-success[href] {
+  background-color: #356635;
+}
+.badge-info {
+  background-color: #3a87ad;
+}
+.badge-info[href] {
+  background-color: #0099d3;
+}
+.badge-inverse {
+  background-color: #333333;
+}
+.badge-inverse[href] {
+  background-color: #1a1a1a;
+}
+
+.color-picker {
+  display: inline-block;
+  position: relative;
+  margin: 0px;
+  line-height: 0px;
+}
+.color-picker .wrapper {
+  display: inline-block;
+  padding: 2px;
+  line-height: 0;
+}
+.selected-color {
+  width: 1em;
+  height: 1em;
+  padding: 4px;
+  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
+  display: inline-block;
+  cursor: pointer;
+}
+.color-picker-popout {
+  transition: opacity 0.25s ease-in-out;
+  position: absolute;
+  top: 0px;
+  overflow: hidden;
+  padding: 0px;
+  line-height: 0;
+  margin: 0px;
+  width: 0px;
+  opacity: 0;
+}
+.popout-open {
+  padding: 1px;
+  width: auto;
+  opacity: 1;
+}
+.color-picker div table tr td div {
+  width: 1em;
+  height: 1em;
+  padding: 3px;
+  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
+}
+.color-picker div table tr td {
+  padding-right: 5px;
+}
+.color-picker div table tr td:last-child {
+  padding-right: 0px;
+}
+
+.dropdown-menu {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border-radius: 0;
+}
+.dropdown-menu > li:hover > a {
+  text-shadow: 0px 0px 1px white;
+}
+.dropdown-menu:before {
+  display: none !important;
+}
+.dropdown-menu:after {
+  display: none !important;
+}
+.dropdown-menu.right {
+  left: auto;
+  right: 0;
+}
+.dropdown-menu.right:before {
+  left: auto !important;
+  right: 9px;
+}
+.dropdown-menu.right:after {
+  left: auto !important;
+  right: 10px;
+}
+.submenu-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+}
+.submenu-caret:before {
+  font-family: 'FontAwesome';
+  border: 0;
+  content: "\f054";
+  font-size: 11px;
+  display: block;
+}
+.hawtio-dropdown > ul > li {
+  padding: 3px;
+  padding-left: 5px;
+}
+.hawtio-dropdown > ul > li > .menu-item {
+  position: relative;
+  display: block;
+}
+.hawtio-dropdown > .submenu-caret:before,
+.hawtio-dropdown > ul > li > .menu-item > .submenu-caret:before {
+  position: absolute;
+  top: 0;
+  right: -2px;
+}
+.dropdown-menu .sub-menu {
+  position: absolute;
+  left: 195px;
+  top: -8px;
+}
+.dropdown-menu .dropdown .caret {
+  display: none;
+}
+span.hawtio-dropdown {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+span.hawtio-dropdown .dropdown-menu {
+  width: auto;
+}
+.btn .hawtio-dropdown > .caret {
+  width: 7px;
+}
+.btn .hawtio-dropdown > .dropdown-menu {
+  left: -10px;
+  margin-top: 5px;
+  text-align: left;
+}
+
 editable-property {
   position: relative;
 }
@@ -4575,4 +4087,500 @@ i.expandable-indicator {
 }
 .editor-autoresize .CodeMirror {
   height: auto;
+}
+
+#log-panel {
+  position: fixed;
+  top: -5px;
+  left: 30px;
+  right: 30px;
+  bottom: 50%;
+  z-index: 10000;
+  background: inherit;
+  transition: bottom 1s ease-in-out;
+}
+#log-panel > div {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+#log-panel #log-panel-statements {
+  margin-left: 0;
+  margin-bottom: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  overflow-y: auto;
+}
+#log-panel-statements li {
+  margin-left: 3px;
+  margin-right: 3px;
+  transition: background 0.25s ease-in-out;
+}
+#log-panel-statements li pre {
+  border-radius: 0;
+  font-size: 11px;
+}
+#log-panel-statements li:hover {
+  background: #111111;
+}
+#log-panel-statements li.DEBUG {
+  color: dodgerblue;
+}
+#log-panel-statements li.INFO {
+  color: white;
+}
+#log-panel-statements li.WARN {
+  color: yellow;
+}
+#log-panel-statements li.ERROR {
+  color: red;
+}
+#log-panel #close {
+  text-align: center;
+  position: absolute;
+  height: 20px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  box-shadow: 0 1px 13px rgba(0, 0, 0, 0.1) inset;
+  opacity: 1;
+}
+#log-panel #copy {
+  position: absolute;
+  right: 23px;
+  bottom: 26px;
+  background: inherit;
+  transition: opacity 1s ease-in-out;
+  opacity: 0.4;
+  cursor: pointer;
+}
+#log-panel #copy:hover {
+  opacity: 1;
+}
+div.log-stack-trace p {
+  line-height: 14px;
+  margin-bottom: 2px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1040;
+  background-color: #000000;
+}
+.modal-backdrop.fade {
+  opacity: 0;
+}
+.modal-backdrop,
+.modal-backdrop.fade.in {
+  opacity: 0.8;
+  filter: alpha(opacity=80);
+}
+.modal {
+  right: auto;
+  bottom: auto;
+  display: block;
+  position: fixed;
+  overflow-y: auto;
+  top: 50%;
+  left: 50%;
+  z-index: 1050;
+  width: 560px;
+  margin: -250px 0 0 -280px;
+  background-color: #ffffff;
+  border: 1px solid #999;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  *border: 1px solid #999;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  outline: none;
+  -webkit-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+  -webkit-background-clip: padding-box;
+  -moz-background-clip: padding-box;
+  background-clip: padding-box;
+}
+.modal.fade {
+  top: -25%;
+  -webkit-transition: opacity 0.3s linear, top 0.3s ease-out;
+  -moz-transition: opacity 0.3s linear, top 0.3s ease-out;
+  -o-transition: opacity 0.3s linear, top 0.3s ease-out;
+  transition: opacity 0.3s linear, top 0.3s ease-out;
+}
+.modal.fade.in {
+  top: 50%;
+}
+.modal-header {
+  padding: 9px 15px;
+  border-bottom: 1px solid #eee;
+}
+.modal-header .close {
+  margin-top: 2px;
+}
+.modal-header h3 {
+  margin: 0;
+  line-height: 30px;
+}
+.modal-body {
+  max-height: 400px;
+  padding: 15px;
+  overflow-y: auto;
+}
+.modal-form {
+  margin-bottom: 0;
+}
+.modal-footer {
+  padding: 14px 15px 15px;
+  margin-bottom: 0;
+  text-align: right;
+  background-color: #f5f5f5;
+  border-top: 1px solid #ddd;
+  -webkit-border-radius: 0 0 6px 6px;
+  -moz-border-radius: 0 0 6px 6px;
+  border-radius: 0 0 6px 6px;
+  *zoom: 1;
+  -webkit-box-shadow: inset 0 1px 0 #ffffff;
+  -moz-box-shadow: inset 0 1px 0 #ffffff;
+  box-shadow: inset 0 1px 0 #ffffff;
+}
+.modal-footer:before,
+.modal-footer:after {
+  display: table;
+  line-height: 0;
+  content: "";
+}
+.modal-footer:after {
+  clear: both;
+}
+.modal-footer .btn + .btn {
+  margin-bottom: 0;
+  margin-left: 5px;
+}
+.modal-footer .btn-group .btn + .btn {
+  margin-left: -1px;
+}
+.modal-footer .btn-block + .btn-block {
+  margin-left: 0;
+}
+.modal-dialog {
+  margin: 0;
+  width: auto;
+}
+
+.hawtio-pager {
+  overflow: auto;
+  display: inline-block;
+}
+.hawtio-pager label {
+  min-height: 100%;
+  vertical-align: middle;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.pane {
+  position: fixed;
+  bottom: 0;
+  top: 80px;
+  height: auto;
+  width: 300px;
+}
+.pane > .pane-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+.pane-viewport {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  margin-right: 10px;
+}
+.pane-content {
+  width: auto;
+  height: auto;
+}
+.pane-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  cursor: ew-resize;
+  height: 100%;
+}
+.pane-content {
+  float: none;
+  position: static;
+}
+.pane.left {
+  left: 0;
+  z-index: 39;
+}
+.pane.left .pane-viewport {
+  margin-left: 10px;
+  right: 5px;
+  margin-right: 0;
+}
+.pane.left .pane-bar {
+  right: 0;
+}
+.pane.right {
+  right: 0;
+}
+.pane.right .pane-viewport {
+  margin-left: 10px;
+  margin-right: 5px;
+  right: 5px;
+}
+.pane.right .pane-bar {
+  left: 0;
+}
+.pane-header-wrapper {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+/* slideout directive stuff */
+.slideout {
+  position: fixed;
+  z-index: 120;
+  width: 75%;
+  top: 110px;
+  bottom: 10px;
+}
+.slideout > .slideout-title {
+  min-height: 22px;
+  font-size: 20px;
+  padding: 15px;
+}
+.slideout > .slideout-content {
+  position: relative;
+  min-height: 93%;
+  max-height: 93%;
+  overflow: auto;
+  -webkit-transform: translateZ(0);
+}
+.slideout-title span {
+  width: 97%;
+  display: inline-block;
+  text-align: left;
+}
+.slideout.left > .slideout-content {
+  left: 0;
+  top: 0;
+  margin-right: 2px;
+  margin-left: 0px;
+}
+.slideout.right > .slideout-content {
+  left: 2px;
+  top: 0;
+  margin-left: 2px;
+  margin-right: 0px;
+}
+.slideout > .slideout-content > .slideout-body {
+  margin: 5px;
+  height: 100%;
+}
+.slideout.right {
+  right: 0px;
+  left: 100%;
+}
+.slideout.left {
+  left: -75%;
+}
+.slideout .slideout-title a {
+  display: inline-block;
+}
+.slideout .slideout-title a:hover {
+  text-decoration: none;
+}
+.slideout.right .slideout-title a {
+  margin-left: 5px;
+  float: left;
+}
+.out {
+  transition: left 1s, right 1s ease-in-out;
+}
+.slideout.left .slideout-title a {
+  margin-right: 5px;
+  float: right;
+}
+.slideout.right.out {
+  left: 25%;
+}
+.slideout.left.out {
+  left: 0%;
+}
+.slideout-body .btn-group,
+.btn-group[hawtio-pager] {
+  line-height: normal;
+}
+
+/*
+ * jquery.tocify.css 1.8.0
+ * Author: @gregfranko
+ */
+/* The Table of Contents container element */
+.tocify {
+  /* top works for the wiki, may need customization
+     elsewhere */
+  top: 56px;
+  width: 232px;
+  padding-left: 1em;
+  padding-right: 1em;
+  overflow-y: auto;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: fixed;
+  bottom: 5px;
+  z-index: 20;
+}
+.tocify h2,
+.tocify h3 {
+  white-space: normal;
+}
+.toc-container {
+  position: relative;
+  width: 100%;
+}
+.toc-content {
+  position: absolute;
+  left: 280px;
+  right: 0;
+}
+.tocify ul {
+  margin-left: 0px;
+}
+.tocify li {
+  list-style-type: none;
+  display: block;
+}
+.tocify li a {
+  display: block;
+  padding: 3px;
+  transition: background, border 0.25s ease-in-out;
+}
+.tocify li a:hover {
+  text-decoration: none;
+}
+.tocify li a.active {
+  font-weight: bolder;
+}
+/* Makes the font smaller for all subheader elements. */
+.tocify-subheader li {
+  font-size: 12px;
+}
+/* Further indents second level subheader elements. */
+.tocify-subheader .tocify-subheader {
+  text-indent: 30px;
+}
+/* Further indents third level subheader elements. You can continue this pattern if you have more nested elements. */
+.tocify-subheader .tocify-subheader .tocify-subheader {
+  text-indent: 40px;
+}
+@media (max-width: 700px) {
+  .tocify {
+    position: static;
+    width: auto;
+    margin-bottom: 1em;
+  }
+  .toc-content {
+    position: static;
+    left: auto;
+  }
+}
+.hawtio-toc .panel-title {
+  padding: 0;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.hawtio-toc .panel-title a {
+  display: block;
+  text-align: center;
+  padding: 10px;
+}
+
+/* utility classes */
+.inline {
+  display: inline;
+}
+.inline-block,
+.list-row-select,
+.list-row-contents,
+.list-row-contents > .ngCellText {
+  display: inline-block;
+}
+ol.inline,
+ul.inline {
+  margin-left: 0;
+  list-style: none;
+}
+ol.inline > li,
+ul.inline > li {
+  display: inline-block;
+  padding-right: 2px;
+  padding-left: 2px;
+}
+.red {
+  color: red !important;
+}
+.orange {
+  color: orange !important;
+}
+.yellow {
+  color: yellow !important;
+}
+.green {
+  color: green !important;
+}
+.background-green {
+  color: white;
+  background-color: #51a351;
+}
+.background-light-green {
+  color: white;
+  background-color: #5ab15a;
+}
+.blue {
+  color: dodgerblue !important;
+}
+.background-blue {
+  color: white;
+  background-color: #006dcc;
+}
+.icon1point5x {
+  font-size: 1.5em;
+}
+.centered,
+.align-center {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center;
+}
+.align-right {
+  text-align: right;
+}
+.align-left {
+  text-align: left;
+}
+.no-bottom-margin {
+  margin-bottom: 0 !important;
+}
+.no-bottom-margin .control-group {
+  margin-bottom: 4px;
+}
+.bottom-margin {
+  margin-bottom: 20px;
 }

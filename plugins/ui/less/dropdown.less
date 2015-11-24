@@ -1,0 +1,100 @@
+
+.dropdown-menu {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border-radius: 0;
+}
+
+.dropdown-menu > li:hover > a {
+  text-shadow:0px 0px 1px white;
+}
+
+.dropdown-menu:before {
+  display: none !important;
+}
+
+.dropdown-menu:after {
+  display: none !important;
+}
+
+
+.dropdown-menu.right {
+  left: auto;
+  right: 0;
+}
+
+.dropdown-menu.right:before {
+  left:auto !important;
+  right: 9px;
+}
+
+.dropdown-menu.right:after {
+  left:auto !important;
+  right: 10px;
+}
+
+.submenu-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+}
+
+.submenu-caret:before {
+  font-family: 'FontAwesome';
+  border: 0;
+  content: "\f054";
+  font-size: 11px;
+  display: block;
+}
+
+.hawtio-dropdown > ul > li {
+  padding: 3px;
+  padding-left: 5px;
+}
+
+.hawtio-dropdown > ul > li > .menu-item {
+  position: relative;
+  display: block;
+}
+
+.hawtio-dropdown > .submenu-caret:before,
+.hawtio-dropdown > ul > li > .menu-item > .submenu-caret:before {
+  position: absolute;
+  top: 0;
+  right: -2px;
+}
+
+.dropdown-menu .sub-menu {
+  position: absolute;
+  left: 195px;
+  top: -8px;
+}
+
+.dropdown-menu .dropdown .caret {
+  display: none;
+}
+
+span.hawtio-dropdown {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+span.hawtio-dropdown .dropdown-menu {
+  width: auto;
+}
+
+.btn .hawtio-dropdown > .caret {
+  width: 7px;
+}
+
+.btn .hawtio-dropdown > .dropdown-menu {
+  left: -10px;
+  margin-top: 5px;
+  text-align: left;
+}
+

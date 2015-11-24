@@ -28,95 +28,6 @@ small table tbody tr td.property-name {
   text-align: right;
 }
 
-#log-panel {
-  position: fixed;
-  top: -5px;
-  left: 30px;
-  right: 30px;
-  bottom: 50%;
-  z-index: 10000;
-  background: inherit;
-  transition: bottom 1s ease-in-out;
-}
-
-#log-panel > div {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-#log-panel #log-panel-statements {
-  margin-left: 0;
-  margin-bottom: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 20px;
-  overflow-y: auto;
-}
-
-#log-panel-statements li {
-  margin-left: 3px;
-  margin-right: 3px;
-  transition: background .25s ease-in-out;
-}
-
-#log-panel-statements li pre {
-  border-radius: 0;
-  font-size: 11px;
-}
-
-#log-panel-statements li:hover {
-  background: #111111;
-}
-
-#log-panel-statements li.DEBUG {
-  color: dodgerblue;
-}
-
-#log-panel-statements li.INFO {
-  color: white;
-}
-
-#log-panel-statements li.WARN {
-  color: yellow;
-}
-
-#log-panel-statements li.ERROR {
-  color: red;
-}
-
-#log-panel #close {
-  text-align: center;
-  position: absolute;
-  height: 20px;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  box-shadow: 0 1px 13px rgba(0, 0, 0, 0.1) inset;
-  opacity: 1;
-}
-
-#log-panel #copy {
-  position: absolute;
-  right: 23px;
-  bottom: 26px;
-  background: inherit;
-  transition: opacity 1s ease-in-out;
-  opacity: 0.4;
-  cursor: pointer;
-}
-
-#log-panel #copy:hover {
-  opacity: 1;
-}
-
-div.log-stack-trace p {
-  line-height: 14px;
-  margin-bottom: 2px;
-}
-
 #canvas {
   display: inline-block;
 }
@@ -125,111 +36,10 @@ div.log-stack-trace p {
   height: 100%;
 }
 
-/* what does this fix... */
-/*
-td {
-  padding-right: 20px;
-}
-*/
-/* end what does this fix... */
-
 .tab {
   display: block;
   margin-left: 1em;
 }
-
-/* utility classes */
-.inline {
-  display: inline;
-}
-
-.inline-block,
-.list-row-select,
-.list-row-contents,
-.list-row-contents > .ngCellText {
-  display: inline-block;
-}
-
-ol.inline,
-ul.inline {
-  margin-left: 0;
-  list-style: none;
-}
-
-ol.inline > li,
-ul.inline > li {
-  display: inline-block;
-  padding-right: 2px;
-  padding-left: 2px;
-}
-
-.red {
-  color: red !important;
-}
-
-.orange {
-  color: orange !important;
-}
-
-.yellow {
-  color: yellow !important;
-}
-
-.green {
-  color: green !important;
-}
-
-.background-green {
-  color: white;
-  background-color: #51a351;
-}
-
-.background-light-green {
-  color: white;
-  background-color: #5ab15a;
-}
-
-.blue {
-  color: dodgerblue !important;
-}
-
-.background-blue {
-  color: white;
-  background-color: #006dcc;
-}
-
-.icon1point5x {
-  font-size: 1.5em;
-}
-
-.centered,
-.align-center {
-  margin-left: auto !important;
-  margin-right: auto !important;
-  text-align: center;
-}
-
-.align-right {
-  text-align: right;
-}
-
-.align-left {
-  text-align: left;
-}
-
-.no-bottom-margin {
-  margin-bottom: 0 !important;
-}
-
-.no-bottom-margin .control-group {
-  margin-bottom: 4px;
-}
-
-.bottom-margin {
-  margin-bottom: 20px;
-}
-
-/* end utility classes */
 
 .list-row {
   height: 30px;
@@ -255,23 +65,6 @@ li.attr-column {
   width: 1em;
 }
 
-.ngTotalSelectContainer {
-  margin: 0px;
-}
-
-.ngTopPanel {
-  background: inherit;
-}
-
-.ngGrid {
-  background: inherit;
-}
-
-.ngViewport {
-  margin-left: 0px;
-  margin-right: 0px;
-}
-
 #widgets li div div div div form fieldset div input {
   display: none;
 }
@@ -291,19 +84,6 @@ li.attr-column {
   border: none;
   display: none;
 }
-.ngFooterPanel {
-  border-top: none;
-}
-.ngRow .ngCell:last-child {
-  border-right: none;
-}
-.ngRow:last-child {
-  border-bottom: none;
-}
-.ngFooterTotalItems span:first-child {
-  margin-right: .5em;
-}
-
 /* osgi page stuff */
 .ACTIVE:before {
   font-family: FontAwesome;
@@ -357,6 +137,7 @@ li.attr-column {
 }
 /* end osgi page stuff */
 
+/*
 .table-bordered {
   border: none;
   border-radius: 0px;
@@ -392,18 +173,7 @@ table.table thead .sorting_asc:after {
 table.table thead .sorting_desc:after {
   background: url('../img/datatable/sort_desc.png') no-repeat top center;
 }
-
-.dataTables_filter label {
-  margin-bottom: 0px;
-}
-
-.dataTables_filter label input {
-  padding-right: 14px;
-  padding-right: 4px \9;
-  padding-left: 14px;
-  padding-left: 4px \9;
-  margin-bottom: 0;
-}
+*/
 
 .navbar-fixed-top {
   margin-bottom: 0px;
