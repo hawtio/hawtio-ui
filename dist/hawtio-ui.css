@@ -1773,58 +1773,6 @@ a.dashboard-link:hover {
 i.expandable-indicator.folder {
   font-size: 17px;
 }
-/* Start 800x600 Optimzations */
-@media (max-width: 849px) {
-  .page-padded {
-    padding-left: 5px;
-    padding-right: 5px;
-  }
-  .wiki-fixed {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-  .wiki-fixed .row-fluid .span9 {
-    margin-left: 9px;
-  }
-  .container-details > [class*=" offset"] {
-    display: none;
-  }
-  .container-details > .span4.offset1 {
-    width: 100%;
-    float: inherit;
-    display: block;
-    margin-left: 2px;
-    margin-right: 2px;
-  }
-  .container-details > .span5.offset1 {
-    width: 100%;
-    float: inherit;
-    display: block;
-    margin-left: 2px;
-    margin-right: 2px;
-  }
-  .create-container-body > [class^="span"] {
-    width: 100%;
-    float: inherit;
-    display: block;
-    margin-left: 2px;
-    margin-right: 2px;
-  }
-  .create-container-body > [class^="span"]:first-child {
-    margin-bottom: 15px;
-  }
-  .features-toolbar .pull-left {
-    margin-bottom: 10px;
-  }
-  .edit-feature-lists > [class^="span"] {
-    width: 49%;
-    float: inherit;
-    display: inline-block;
-    margin-left: 0;
-    margin-right: 0;
-  }
-}
-/* End 800x600 optimizations */
 /* hack to work around strange tabset behavior */
 tabset > .tabbable > ul {
   display: none;

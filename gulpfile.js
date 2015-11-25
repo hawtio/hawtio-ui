@@ -164,7 +164,7 @@ gulp.task('clean', ['concat'], function() {
 });
 
 gulp.task('watch-less', function() {
-  return plugins.watch(config.less, function() {
+  plugins.watch(config.less, function() {
     gulp.start('less');
   });
 });
