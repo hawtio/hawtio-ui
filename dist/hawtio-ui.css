@@ -1358,25 +1358,6 @@ small table tbody tr td.property-name {
 li.attr-column {
   width: 1em;
 }
-#widgets li div div div div form fieldset div input {
-  display: none;
-}
-#widgets li div div div div div#attributesGrid div div div div.ngHeaderCell {
-  border: none;
-}
-#widgets li div div div div div#attributesGrid div div div div.ngCell {
-  border: none;
-}
-#widgets li div div div div div#attributesGrid div.ngTopPanel {
-  border: none;
-}
-#widgets li div div div div div#attributesGrid div.ngTopPanel div.ngGroupPanel {
-  border: none;
-}
-#widgets li div div div div div#attributesGrid div.ngFooterPanel {
-  border: none;
-  display: none;
-}
 .navbar-fixed-top {
   margin-bottom: 0px;
 }
@@ -1532,37 +1513,6 @@ input[type="checkbox"].ng-invalid {
   -webkit-box-shadow: 0 0 12px #e5e971;
   -moz-box-shadow: 0 0 12px #e5e971;
   box-shadow: 0 0 12px #e5e971;
-}
-/** dashboard */
-.dashboard-link-row {
-  width: 100%;
-  position: relative;
-}
-a.dashboard-link {
-  line-height: 15px;
-  font-weight: normal;
-}
-a.dashboard-link:hover {
-  text-decoration: none;
-}
-.dashboard-link {
-  position: absolute;
-  top: 15px;
-  right: 76px;
-  z-index: 500;
-}
-.widget-title > .row-fluid {
-  position: relative;
-}
-.widget-title > .row-fluid > .pull-left {
-  position: absolute;
-  right: 16px;
-  left: 0;
-}
-.widget-title > .row-fluid > .pull-left > .ep > div {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 @media (max-width: 979px) {
   .navbar-fixed-top .navbar-inner,
