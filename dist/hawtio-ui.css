@@ -2251,6 +2251,10 @@ table.dataTable tbody tr td {
   vertical-align: middle;
 }
 
+.editor-autoresize .CodeMirror {
+  height: auto;
+}
+
 .badge {
   display: inline-block;
   padding: 2px 4px;
@@ -2537,42 +2541,35 @@ editable-property {
 .expandable > .title {
   cursor: pointer;
 }
-i.expandable-indicator {
+.expandable .expandable-indicator {
   font-family: FontAwesome;
   font-weight: normal;
   font-style: normal;
   display: inline-block;
   text-decoration: inherit;
 }
-.expandable-body form fieldset legend {
+.expandable.opened .expandable-indicator:before {
+  content: "\f078" !important;
+}
+.expandable.opened .expandable-indicator.folder:before {
+  content: "\F07C" !important;
+}
+.expandable.opened .expandable-body {
   font-size: inherit;
   margin-bottom: 0px;
 }
-.expandable.opened i.expandable-indicator:before {
-  font-family: FontAwesome;
-  content: "\f078" !important;
-}
-.expandable.closed i.expandable-indicator:before {
-  font-family: FontAwesome;
+.expandable.closed .expandable-indicator:before {
   content: "\f054";
 }
-.expandable.opened i.expandable-indicator.folder:before {
-  font-family: FontAwesome;
-  content: "\F07C" !important;
-}
-.expandable.closed i.expandable-indicator.folder:before {
-  font-family: FontAwesome;
+.expandable.closed .expandable-indicator.folder:before {
   content: "\F07B";
-}
-.expandable.opened .expandable-body {
-  display: inline-block;
-  margin-bottom: 3px;
 }
 .expandable.closed .expandable-body {
   display: none;
 }
-.editor-autoresize .CodeMirror {
-  height: auto;
+.expandable .expandable-body form fieldset legend {
+  font-size: inherit;
+  margin-bottom: 0px;
 }
 
 #log-panel {
