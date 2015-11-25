@@ -1377,88 +1377,6 @@ li.attr-column {
   border: none;
   display: none;
 }
-/* osgi page stuff */
-.ACTIVE:before {
-  font-family: FontAwesome;
-  content: "\f087";
-  font-style: normal;
-  color: #777777;
-}
-.RESOLVED:before {
-  font-family: FontAwesome;
-  content: "\f0ad";
-  font-style: normal;
-}
-.STARTING:before {
-  font-family: FontAwesome;
-  content: "\f021";
-  font-style: normal;
-}
-.STARTING {
-  -moz-animation: spin 2s infinite linear;
-  -o-animation: spin 2s infinite linear;
-  -webkit-animation: spin 2s infinite linear;
-  animation: spin 2s infinite linear;
-}
-.STOPPING:before {
-  font-family: FontAwesome;
-  content: "\f021";
-  font-style: normal;
-}
-.STOPPING {
-  -moz-animation: spin 2s infinite linear;
-  -o-animation: spin 2s infinite linear;
-  -webkit-animation: spin 2s infinite linear;
-  animation: spin 2s infinite linear;
-}
-.UNINSTALLED:before {
-  font-family: FontAwesome;
-  content: "\f014";
-  font-style: normal;
-}
-.INSTALLED:before {
-  font-family: FontAwesome;
-  content: "\f06b";
-  font-style: normal;
-}
-/* end osgi page stuff */
-/*
-.table-bordered {
-  border: none;
-  border-radius: 0px;
-}
-
-.table-bordered thead:first-child tr:first-child th:first-child,
-.table-bordered tbody:first-child tr:first-child td:first-child {
-  border-radius: 0px;
-  border-left: none;
-}
-
-.table-bordered th,
-.table-bordered td {
-  border-left: none;
-  border-top: none;
-}
-
-.table-bordered th:last-child,
-.table-bordered td:last-child {
-  border-left: none;
-  border-top: none;
-  border-right: none;
-}
-
-table.table thead .sorting {
-  background: inherit;
-}
-
-table.table thead .sorting_asc:after {
-  background: url('../img/datatable/sort_asc.png') no-repeat top center;
-}
-
-table.table thead .sorting_desc:after {
-  background: url('../img/datatable/sort_desc.png') no-repeat top center;
-}
-*/
 .navbar-fixed-top {
   margin-bottom: 0px;
 }
@@ -1550,81 +1468,6 @@ td.details {
 input[type="checkbox"].hawtio-checkbox {
   margin-top: 10px;
 }
-/* more osgi stuff */
-.bundle-list {
-  width: 100%;
-}
-.bundle-item {
-  position: relative;
-  display: inline-block;
-  width: 300px;
-  margin-bottom: 1px;
-}
-.bundle-item-details table {
-  min-height: 0;
-}
-.bundle-item-details {
-  height: 0;
-  display: inline-block;
-  z-index: 15;
-}
-.bundle-item > a {
-  display: block;
-  z-index: 5;
-}
-.bundle-item > a:hover {
-  text-decoration: none;
-}
-.bundle-item a span {
-  display: block;
-  padding: 8px;
-  font-weight: normal;
-  z-index: 6;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-.bundle-item a span.badge {
-  margin-left: 7px;
-}
-.bundle-item a span.badge::before {
-  padding: 0px;
-  float: left;
-  position: relative;
-  top: 4px;
-  left: -8px;
-  display: block;
-  content: ' ';
-  height: 6px;
-  width: 6px;
-  z-index: 10;
-}
-.bundle-item a.toggle-action {
-  position: absolute;
-  display: block;
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  padding: 0;
-  right: 12px;
-  top: 6px;
-  opacity: 0.2;
-  transition: all 500ms ease-in-out;
-  font-size: 18px;
-}
-.bundle-item a.toggle-action .icon-power-off {
-  color: orange;
-}
-.bundle-item a.toggle-action .icon-play-circle {
-  color: green;
-}
-.bundle-item a.toggle-action:hover {
-  opacity: 1;
-  text-decoration: none;
-}
-.bundle-list {
-  margin-bottom: 2em;
-}
-/* end more osgi stuff */
 li.stacktrace {
   line-height: 10px;
 }
@@ -1675,7 +1518,6 @@ li.stacktrace {
   min-height: 30px;
   width: 160px;
 }
-/* end fabric view stuff */
 /** highlight required fields which have no focus */
 input.ng-invalid,
 textarea.ng-invalid,
@@ -1782,13 +1624,6 @@ input.ng-invalid-pattern:focus {
 .table-header.desc > .indicator:after {
   content: "\f078";
 }
-.camel-tree > ul.nav {
-  margin-bottom: 3px !important;
-}
-.camel-tree > .section-filter {
-  margin: 0 0 8px;
-  display: block;
-}
 .table > thead > tr > th {
   white-space: nowrap;
   overflow: hidden;
@@ -1802,32 +1637,6 @@ th > .indicator:before {
 .ngCellText .icon-replication-controller {
   width: 32px;
 }
-/* osgi page stuff */
-.repository-browser-toolbar > .btn {
-  margin-bottom: 10px;
-}
-.bundle-list-toolbar {
-  vertical-align: top;
-}
-.bundle-list-toolbar > .pull-left > *,
-.bundle-list-toolbar > .pull-right > * {
-  display: inline-block;
-}
-.bundle-list-toolbar > div > input,
-.bundle-list-toolbar > div > div > input {
-  margin-bottom: 10px;
-}
-.bundle-list-toolbar > div > label,
-.bundle-list-toolbar > div > strong {
-  position: relative;
-  top: -3px;
-}
-.bundle-list-toolbar > div > .input-append {
-  position: relative;
-  left: 3px;
-  top: -9px;
-}
-/* osgi page stuff */
 .connect-column {
   display: inline-block;
   vertical-align: top;
@@ -2082,27 +1891,6 @@ img.nodeIcon:hover {
 .tree-header > .right {
   right: 10px;
 }
-.camel.tree-header {
-  height: 42px;
-}
-.camel.tree-header > .left {
-  right: 94px;
-}
-.camel.tree-header > .left,
-.camel.tree-header > .right {
-  top: 6px;
-  line-height: 30px;
-}
-.camel.tree-header > .left > .section-filter {
-  width: 100%;
-}
-.camel.tree-header > .left > .section-filter > .search-query {
-  width: 100%;
-  margin-bottom: 10px;
-}
-.camel.tree-header > .left > .section-filter > .icon-remove {
-  right: -16px;
-}
 .attributes-wrapper {
   width: 100%;
   overflow: auto;
@@ -2124,15 +1912,6 @@ img.nodeIcon:hover {
 }
 .dataTables_filter input {
   border-radius: 15px;
-}
-.config-admin-form .form-horizontal .control-label {
-  width: 260px;
-}
-.config-admin-form .form-horizontal .controls {
-  margin-left: 280px;
-}
-.new-config-name-form {
-  margin-top: 30px;
 }
 .td-fixed-width-150 {
   white-space: normal;
