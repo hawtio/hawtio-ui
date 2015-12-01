@@ -1353,15 +1353,6 @@ ol.zebra-list > li:before {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-.tree-header .section-filter .search-query,
-.section-filter .search-query {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.tree-header .section-filter .search-query {
-  padding: 0;
-  min-width: 0;
-}
 .search-query.has-text {
   background: #55ddff;
   color: #333333;
@@ -1914,24 +1905,6 @@ img.nodeIcon:hover {
 .service-list img.girthy {
   height: auto;
   width: 16px;
-}
-.tree-header > .left,
-.tree-header > .right {
-  position: absolute;
-  top: 3px;
-  bottom: 6px;
-  vertical-align: middle;
-  line-height: 10px;
-}
-.tree-header > .left {
-  left: 0;
-}
-.tree-header > .right {
-  right: 10px;
-}
-.attributes-wrapper {
-  width: 100%;
-  overflow: auto;
 }
 .separator {
   padding-top: 4px;
