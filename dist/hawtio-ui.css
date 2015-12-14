@@ -769,11 +769,11 @@ i.mq-master {
 }
 .mq-container-rectangle.master {
   background-color: #DFFFB9;
-  background-image: -moz-linear-gradient(top, #efffdd, #ccff99);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#efffdd), to(#ccff99));
-  background-image: -webkit-linear-gradient(top, #efffdd, #ccff99);
-  background-image: -o-linear-gradient(top, #efffdd, #ccff99);
-  background-image: linear-gradient(to bottom, #efffdd, #ccff99);
+  background-image: -moz-linear-gradient(top, #efffdd, #CCFF99);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#efffdd), to(#CCFF99));
+  background-image: -webkit-linear-gradient(top, #efffdd, #CCFF99);
+  background-image: -o-linear-gradient(top, #efffdd, #CCFF99);
+  background-image: linear-gradient(to bottom, #efffdd, #CCFF99);
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffefffdd', endColorstr='#ffCCFF99', GradientType=0);
   border-color: #CCFF99 #CCFF99 #CCFF99;
@@ -1180,7 +1180,7 @@ img.nodeIcon:hover {
 .hawtio-dropdown p {
   border-top: 1px solid #d4d4d4;
   border-bottom: 1px solid #d4d4d4;
-  background-image: linear-gradient(to bottom, #ffffff, #e5e5e5);
+  background-image: linear-gradient(to bottom, #fff, #e5e5e5);
 }
 .dropdown.perspective-selector .dropdown-menu li.clear-recent {
   border-top: 1px dashed #d4d4d4;
@@ -1199,7 +1199,7 @@ img.nodeIcon:hover {
   text-shadow: 0 1px 0 #FFFFFF;
 }
 .prefs .tabbable > .nav > li > a:hover {
-  background-color: #eeeeee;
+  background-color: #EEEEEE;
 }
 .column-box {
   /* border: 1px solid #d4d4d4; */
