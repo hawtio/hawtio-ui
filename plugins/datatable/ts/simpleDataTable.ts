@@ -14,7 +14,7 @@ module DataTable {
 
         var defaultPrimaryKeyFn = (entity, idx) => {
           // default function to use id/_id/name as primary key, and fallback to use index
-          return entity["id"] || entity["_id"] || entity["name"] || idx;
+          return entity["id"] || entity["_id"] || entity["_key"] || entity["name"] || idx;
         };
 
         var config = $scope.config;
