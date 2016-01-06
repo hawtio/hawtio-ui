@@ -121,7 +121,10 @@ gulp.task('tsc', ['clean-defs'], function() {
 gulp.task('less', function () {
   return gulp.src(config.less)
     .pipe(plugins.less({
-      paths: [ path.join(__dirname, 'less', 'includes') ]
+      paths: [
+        path.join(__dirname, 'less', 'includes'),
+        path.join(__dirname, 'libs')
+      ]
     }))
     .on('error', plugins.notify.onError({
       message: '<%= error.message %>',
