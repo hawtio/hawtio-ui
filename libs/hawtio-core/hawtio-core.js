@@ -463,10 +463,16 @@ var hawtioPluginLoader = (function(self) {
         if (tObj) {
           self.log.debug("Executing task: '" + tObj.name + "'");
           //self.log.debug("ExecutedTasks: ", executedTasks);
-          tObj.task(function() { 
-            executedTasks.push(tObj.name);
-            setTimeout(executeTask, 1); 
-          });
+          var called = false;
+          var next = function() {
+            if (next.notFired) {
+              next.notFired = false;
+              executedTasks.push(tObj.name);
+              setTimeout(executeTask, 1); 
+            }
+          }
+          next.notFired = true;
+          tObj.task(next);
         } else {
           self.log.debug("All tasks executed");
           setTimeout(callback, 1);
@@ -599,12 +605,28 @@ var hawtioPluginLoader = (function(self) {
 })(hawtioPluginLoader || {}, window, undefined);
 
 // Hawtio core plugin responsible for bootstrapping a hawtio app
-var HawtioCore;
-(function (HawtioCore) {
+var HawtioCore = (function () {
+
+    function HawtioCoreClass() {
+
+    }
+
     /**
      * The app's injector, set once bootstrap is completed
      */
-    HawtioCore.injector = null;
+    Object.defineProperty(HawtioCoreClass.prototype, "injector", {
+      get: function() {
+        if (HawtioCore.UpgradeAdapter) {
+          return HawtioCore.UpgradeAdapter.ng1Injector;
+        }
+        return HawtioCore._injector;
+      },
+      enumerable: true,
+      configurable: true
+    });
+
+    var HawtioCore = new HawtioCoreClass();
+
     /**
      * This plugin's name and angular module
      */
@@ -787,21 +809,39 @@ var HawtioCore;
 
         jQuery.browser = browser;
       }
+
+      if (window.ng && window.ng.upgrade) {
+        // Create this here so that plugins can use pre-bootstrap tasks
+        // to add providers
+        HawtioCore.UpgradeAdapter = new ng.upgrade.UpgradeAdapter();
+      }
       
       hawtioPluginLoader.loadPlugins(function() {
-        if (!HawtioCore.injector) {
-          var strictDi = localStorage['hawtioCoreStrictDi'] || false;
-          if (strictDi) {
-            log.debug("Using strict dependency injection");
-          }
-          HawtioCore.injector = angular.bootstrap(document, hawtioPluginLoader.getModules(), {
+
+        if (HawtioCore.injector || HawtioCore.UpgradeAdapterRef) {
+          log.debug("Application already bootstrapped");
+          return;
+        }
+
+        var strictDi = localStorage['hawtioCoreStrictDi'] || false;
+        if (strictDi) {
+          log.debug("Using strict dependency injection");
+        }
+
+        // bootstrap in hybrid mode if angular2 is detected
+        if (HawtioCore.UpgradeAdapter) {
+          log.info("ngUpgrade detected, bootstrapping in Angular 1/2 hybrid mode");
+          HawtioCore.UpgradeAdapterRef = HawtioCore.UpgradeAdapter.bootstrap(document.body, hawtioPluginLoader.getModules(), { strictDi: strictDi });
+          HawtioCore._injector = HawtioCore.UpgradeAdapterRef.ng1Injector;
+        } else {
+
+          HawtioCore._injector = angular.bootstrap(document.body, hawtioPluginLoader.getModules(), {
             strictDi: strictDi
           });
-          log.debug("Bootstrapped application");
-        } else {
-          log.debug("Application already bootstrapped");
         }
+        log.debug("Bootstrapped application");
       });
     });
-})(HawtioCore || (HawtioCore = {}));
+    return HawtioCore;
+})();
 
