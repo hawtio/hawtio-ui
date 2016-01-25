@@ -56,7 +56,7 @@ module UI {
         }
 
         $scope.listRoot = () => {
-          return $element.find('.list-root');
+          return $element.find('.hawtio-list-root');
         };
 
         $scope.getContents = (row) => {
@@ -73,7 +73,7 @@ module UI {
             field: fieldName
           };
           var cellEl = $compile($scope.cellTemplate)(innerParentScope);
-          $(rowEl).find('.list-row-contents').append(cellEl);
+          $(rowEl).find('.hawtio-list-row-contents').append(cellEl);
           return rowEl;
         };
 
