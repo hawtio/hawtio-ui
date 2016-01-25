@@ -2147,6 +2147,10 @@ ul.nav select {
   margin-top: 10px;
 }
 
+.editor-autoresize .CodeMirror {
+  height: auto;
+}
+
 .dataTables_filter label {
   margin-bottom: 0px;
 }
@@ -2209,10 +2213,6 @@ table.dataTable tbody tr td {
 .table td,
 .table th {
   vertical-align: middle;
-}
-
-.editor-autoresize .CodeMirror {
-  height: auto;
 }
 
 .badge {

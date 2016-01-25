@@ -10,6 +10,7 @@ var gulp = require('gulp'),
     size = require('gulp-size'),
     uri = require('urijs'),
     s = require('underscore.string'),
+    argv = require('yargs').argv,
     del = require('del');
 
 var plugins = gulpLoadPlugins({});
@@ -24,7 +25,7 @@ var config = {
   testTemplates: ['test-plugins/**/*.html'],
   templateModule: pkg.name + '-templates',
   testTemplateModule: pkg.name + '-test-templates',
-  dist: './dist/',
+  dist: argv.out || './dist/',
   js: pkg.name + '.js',
   testJs: pkg.name + '-test.js',
   css: pkg.name + '.css',
@@ -131,7 +132,7 @@ gulp.task('less', function () {
       title: 'less file compilation error'
     }))
     .pipe(plugins.concat(config.css))
-    .pipe(gulp.dest('./dist'));
+    .pipe(gulp.dest(config.dist));
 });
 
 
