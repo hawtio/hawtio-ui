@@ -1617,22 +1617,6 @@ small table tbody tr td.property-name {
   display: block;
   margin-left: 1em;
 }
-.list-row {
-  height: 30px;
-  white-space: nowrap;
-}
-.list-row .ngCellText {
-  padding: 0;
-  vertical-align: middle;
-}
-.list-row-select,
-.list-row-contents {
-  height: 100%;
-  vertical-align: middle;
-}
-.list-row-select > input {
-  vertical-align: middle;
-}
 li.attr-column {
   width: 1em;
 }
@@ -2147,10 +2131,6 @@ ul.nav select {
   margin-top: 10px;
 }
 
-.editor-autoresize .CodeMirror {
-  height: auto;
-}
-
 .dataTables_filter label {
   margin-bottom: 0px;
 }
@@ -2213,6 +2193,10 @@ table.dataTable tbody tr td {
 .table td,
 .table th {
   vertical-align: middle;
+}
+
+.editor-autoresize .CodeMirror {
+  height: auto;
 }
 
 .badge {
@@ -2530,6 +2514,28 @@ editable-property {
 .expandable .expandable-body form fieldset legend {
   font-size: inherit;
   margin-bottom: 0px;
+}
+
+.hawtio-list-row {
+  height: 30px;
+  white-space: nowrap;
+}
+.hawtio-list-row .ngCellText {
+  padding: 0;
+  vertical-align: middle;
+}
+.hawtio-list-row-select,
+.hawtio-list-row-contents {
+  height: 100%;
+  vertical-align: middle;
+}
+.hawtio-list-row-select > input {
+  vertical-align: middle;
+}
+.hawtio-list-row-select,
+.hawtio-list-row-contents,
+.hawtio-list-row-contents > .ngCellText {
+  display: inline-block;
 }
 
 #log-panel {
@@ -3144,10 +3150,7 @@ div.log-stack-trace p {
 .inline {
   display: inline;
 }
-.inline-block,
-.list-row-select,
-.list-row-contents,
-.list-row-contents > .ngCellText {
+.inline-block {
   display: inline-block;
 }
 ol.inline,
