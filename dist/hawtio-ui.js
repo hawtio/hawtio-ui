@@ -1373,6 +1373,27 @@ var UI;
     UI._module.directive('hawtioBreadcrumbs', UI.hawtioBreadcrumbs);
 })(UI || (UI = {}));
 
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    // simple directive that adds the patternfly card BG color to the content area of a hawtio app
+    UI._module.directive('hawtioCardBg', ['$timeout', function ($timeout) {
+            return {
+                restrict: 'AC',
+                link: function (scope, element, attr) {
+                    $timeout(function () {
+                        var parent = $('#main');
+                        //console.log("Parent: ", parent);
+                        parent.addClass('cards-pf container-cards-pf');
+                        element.on('$destroy', function () {
+                            parent.removeClass('cards-pf container-cards-pf');
+                        });
+                    }, 10);
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+
 var UI;
 (function (UI) {
     /**
