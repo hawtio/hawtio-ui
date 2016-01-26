@@ -14,6 +14,7 @@
 /// <reference path="d.ts/ui/ts/autoColumns.d.ts"/>
 /// <reference path="d.ts/ui/ts/autoDropDown.d.ts"/>
 /// <reference path="d.ts/ui/ts/breadcrumbs.d.ts"/>
+/// <reference path="d.ts/ui/ts/cardView.d.ts"/>
 /// <reference path="d.ts/ui/ts/colors.d.ts"/>
 /// <reference path="d.ts/ui/ts/colorPickerDirective.d.ts"/>
 /// <reference path="d.ts/ui/ts/confirmDialogDirective.d.ts"/>
