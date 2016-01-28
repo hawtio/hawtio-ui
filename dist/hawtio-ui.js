@@ -96,6 +96,7 @@ var DataTable;
                                 // need to enrich entity with index, as we push row.entity to the re-selected items
                                 row.entity.index = row.index;
                                 reSelectedItems.push(row.entity);
+                                row.selected = true;
                                 DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
                             }
                         });
@@ -223,6 +224,7 @@ var DataTable;
                         if (idx >= 0) {
                             DataTable.log.debug("De-selecting row at index " + row.index);
                             config.selectedItems.splice(idx, 1);
+                            delete row.selected;
                         }
                         else {
                             if (!config.multiSelect) {
@@ -232,6 +234,9 @@ var DataTable;
                             // need to enrich entity with index, as we push row.entity to the selected items
                             row.entity.index = row.index;
                             config.selectedItems.push(row.entity);
+                            if (!angular.isDefined(row.selected) || !row.selected) {
+                                row.selected = true;
+                            }
                         }
                     };
                     $scope.$watchCollection('rows', function () {
@@ -242,14 +247,14 @@ var DataTable;
                         var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
                         var onMouseDown;
                         if (enableRowClickSelection) {
-                            onMouseDown = "ng-mousedown='onRowSelected(row)' ";
+                            onMouseDown = "ng-click='onRowSelected(row)' ";
                         }
                         else {
                             onMouseDown = "";
                         }
                         var headHtml = "<thead><tr>";
                         // use a function to check if a row is selected so the UI can be kept up to date asap
-                        var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " + onMouseDown + "ng-class=\"{'selected': isSelected(row)}\" >";
+                        var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' ng-class=\"{'selected': isSelected(row)}\" >";
                         var idx = 0;
                         if (showCheckBox) {
                             var toggleAllHtml = isMultiSelect() ?
@@ -263,7 +268,7 @@ var DataTable;
                             var field = colDef.field;
                             var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
                             headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>";
-                            bodyHtml += "\n<td>" + cellTemplate + "</td>";
+                            bodyHtml += "\n<td + " + onMouseDown + ">" + cellTemplate + "</td>";
                             idx += 1;
                         });
                         var html = headHtml + "\n</tr></thead>\n" +
