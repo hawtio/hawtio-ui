@@ -2564,9 +2564,14 @@ var UI;
                             if (angular.isFunction($scope.customizeConnectionOptions)) {
                                 $scope.customizeConnectionOptions($scope.jsPlumb, edge, params, options);
                             }
-                            var connection = $scope.jsPlumb.connect(params, options);
-                            edge.source.connections.push(connection);
-                            edge.target.connections.push(connection);
+                            try {
+                                var connection = $scope.jsPlumb.connect(params, options);
+                                edge.source.connections.push(connection);
+                                edge.target.connections.push(connection);
+                            }
+                            catch (err) {
+                                UI.log.warn("Caught error connecting source: ", params.source, " to target: ", params.target, " error: ", err);
+                            }
                         });
                         $scope.jsPlumb.recalculateOffsets($element);
                         if (!$scope.jsPlumb.isSuspendDrawing()) {
@@ -4023,7 +4028,6 @@ var UIBootstrap;
 })(UIBootstrap || (UIBootstrap = {}));
 
 angular.module("hawtio-ui-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("plugins/editor/html/editor.html","<div class=\"editor-autoresize\">\r\n  <textarea name=\"{{name}}\" ng-model=\"text\"></textarea>\r\n</div>\r\n");
-$templateCache.put("plugins/ui-bootstrap/html/message.html","<div class=\"modal-header\">\r\n	<h3>{{ title }}</h3>\r\n</div>\r\n<div class=\"modal-body\">\r\n	<p>{{ message }}</p>\r\n</div>\r\n<div class=\"modal-footer\">\r\n	<button ng-repeat=\"btn in buttons\" ng-click=\"close(btn.result)\" class=\"btn\" ng-class=\"btn.cssClass\">{{ btn.label }}</button>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/breadcrumbs.html","<span class=\"hawtio-breadcrumb\">\r\n  <li ng-repeat=\"(level, config) in levels track by level\" ng-show=\"config\">\r\n    <div hawtio-drop-down=\"config\" process-submenus=\"false\"></div>\r\n  </li>\r\n</span>\r\n");
 $templateCache.put("plugins/ui/html/colorPicker.html","<div class=\"color-picker\">\r\n  <div class=\"wrapper\">\r\n    <div class=\"selected-color\" style=\"background-color: {{property}};\" ng-click=\"popout = !popout\"></div>\r\n  </div>\r\n  <div class=\"color-picker-popout\">\r\n    <table>\r\n      <tr>\r\n        <td ng-repeat=\"color in colorList\">\r\n          <div class=\"{{color.select}}\" style=\"background-color: {{color.color}};\"\r\n               ng-click=\"selectColor(color)\">\r\n          </div>\r\n        <td>\r\n        <td>\r\n          <i class=\"fa fa-remove clickable\" ng-click=\"popout = !popout\"></i>\r\n        </td>\r\n      </tr>\r\n    </table>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/confirmDialog.html","<div modal=\"show\">\r\n  <form class=\"form-horizontal no-bottom-margin\">\r\n    <div class=\"modal-header\"><h4>{{title}}</h4></div>\r\n    <div class=\"modal-body\">\r\n    </div>\r\n    <div class=\"modal-footer\">\r\n      <input class=\"btn btn-danger\" ng-show=\"{{showOkButton != \'false\'}}\" type=\"submit\" value=\"{{okButtonText}}\" ng-click=\"submit()\">\r\n      <button class=\"btn btn-primary\" ng-click=\"cancel()\">{{cancelButtonText}}</button>\r\n    </div>\r\n  </form>\r\n</div>\r\n");
@@ -4043,4 +4047,5 @@ $templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{dire
 $templateCache.put("plugins/ui/html/tablePager.html","<div class=\"hawtio-pager clearfix\">\r\n  <label>{{rowIndex() + 1}} / {{tableLength()}}</label>\r\n  <div class=btn-group>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"first()\"><i class=\"fa fa-fast-backward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"previous()\"><i class=\"fa fa-step-backward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"next()\"><i class=\"fa fa-step-forward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"last()\"><i class=\"fa fa-fast-forward\"></i></button>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/tagFilter.html","<div>\r\n  <ul class=\"list-unstyled label-list\">\r\n    <li ng-repeat=\"tag in visibleTags | orderBy:\'tag.id || tag\'\"\r\n        class=\"mouse-pointer\"\r\n        ng-click=\"toggleSelectionFromGroup(selected, tag.id || tag)\">\r\n              <span class=\"badge\"\r\n                    ng-class=\"isInGroup(selected, tag.id || tag, \'badge-success\', \'\')\"\r\n                      >{{tag.id || tag}}</span>\r\n              <span class=\"pull-right\"\r\n                    ng-show=\"tag.count\">{{tag.count}}&nbsp;</span>\r\n    </li>\r\n  </ul>\r\n  <div class=\"mouse-pointer\"\r\n       ng-show=\"selected.length\"\r\n       ng-click=\"clearGroup(selected)\">\r\n    <i class=\"fa fa-remove\" ></i> Clear Tags\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/tagList.html","<span>\r\n<script type=\"text/ng-template\" id=\"tagBase.html\">\r\n  <span class=\"badge mouse-pointer\" ng-class=\"isSelected(\'{{tag}}\')\">{{tag}}</span>\r\n</script>\r\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\r\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\r\n</script>\r\n</span>\r\n");
-$templateCache.put("plugins/ui/html/toc.html","<div>\r\n  <div ng-repeat=\"item in myToc\">\r\n    <div id=\"{{item[\'href\']}}Target\" ng-bind-html=\"item.text\">\r\n    </div>\r\n  </div>\r\n</div>\r\n");}]); hawtioPluginLoader.addModule("hawtio-ui-templates");
+$templateCache.put("plugins/ui/html/toc.html","<div>\r\n  <div ng-repeat=\"item in myToc\">\r\n    <div id=\"{{item[\'href\']}}Target\" ng-bind-html=\"item.text\">\r\n    </div>\r\n  </div>\r\n</div>\r\n");
+$templateCache.put("plugins/ui-bootstrap/html/message.html","<div class=\"modal-header\">\r\n	<h3>{{ title }}</h3>\r\n</div>\r\n<div class=\"modal-body\">\r\n	<p>{{ message }}</p>\r\n</div>\r\n<div class=\"modal-footer\">\r\n	<button ng-repeat=\"btn in buttons\" ng-click=\"close(btn.result)\" class=\"btn\" ng-class=\"btn.cssClass\">{{ btn.label }}</button>\r\n</div>\r\n");}]); hawtioPluginLoader.addModule("hawtio-ui-templates");

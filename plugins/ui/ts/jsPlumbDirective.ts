@@ -250,9 +250,13 @@ module UI {
             if (angular.isFunction($scope.customizeConnectionOptions)) {
               $scope.customizeConnectionOptions($scope.jsPlumb, edge, params, options);
             }
-            var connection = $scope.jsPlumb.connect(params, options);
-            edge.source.connections.push(connection);
-            edge.target.connections.push(connection);
+            try {
+              var connection = $scope.jsPlumb.connect(params, options);
+              edge.source.connections.push(connection);
+              edge.target.connections.push(connection);
+            } catch (err) {
+              log.warn("Caught error connecting source: ", params.source, " to target: ", params.target, " error: ", err);
+            }
           });
 
           $scope.jsPlumb.recalculateOffsets($element);
