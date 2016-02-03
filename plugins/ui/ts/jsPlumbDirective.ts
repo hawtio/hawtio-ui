@@ -9,12 +9,22 @@ module UI {
       restrict: 'A',
       link: ($scope, $element, $attrs) => {
 
-        $window.addEventListener("resize", () => {
+        var resize = () => {
           if ($scope.jsPlumb) {
-            $scope.jsPlumb.recalculateOffsets($element);
+            $scope.jsPlumb.recalculateOffsets($element.children());
             $scope.jsPlumb.repaintEverything();
           }
+        };
+
+        $element.on('$destroy', () => {
+          if ($scope.jsPlumb) {
+            $scope.jsPlumb.reset();
+            delete $scope.jsPlumb;
+            $window.removeEventListener("resize", resize);
+          }
         });
+
+        $window.addEventListener("resize", resize);
 
         // Whether or not each node in the graph can be dragged around
         var enableDragging = true;
@@ -183,9 +193,9 @@ module UI {
 
         function go() {
           if (!$scope.jsPlumb) {
-            $scope.jsPlumb = jsPlumb.getInstance({
-              Container: $element
-            });
+            $scope.jsPlumb = jsPlumb.getInstance();
+            $element.css({ position: "relative" });
+            $scope.jsPlumb.setContainer($element);
             var defaultOptions = {
               Anchor: "AutoDefault",
               Connector: "Flowchart",
@@ -259,7 +269,6 @@ module UI {
             }
           });
 
-          $scope.jsPlumb.recalculateOffsets($element);
           if (!$scope.jsPlumb.isSuspendDrawing()) {
             $scope.jsPlumb.repaintEverything();
           }
@@ -267,8 +276,6 @@ module UI {
           if (angular.isDefined($scope.jsPlumbCallback) && angular.isFunction($scope.jsPlumbCallback)) {
             $scope.jsPlumbCallback($scope.jsPlumb, $scope.jsPlumbNodes, $scope.jsPlumbNodesById, $scope.jsPlumbTransitions);
           }
-
-
         }
 
         // Kick off the initial layout of elements in the container
