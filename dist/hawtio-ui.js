@@ -2346,12 +2346,20 @@ var UI;
             return {
                 restrict: 'A',
                 link: function ($scope, $element, $attrs) {
-                    $window.addEventListener("resize", function () {
+                    var resize = function () {
                         if ($scope.jsPlumb) {
-                            $scope.jsPlumb.recalculateOffsets($element);
+                            $scope.jsPlumb.recalculateOffsets($element.children());
                             $scope.jsPlumb.repaintEverything();
                         }
+                    };
+                    $element.on('$destroy', function () {
+                        if ($scope.jsPlumb) {
+                            $scope.jsPlumb.reset();
+                            delete $scope.jsPlumb;
+                            $window.removeEventListener("resize", resize);
+                        }
                     });
+                    $window.addEventListener("resize", resize);
                     // Whether or not each node in the graph can be dragged around
                     var enableDragging = true;
                     if (angular.isDefined($attrs['draggable'])) {
@@ -2502,9 +2510,9 @@ var UI;
                     });
                     function go() {
                         if (!$scope.jsPlumb) {
-                            $scope.jsPlumb = jsPlumb.getInstance({
-                                Container: $element
-                            });
+                            $scope.jsPlumb = jsPlumb.getInstance();
+                            $element.css({ position: "relative" });
+                            $scope.jsPlumb.setContainer($element);
                             var defaultOptions = {
                                 Anchor: "AutoDefault",
                                 Connector: "Flowchart",
@@ -2573,7 +2581,6 @@ var UI;
                                 UI.log.warn("Caught error connecting source: ", params.source, " to target: ", params.target, " error: ", err);
                             }
                         });
-                        $scope.jsPlumb.recalculateOffsets($element);
                         if (!$scope.jsPlumb.isSuspendDrawing()) {
                             $scope.jsPlumb.repaintEverything();
                         }
