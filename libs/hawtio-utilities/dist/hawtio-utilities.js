@@ -1672,6 +1672,10 @@ var Core;
      * @param {Function} callback
      */
     function register(jolokia, scope, arguments, callback) {
+        if (scope.$$destroyed) {
+            // fail fast to prevent registration leaks
+            return;
+        }
         /*
         if (scope && !Core.isBlank(scope.name)) {
           Core.log.debug("Calling register from scope: ", scope.name);
