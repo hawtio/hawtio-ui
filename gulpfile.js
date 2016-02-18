@@ -95,7 +95,7 @@ gulp.task('example-clean', ['example-concat'], function() {
   return del(['test-templates.js', 'test-compiled.js']);
 });
 
-gulp.task('tsc', ['clean-defs'], function() {
+gulp.task('tsc', ['path-adjust', 'clean-defs'], function() {
   var cwd = process.cwd();
   var tsResult = gulp.src(config.ts)
     .pipe(plugins.typescript(config.tsProject))
