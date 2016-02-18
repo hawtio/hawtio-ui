@@ -56,7 +56,7 @@ module UI {
   }
 
   export function multiItemConfirmActionDialog(options:MultiItemConfirmActionOptions) {
-    var $dialog = HawtioCore.injector.get("$dialog");
+    var $dialog = HawtioCore.injector.get<any>("$dialog");
     return $dialog.dialog({
       resolve: {
         options: () => { return options; }

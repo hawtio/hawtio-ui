@@ -11,8 +11,8 @@ module UI {
         selected: '=?'
       },
       link: (scope, $element, attr) => {
-        var tagBase = $templateCache.get('tagBase.html');
-        var tagRemove = $templateCache.get('tagRemove.html');
+        var tagBase = $templateCache.get<string>('tagBase.html');
+        var tagRemove = $templateCache.get<string>('tagRemove.html');
         scope.addSelected = (tag) => {
           if (scope.selected) {
             scope.selected.push(tag);
