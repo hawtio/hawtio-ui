@@ -47,13 +47,13 @@ var DataTable;
                         if (!('sortInfo' in config) && 'columnDefs' in config) {
                             // an optional defaultSort can be used to indicate a column
                             // should not automatic be the default sort
-                            var ds = config.columnDefs.first()['defaultSort'];
+                            var ds = _.first(config.columnDefs)['defaultSort'];
                             var sortField;
                             if (angular.isUndefined(ds) || ds === true) {
-                                sortField = config.columnDefs.first()['field'];
+                                sortField = _.first(config.columnDefs)['field'];
                             }
                             else {
-                                sortField = config.columnDefs.slice(1).first()['field'];
+                                sortField = _.first(config.columnDefs.slice(1))['field'];
                             }
                             config['sortInfo'] = {
                                 sortBy: sortField,
@@ -61,7 +61,7 @@ var DataTable;
                             };
                         }
                         // any custom sort function on the field?
-                        var customSort = config.columnDefs.find(function (e) {
+                        var customSort = _.find(config.columnDefs, function (e) {
                             if (e['field'] === config['sortInfo'].sortBy) {
                                 return e;
                             }
@@ -73,7 +73,7 @@ var DataTable;
                         var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
                         // enrich the rows with information about their index
                         var idx = -1;
-                        var rows = (value || []).sortBy(customSort || sortInfo.sortBy, !sortInfo.ascending).map(function (entity) {
+                        var rows = _.map(_.sortBy(value || [], customSort || sortInfo.sortBy, !sortInfo.ascending), function (entity) {
                             idx++;
                             return {
                                 entity: entity,
@@ -88,7 +88,7 @@ var DataTable;
                         var reSelectedItems = [];
                         rows.forEach(function (row, idx) {
                             var rpk = primaryKeyFn(row.entity, row.index);
-                            var selected = config.selectedItems.some(function (s) {
+                            var selected = _.some(config.selectedItems, function (s) {
                                 var spk = primaryKeyFn(s, s.index);
                                 return angular.equals(rpk, spk);
                             });
@@ -217,7 +217,7 @@ var DataTable;
                         return match;
                     };
                     $scope.isSelected = function (row) {
-                        return config.selectedItems.some(row.entity);
+                        return _.some(config.selectedItems, row.entity);
                     };
                     $scope.onRowSelected = function (row) {
                         var idx = config.selectedItems.indexOf(row.entity);

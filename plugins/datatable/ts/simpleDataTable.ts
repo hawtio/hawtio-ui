@@ -38,12 +38,12 @@ module DataTable {
           if (!('sortInfo' in config) && 'columnDefs' in config) {
             // an optional defaultSort can be used to indicate a column
             // should not automatic be the default sort
-            var ds = config.columnDefs.first()['defaultSort'];
+            var ds = _.first(config.columnDefs)['defaultSort'];
             var sortField;
             if (angular.isUndefined(ds) || ds === true) {
-              sortField = config.columnDefs.first()['field'];
+              sortField = _.first(config.columnDefs)['field'];
             } else {
-              sortField = config.columnDefs.slice(1).first()['field']
+              sortField = _.first(config.columnDefs.slice(1))['field']
             }
             config['sortInfo'] = {
               sortBy: sortField,
@@ -52,7 +52,7 @@ module DataTable {
           }
 
           // any custom sort function on the field?
-          var customSort:any = config.columnDefs.find(e => {
+          var customSort:any = _.find(config.columnDefs, (e) => {
             if (e['field'] === config['sortInfo'].sortBy) {
               return e;
             }
@@ -65,7 +65,7 @@ module DataTable {
           var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
           // enrich the rows with information about their index
           var idx = -1;
-          var rows = (value || []).sortBy(customSort || sortInfo.sortBy, !sortInfo.ascending).map(entity => {
+          var rows = _.map(_.sortBy(value || [], customSort || sortInfo.sortBy, !sortInfo.ascending), (entity) => {
             idx++;
             return {
               entity: entity,
@@ -79,9 +79,9 @@ module DataTable {
           // okay the data was changed/updated so we need to re-select previously selected items
           // and for that we need to evaluate the primary key function so we can match new data with old data.
           var reSelectedItems = [];
-          rows.forEach((row, idx) => {
+          rows.forEach((row:any, idx:number) => {
             var rpk = primaryKeyFn(row.entity, row.index);
-            var selected = config.selectedItems.some(s => {
+            var selected = _.some(config.selectedItems, (s:any) => {
               var spk = primaryKeyFn(s, s.index);
               return angular.equals(rpk, spk);
             });
@@ -223,7 +223,7 @@ module DataTable {
         };
 
         $scope.isSelected = (row) => {
-          return config.selectedItems.some(row.entity);
+          return _.some(config.selectedItems, row.entity);
         };
 
         $scope.onRowSelected = (row) => {
