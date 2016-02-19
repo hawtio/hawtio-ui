@@ -16,7 +16,7 @@ module UI {
       var height = "100%";
       if ('hawtioMessagePanel' in $attrs) {
         var wantedHeight = $attrs['hawtioMessagePanel'];
-        if (wantedHeight && !wantedHeight.isBlank()) {
+        if (!Core.isBlank(wantedHeight)) {
           height = wantedHeight;
         }
       }
@@ -24,7 +24,7 @@ module UI {
       var speed = "1s";
       if ('speed' in $attrs) {
         var wantedSpeed = $attrs['speed'];
-        if (speed && !speed.isBlank()) {
+        if (!Core.isBlank(wantedSpeed)) {
           speed = wantedSpeed;
         }
       }
@@ -86,8 +86,8 @@ module UI {
       var direction = "right";
       if ('hawtioInfoPanel' in $attrs) {
         var wantedDirection = $attrs['hawtioInfoPanel'];
-        if (wantedDirection && !wantedDirection.isBlank()) {
-          if (_.keys(validDirections).any(wantedDirection)) {
+        if (!Core.isBlank(wantedDirection)) {
+          if (_.some(_.keys(validDirections), wantedDirection)) {
             direction = wantedDirection;
           }
         }
@@ -96,7 +96,7 @@ module UI {
       var speed = "1s";
       if ('speed' in $attrs) {
         var wantedSpeed = $attrs['speed'];
-        if (speed && !speed.isBlank()) {
+        if (!Core.isBlank(wantedSpeed)) {
           speed = wantedSpeed;
         }
       }
@@ -104,7 +104,7 @@ module UI {
       var toggle="open";
       if ('toggle' in $attrs) {
         var wantedToggle = $attrs['toggle'];
-        if (toggle && !toggle.isBlank()) {
+        if (!Core.isBlank(wantedSpeed)) {
           toggle = wantedToggle;
         }
       }

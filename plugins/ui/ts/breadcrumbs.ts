@@ -25,8 +25,8 @@ module UI {
           if (config.level && angular.isNumber(config.level)) {
             $scope.levels[config.level] = config;
 
-            var keys = _.keys($scope.levels).sortBy("");
-            var toRemove = keys.from(config.level + 1);
+            var keys = _.sortBy(_.keys($scope.levels), "");
+            var toRemove = keys.slice(config.level + 1);
 
             toRemove.forEach((i) => {
               if (i in $scope.levels) {
@@ -51,7 +51,7 @@ module UI {
               delete config.action;
             } else {
               //ooh we picked a thing!
-              var keys = _.keys($scope.levels).keys().sortBy("");
+              var keys = _.sortBy(_.keys($scope.levels), "");
               var path = [];
               keys.forEach((key) => {
                 path.push($scope.levels[key]['title']);

@@ -140,22 +140,23 @@ module UI {
               if (!answer) {
                 answer = [];
               }
-              answer = _.keys(item).filter((key) => {
-                return !angular.isFunction(item[key]);
-              }).filter((key) => {
+              var keys = _.keys(item);
+              var notFunctions = _.filter(keys, (key) => !angular.isFunction(item[key]));
+              var notHidden = _.filter(notFunctions, (key) => {
                 var conf = getEntityConfig(path + '/' + key, config);
                 if (conf && conf.hidden) {
                   return false;
                 }
                 return true;
-              }).union(answer);
+              });
+              return _.union(answer, notHidden);
             } else {
               answer = <Array<string>> undefined;
               hasPrimitive = true;
             }
           });
           if (answer) {
-            answer = <Array<string>> answer.exclude((item) => { return ("" + item).startsWith('$'); });
+            answer = <Array<string>> _.reject(answer, (item) => _.startsWith("" + item, '$'));
           }
           //log.debug("Column headers: ", answer);
           return answer;
