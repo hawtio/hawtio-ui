@@ -24,7 +24,7 @@ module UI {
             });
           } else {
             return interpolateFunc({
-              key: key.titleize(),
+              key: _.startCase(key),
               data: value,
               path: path
             });
