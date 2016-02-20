@@ -92,9 +92,7 @@ var ArrayHelpers;
     function removeElements(collection, newCollection, index) {
         if (index === void 0) { index = 'id'; }
         var oldLength = collection.length;
-        collection.remove(function (item) {
-            return !newCollection.any(function (c) { return c[index] === item[index]; });
-        });
+        _.remove(collection, function (item) { return !_.some(newCollection, function (c) { return c[index] === item[index]; }); });
         return collection.length !== oldLength;
     }
     ArrayHelpers.removeElements = removeElements;
@@ -107,7 +105,7 @@ var ArrayHelpers;
         var answer = removeElements(collection, newCollection, index);
         if (newCollection) {
             newCollection.forEach(function (item) {
-                var oldItem = collection.find(function (c) { return c[index] === item[index]; });
+                var oldItem = _.find(collection, function (c) { return c[index] === item[index]; });
                 if (!oldItem) {
                     answer = true;
                     collection.push(item);
