@@ -24,10 +24,8 @@ module UI {
         $scope.$watch('rows', (newValue, oldValue) => {
           if (newValue !== oldValue) {
             $scope.config.selectedItems.length = 0;
-            var selected = $scope.rows.findAll((row) => {
-              return row.selected;
-            });
-            selected.forEach((row) => {
+            var selected = _.filter($scope.rows, (row:any) => row.selected);
+            selected.forEach((row:any) => {
               $scope.config.selectedItems.push(row.entity);
             });
           }
@@ -40,7 +38,7 @@ module UI {
         var fieldName = 'name';
         var displayName = 'Name';
         if (columnDefs && columnDefs.length > 0) {
-          var def = columnDefs.first();
+          var def = _.first(columnDefs);
           fieldName = def['field'] || fieldName;
           displayName = def['displayName'] || displayName;
           if (def['cellTemplate']) {
