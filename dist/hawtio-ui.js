@@ -2618,9 +2618,7 @@ var UI;
                 $scope.$watch('rows', function (newValue, oldValue) {
                     if (newValue !== oldValue) {
                         $scope.config.selectedItems.length = 0;
-                        var selected = $scope.rows.findAll(function (row) {
-                            return row.selected;
-                        });
+                        var selected = _.filter($scope.rows, function (row) { return row.selected; });
                         selected.forEach(function (row) {
                             $scope.config.selectedItems.push(row.entity);
                         });
@@ -2632,7 +2630,7 @@ var UI;
                 var fieldName = 'name';
                 var displayName = 'Name';
                 if (columnDefs && columnDefs.length > 0) {
-                    var def = columnDefs.first();
+                    var def = _.first(columnDefs);
                     fieldName = def['field'] || fieldName;
                     displayName = def['displayName'] || displayName;
                     if (def['cellTemplate']) {
