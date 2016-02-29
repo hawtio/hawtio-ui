@@ -484,10 +484,16 @@ var HawtioEditor;
                     UI.observe($scope, $attrs, 'name', 'editor');
                     $scope.applyOptions = function () {
                         if ($scope.codeMirror) {
-                            $scope.options.each(function (option) {
-                                $scope.codeMirror.setOption(option.key, option['value']);
+                            _.forEach($scope.options, function (option) {
+                                try {
+                                    if (option.key === 'readOnly' && option.value === 'true') {
+                                        option.value = 'nocursor';
+                                    }
+                                    $scope.codeMirror.setOption(option.key, option.value);
+                                }
+                                catch (err) {
+                                }
                             });
-                            $scope.options = [];
                         }
                     };
                     $scope.$watch(_.debounce(function () {
@@ -529,6 +535,7 @@ var HawtioEditor;
                     });
                 }
                 var config = _.cloneDeep($attrs);
+                delete config['$$observers'];
                 delete config['$$element'];
                 delete config['$attr'];
                 delete config['class'];
@@ -582,10 +589,10 @@ var HawtioEditor;
                   }
                 });
                 */
-                $scope.$watch('text', function () {
+                $scope.$watch('text', function (text) {
                     if (!$scope.codeMirror) {
                         var options = {
-                            value: $scope.text
+                            value: text
                         };
                         options = CodeEditor.createEditorSettings(options);
                         $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
