@@ -474,6 +474,7 @@ var HawtioEditor;
             scope: {
                 text: '=hawtioEditor',
                 mode: '=',
+                readOnly: '=?',
                 outputEditor: '@',
                 name: '@'
             },
@@ -486,9 +487,6 @@ var HawtioEditor;
                         if ($scope.codeMirror) {
                             _.forEach($scope.options, function (option) {
                                 try {
-                                    if (option.key === 'readOnly' && option.value === 'true') {
-                                        option.value = 'nocursor';
-                                    }
                                     $scope.codeMirror.setOption(option.key, option.value);
                                 }
                                 catch (err) {
@@ -512,17 +510,6 @@ var HawtioEditor;
                         }
                     });
                     $scope.$watch('text', function (oldValue, newValue) {
-                        if ($scope.codeMirror && $scope.doc) {
-                            if (!$scope.codeMirror.hasFocus()) {
-                                var text = $scope.text || "";
-                                if (angular.isArray(text) || angular.isObject(text)) {
-                                    text = JSON.stringify(text, null, "  ");
-                                    $scope.mode = "javascript";
-                                    $scope.codeMirror.setOption("mode", "javascript");
-                                }
-                                $scope.doc.setValue(text);
-                            }
-                        }
                     });
                 }],
             link: function ($scope, $element, $attrs) {
@@ -574,13 +561,30 @@ var HawtioEditor;
                         }
                     }
                 });
-                $scope.$watch('dirty', function (newValue, oldValue) {
-                    if ($scope.dirty && !$scope.doc.isClean()) {
-                        $scope.doc.markClean();
+                $scope.$watch('readOnly', function (readOnly) {
+                    var val = false;
+                    if (angular.isDefined(readOnly)) {
+                        val = readOnly ? 'nocursor' : false;
                     }
-                    if (newValue !== oldValue && 'dirtyTarget' in $scope) {
-                        $scope.$parent[$scope.dirtyTarget] = $scope.dirty;
+                    if ($scope.codeMirror) {
+                        $scope.codeMirror.setOption('readOnly', val);
                     }
+                    else {
+                        $scope.options.push({
+                            key: 'readOnly',
+                            value: val
+                        });
+                    }
+                });
+                function getEventName(type) {
+                    var name = $scope.name || 'default';
+                    return "hawtioEditor_" + name + "_" + type;
+                }
+                $scope.$watch('dirty', function (dirty) {
+                    if ('dirtyTarget' in $scope) {
+                        $scope.$parent[$scope.dirtyTarget] = dirty;
+                    }
+                    $scope.$emit(getEventName('dirty'), dirty);
                 });
                 /*
                 $scope.$watch(() => { return $element.is(':visible'); }, (newValue, oldValue) => {
@@ -590,6 +594,9 @@ var HawtioEditor;
                 });
                 */
                 $scope.$watch('text', function (text) {
+                    if (!text) {
+                        return;
+                    }
                     if (!$scope.codeMirror) {
                         var options = {
                             value: text
@@ -602,6 +609,20 @@ var HawtioEditor;
                             Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
                         }
                         $scope.applyOptions();
+                        $scope.$emit(getEventName('instance'), $scope.codeMirror);
+                    }
+                    else if ($scope.doc) {
+                        if (!$scope.codeMirror.hasFocus()) {
+                            var text = $scope.text || "";
+                            if (angular.isArray(text) || angular.isObject(text)) {
+                                text = JSON.stringify(text, null, "  ");
+                                $scope.mode = "javascript";
+                                $scope.codeMirror.setOption("mode", "javascript");
+                            }
+                            $scope.doc.setValue(text);
+                            $scope.doc.markClean();
+                            $scope.dirty = false;
+                        }
                     }
                 });
             }

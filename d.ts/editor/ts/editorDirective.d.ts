@@ -11,6 +11,7 @@ declare module HawtioEditor {
         scope: {
             text: string;
             mode: string;
+            readOnly: string;
             outputEditor: string;
             name: string;
         };
