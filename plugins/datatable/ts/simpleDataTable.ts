@@ -62,10 +62,15 @@ module DataTable {
             customSort = customSort['customSortField']
           }
 
+          // sort data
           var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
+          var sortedData = _.sortBy(value || [], customSort || ((item) => item[sortInfo.sortBy].toLowerCase()));
+          if (!sortInfo.ascending) {
+            sortedData.reverse();
+          }
           // enrich the rows with information about their index
           var idx = -1;
-          var rows = _.map(_.sortBy(value || [], customSort || sortInfo.sortBy, !sortInfo.ascending), (entity) => {
+          var rows = _.map(sortedData, (entity) => {
             idx++;
             return {
               entity: entity,
