@@ -30,10 +30,16 @@ module HawtioEditor {
 
         $scope.applyOptions = () => {
           if ($scope.codeMirror) {
-            $scope.options.each(function(option) {
-              $scope.codeMirror.setOption(option.key, option['value']);
+            _.forEach($scope.options, (option:any) => {
+              try {
+                if (option.key === 'readOnly' && option.value === 'true') {
+                  option.value = 'nocursor';
+                }
+                $scope.codeMirror.setOption(option.key, option.value);
+              } catch (err) {
+                // ignore
+              }
             });
-            $scope.options = [];
           }
         };
 
@@ -80,6 +86,7 @@ module HawtioEditor {
           });
         }
         var config = _.cloneDeep($attrs);
+        delete config['$$observers'];
         delete config['$$element']
         delete config['$attr'];
         delete config['class'];
@@ -99,7 +106,7 @@ module HawtioEditor {
             }
           });
         }
-        angular.forEach(config, function(value, key) {
+        angular.forEach(config, (value, key) => {
           $scope.options.push({
             key: key,
             'value': value
@@ -132,13 +139,11 @@ module HawtioEditor {
           }
         });
         */
-        $scope.$watch('text', function() {
+        $scope.$watch('text', (text) => {
           if (!$scope.codeMirror) {
-
             var options:any = {
-              value: $scope.text
+              value: text 
             };
-
             options = CodeEditor.createEditorSettings(options);
             $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
             var outputEditor = $scope.outputEditor;

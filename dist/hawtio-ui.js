@@ -484,10 +484,16 @@ var HawtioEditor;
                     UI.observe($scope, $attrs, 'name', 'editor');
                     $scope.applyOptions = function () {
                         if ($scope.codeMirror) {
-                            $scope.options.each(function (option) {
-                                $scope.codeMirror.setOption(option.key, option['value']);
+                            _.forEach($scope.options, function (option) {
+                                try {
+                                    if (option.key === 'readOnly' && option.value === 'true') {
+                                        option.value = 'nocursor';
+                                    }
+                                    $scope.codeMirror.setOption(option.key, option.value);
+                                }
+                                catch (err) {
+                                }
                             });
-                            $scope.options = [];
                         }
                     };
                     $scope.$watch(_.debounce(function () {
@@ -529,6 +535,7 @@ var HawtioEditor;
                     });
                 }
                 var config = _.cloneDeep($attrs);
+                delete config['$$observers'];
                 delete config['$$element'];
                 delete config['$attr'];
                 delete config['class'];
@@ -582,10 +589,10 @@ var HawtioEditor;
                   }
                 });
                 */
-                $scope.$watch('text', function () {
+                $scope.$watch('text', function (text) {
                     if (!$scope.codeMirror) {
                         var options = {
-                            value: $scope.text
+                            value: text
                         };
                         options = CodeEditor.createEditorSettings(options);
                         $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
@@ -848,7 +855,7 @@ var ForceGraph;
             };
         }
         return ForceGraphDirective;
-    })();
+    }());
     ForceGraph.ForceGraphDirective = ForceGraphDirective;
 })(ForceGraph || (ForceGraph = {}));
 
@@ -962,7 +969,7 @@ var ForceGraph;
             };
         };
         return GraphBuilder;
-    })();
+    }());
     ForceGraph.GraphBuilder = GraphBuilder;
 })(ForceGraph || (ForceGraph = {}));
 
@@ -1159,7 +1166,7 @@ var UI;
             };
         }
         return AutoColumns;
-    })();
+    }());
     UI.AutoColumns = AutoColumns;
 })(UI || (UI = {}));
 
@@ -1479,7 +1486,7 @@ var UI;
                 }];
         }
         return ColorPicker;
-    })();
+    }());
     UI.ColorPicker = ColorPicker;
 })(UI || (UI = {}));
 
@@ -1574,7 +1581,7 @@ var UI;
                 }];
         }
         return ConfirmDialog;
-    })();
+    }());
     UI.ConfirmDialog = ConfirmDialog;
 })(UI || (UI = {}));
 
@@ -1638,7 +1645,7 @@ var UI;
             $("div.modal-backdrop").remove();
         };
         return Dialog;
-    })();
+    }());
     UI.Dialog = Dialog;
     function multiItemConfirmActionDialog(options) {
         var $dialog = HawtioCore.injector.get("$dialog");
@@ -1931,7 +1938,7 @@ var UI;
             };
         }
         return EditableProperty;
-    })();
+    }());
     UI.EditableProperty = EditableProperty;
 })(UI || (UI = {}));
 
@@ -2051,7 +2058,7 @@ var UI;
             });
         };
         return Expandable;
-    })();
+    }());
     UI.Expandable = Expandable;
     function isOpen(expandable) {
         return expandable.hasClass('opened') || !expandable.hasClass("closed");
@@ -2218,7 +2225,7 @@ var UI;
             };
         }
         return GridsterDirective;
-    })();
+    }());
     UI.GridsterDirective = GridsterDirective;
 })(UI || (UI = {}));
 
@@ -3119,7 +3126,7 @@ var UI;
             };
         }
         return MessagePanel;
-    })();
+    }());
     UI.MessagePanel = MessagePanel;
     UI._module.directive('hawtioInfoPanel', function () {
         return new UI.InfoPanel();
@@ -3195,7 +3202,7 @@ var UI;
             };
         }
         return InfoPanel;
-    })();
+    }());
     UI.InfoPanel = InfoPanel;
 })(UI || (UI = {}));
 
@@ -3230,7 +3237,7 @@ var UI;
             };
         }
         return DivRow;
-    })();
+    }());
     UI.DivRow = DivRow;
 })(UI || (UI = {}));
 
@@ -3295,7 +3302,7 @@ var UI;
             };
         }
         return SlideOut;
-    })();
+    }());
     UI.SlideOut = SlideOut;
 })(UI || (UI = {}));
 
@@ -3378,7 +3385,7 @@ var UI;
             }
         };
         return TablePager;
-    })();
+    }());
     UI.TablePager = TablePager;
 })(UI || (UI = {}));
 
@@ -3927,7 +3934,7 @@ var UI;
             };
         }
         return ViewportHeight;
-    })();
+    }());
     UI.ViewportHeight = ViewportHeight;
     UI._module.directive('hawtioHorizontalViewport', function () {
         return new UI.HorizontalViewport();
@@ -3947,7 +3954,7 @@ var UI;
             };
         }
         return HorizontalViewport;
-    })();
+    }());
     UI.HorizontalViewport = HorizontalViewport;
 })(UI || (UI = {}));
 
