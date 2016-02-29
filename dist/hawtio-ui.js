@@ -2817,7 +2817,7 @@ var UI;
                                 }
                             }
                             else if (StringHelpers.isDate(value)) {
-                                el.append(renderDateAttribute(path + '/' + key, key, Date.create(value), config));
+                                el.append(renderDateAttribute(path + '/' + key, key, new Date(value), config));
                             }
                             else {
                                 el.append(renderPrimitiveAttribute(path + '/' + key, key, value, config));

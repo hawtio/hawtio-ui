@@ -117,7 +117,7 @@ module UI {
                 el.append(renderObjectAttribute(path + '/' + key, key, value, config));
               }
             } else if (StringHelpers.isDate(value)) {
-              el.append(renderDateAttribute(path + '/' + key, key, (<any> Date).create(value), config));
+              el.append(renderDateAttribute(path + '/' + key, key, new Date(value), config));
             } else {
               el.append(renderPrimitiveAttribute(path + '/' + key, key, value, config));
             }
