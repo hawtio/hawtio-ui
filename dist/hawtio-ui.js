@@ -1420,11 +1420,11 @@ var UI;
                 restrict: 'AC',
                 link: function (scope, element, attr) {
                     $timeout(function () {
-                        var parent = $('#main');
+                        var parent = $('body');
                         //console.log("Parent: ", parent);
-                        parent.addClass('cards-pf container-cards-pf');
+                        parent.addClass('cards-pf');
                         element.on('$destroy', function () {
-                            parent.removeClass('cards-pf container-cards-pf');
+                            parent.removeClass('cards-pf');
                         });
                     }, 10);
                 }
