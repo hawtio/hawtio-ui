@@ -70,10 +70,15 @@ var DataTable;
                         if (angular.isDefined(customSort)) {
                             customSort = customSort['customSortField'];
                         }
+                        // sort data
                         var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
+                        var sortedData = _.sortBy(value || [], customSort || (function (item) { return item[sortInfo.sortBy].toLowerCase(); }));
+                        if (!sortInfo.ascending) {
+                            sortedData.reverse();
+                        }
                         // enrich the rows with information about their index
                         var idx = -1;
-                        var rows = _.map(_.sortBy(value || [], customSort || sortInfo.sortBy, !sortInfo.ascending), function (entity) {
+                        var rows = _.map(sortedData, function (entity) {
                             idx++;
                             return {
                                 entity: entity,
@@ -1415,11 +1420,11 @@ var UI;
                 restrict: 'AC',
                 link: function (scope, element, attr) {
                     $timeout(function () {
-                        var parent = $('#main');
+                        var parent = $('body');
                         //console.log("Parent: ", parent);
-                        parent.addClass('cards-pf container-cards-pf');
+                        parent.addClass('cards-pf');
                         element.on('$destroy', function () {
-                            parent.removeClass('cards-pf container-cards-pf');
+                            parent.removeClass('cards-pf');
                         });
                     }, 10);
                 }

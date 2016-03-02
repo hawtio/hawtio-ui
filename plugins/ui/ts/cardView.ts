@@ -8,11 +8,11 @@ module UI {
       restrict: 'AC',
       link: (scope, element, attr) => {
         $timeout(() => {
-          var parent = $('#main');
+          var parent = $('body');
           //console.log("Parent: ", parent);
-          parent.addClass('cards-pf container-cards-pf');
+          parent.addClass('cards-pf');
           element.on('$destroy', () => {
-            parent.removeClass('cards-pf container-cards-pf');
+            parent.removeClass('cards-pf');
           });
         }, 10);
       }
