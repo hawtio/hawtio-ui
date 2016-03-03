@@ -57,7 +57,7 @@ var DataTable;
                             }
                             config['sortInfo'] = {
                                 sortBy: sortField,
-                                ascending: true
+                                ascending: isFieldSortedAscendingByDefault(sortField, config)
                             };
                         }
                         // any custom sort function on the field?
@@ -185,7 +185,7 @@ var DataTable;
                         }
                         else {
                             $scope.config.sortInfo.sortBy = field;
-                            $scope.config.sortInfo.ascending = true;
+                            $scope.config.sortInfo.ascending = isFieldSortedAscendingByDefault(field, $scope.config);
                         }
                         scope.$broadcast("hawtio.datatable." + dataName);
                     };
@@ -303,6 +303,24 @@ var DataTable;
             }
         });
         return answer;
+    }
+    /**
+     * Returns true if the field's default sorting is ascending
+     *
+     * @param field the name of the field
+     * @param config the config object, which contains the columnDefs values
+     * @return true if the field's default sorting is ascending, false otherwise
+     */
+    function isFieldSortedAscendingByDefault(field, config) {
+        if (config.columnDefs) {
+            for (var _i = 0, _a = config.columnDefs; _i < _a.length; _i++) {
+                var columnDef = _a[_i];
+                if (columnDef.field === field && columnDef.ascending !== undefined) {
+                    return columnDef.ascending;
+                }
+            }
+        }
+        return true;
     }
 })(DataTable || (DataTable = {}));
 
