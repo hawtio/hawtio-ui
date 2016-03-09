@@ -64,7 +64,7 @@ module DataTable {
 
           // sort data
           var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
-          var sortedData = _.sortBy(value || [], customSort || ((item) => item[sortInfo.sortBy].toLowerCase()));
+          var sortedData = _.sortBy(value || [], customSort || ((item) => ((item[sortInfo.sortBy] || '') + '').toLowerCase()));
           if (!sortInfo.ascending) {
             sortedData.reverse();
           }
