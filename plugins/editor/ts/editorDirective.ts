@@ -58,9 +58,6 @@ module HawtioEditor {
           }
         });
 
-        $scope.$watch('text', function(oldValue, newValue) {
-        });
-
       }],
 
       link: ($scope, $element, $attrs) => {
@@ -112,10 +109,7 @@ module HawtioEditor {
           }
         });
         $scope.$watch('readOnly', (readOnly) => {
-          var val:any = false;
-          if (angular.isDefined(readOnly)) {
-            val = readOnly ? 'nocursor' : false;
-          }
+          var val:any = Core.parseBooleanValue(readOnly, false);
           if ($scope.codeMirror) {
             $scope.codeMirror.setOption('readOnly', val);
           } else {

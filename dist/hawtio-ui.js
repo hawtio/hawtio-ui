@@ -532,8 +532,6 @@ var HawtioEditor;
                             });
                         }
                     });
-                    $scope.$watch('text', function (oldValue, newValue) {
-                    });
                 }],
             link: function ($scope, $element, $attrs) {
                 if ('dirty' in $attrs) {
@@ -585,10 +583,7 @@ var HawtioEditor;
                     }
                 });
                 $scope.$watch('readOnly', function (readOnly) {
-                    var val = false;
-                    if (angular.isDefined(readOnly)) {
-                        val = readOnly ? 'nocursor' : false;
-                    }
+                    var val = Core.parseBooleanValue(readOnly, false);
                     if ($scope.codeMirror) {
                         $scope.codeMirror.setOption('readOnly', val);
                     }
