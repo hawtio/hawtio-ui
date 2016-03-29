@@ -360,8 +360,8 @@ var CodeEditor;
         var answer = "text";
         if (value) {
             answer = "javascript";
-            var trimmed = value.toString().trimLeft().trimRight();
-            if (trimmed && trimmed.first() === '<' && trimmed.last() === '>') {
+            var trimmed = _.trim(value);
+            if (trimmed && _.startsWith(trimmed, '<') && _.endsWith(trimmed, '>')) {
                 answer = "xml";
             }
         }
