@@ -3,15 +3,12 @@ module UI {
 
   export function groupBy() {
     return (list, group) => {
-
-      if (list.length === 0) {
+      if (!list || list.length === 0) {
         return list;
       }
-
       if (Core.isBlank(group)) {
         return list;
       }
-
       var newGroup = 'newGroup';
       var endGroup = 'endGroup';
       var currentGroup:any = undefined;

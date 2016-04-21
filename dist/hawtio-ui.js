@@ -2273,7 +2273,7 @@ var UI;
 (function (UI) {
     function groupBy() {
         return function (list, group) {
-            if (list.length === 0) {
+            if (!list || list.length === 0) {
                 return list;
             }
             if (Core.isBlank(group)) {
