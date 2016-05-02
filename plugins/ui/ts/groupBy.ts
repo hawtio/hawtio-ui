@@ -39,7 +39,7 @@ module UI {
             } else {
               createGroup = false;
               targetGroup.forEach((item) => {
-                if (!createGroup && !currentGroup.any((i) => { return i === item; })) {
+                if (!createGroup && !_.some(currentGroup, (i) => { return i === item; })) {
                   createGroup = true;
                 }
               });

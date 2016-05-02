@@ -24,7 +24,7 @@ module UI {
 
         var myHeight = container.height() - start;
         if (angular.isDefined($attrs['heightAdjust'])) {
-          var heightAdjust = $attrs['heightAdjust'].toNumber();
+          var heightAdjust = Core.parseIntValue($attrs['heightAdjust']);
         }
         myHeight = myHeight + heightAdjust;
 

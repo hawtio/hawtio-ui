@@ -67,7 +67,7 @@ module UI {
                 count: $scope.filteredCollection.map((c) => {
                     return c[$scope.collectionProperty]; 
                   }).reduce((count, c) => {
-                    if (c.any(t)) {
+                    if (_.some(c, t)) {
                       return count + 1;
                     }
                     return count;
@@ -85,7 +85,7 @@ module UI {
           });
           $scope.visibleTags = [];
           $scope.filteredCollection.forEach((c) => {
-            $scope.visibleTags = $scope.visibleTags.union(c[$scope.collectionProperty]);
+            $scope.visibleTags = _.union($scope.visibleTags, c[$scope.collectionProperty]);
           });
         }
         $scope.$watchCollection('collection', (collection) => {

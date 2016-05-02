@@ -25,24 +25,6 @@ module UI {
       var extraRows = 10;
       var extraCols = 6;
 
-      /*
-      if (angular.isDefined($attrs['dimensions'])) {
-        var dimension = $attrs['dimensions'].toNumber();
-        widgetBaseDimensions = [dimension, dimension];
-      }
-
-
-      if (angular.isDefined($attrs['margins'])) {
-        var margins = $attrs['margins'].toNumber();
-        widgetMargins = [margins, margins];
-      }
-
-      if (angular.isDefined($attrs['gridSize'])) {
-        var size = $attrs['gridSize'].toNumber();
-        gridSize = [size, size];
-      }
-      */
-
       if (angular.isDefined($attrs['extraRows'])) {
         extraRows = $attrs['extraRows'].toNumber();
       }

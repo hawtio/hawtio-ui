@@ -18,7 +18,7 @@ module UI {
     public link = ($scope, $element, $attr) => {
 
       var selector = getIfSet('hawtioAutoColumns', $attr, 'div');
-      var minMargin = getIfSet('minMargin', $attr, '3').toNumber();
+      var minMargin = Core.parseIntValue(getIfSet('minMargin', $attr, '3'));
 
       var go = Core.throttled(function() {
 
