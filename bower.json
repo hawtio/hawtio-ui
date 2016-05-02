@@ -5,7 +5,6 @@
     "hawtio"
   ],
   "main": [
-    "dist/font-awesome.css",
     "dist/OpenSans.css",
     "dist/DroidSansMono.css",
     "dist/hawtio-ui.css",
