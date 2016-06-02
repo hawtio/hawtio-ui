@@ -67,7 +67,7 @@ module UI {
                 count: $scope.filteredCollection.map((c) => {
                     return c[$scope.collectionProperty]; 
                   }).reduce((count, c) => {
-                    if (_.some(c, t)) {
+                    if (_.includes(c, t)) {
                       return count + 1;
                     }
                     return count;
