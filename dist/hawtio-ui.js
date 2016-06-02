@@ -3477,7 +3477,7 @@ var UI;
                                     count: $scope.filteredCollection.map(function (c) {
                                         return c[$scope.collectionProperty];
                                     }).reduce(function (count, c) {
-                                        if (_.some(c, t)) {
+                                        if (_.includes(c, t)) {
                                             return count + 1;
                                         }
                                         return count;
