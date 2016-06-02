@@ -972,7 +972,7 @@ var Core;
             this.tasksExecuted = false;
         };
         return TasksImpl;
-    })();
+    }());
     Core.TasksImpl = TasksImpl;
     var ParameterizedTasksImpl = (function (_super) {
         __extends(ParameterizedTasksImpl, _super);
@@ -1016,7 +1016,7 @@ var Core;
             }
         };
         return ParameterizedTasksImpl;
-    })(TasksImpl);
+    }(TasksImpl));
     Core.ParameterizedTasksImpl = ParameterizedTasksImpl;
     Core.postLoginTasks = new Core.TasksImpl();
     Core.preLogoutTasks = new Core.TasksImpl();
@@ -3057,7 +3057,7 @@ var SelectionHelpers;
         if (!group) {
             return nope(no);
         }
-        var searchMethod = search || item;
+        var searchMethod = search || _.matches(item);
         return maybe(_.some(group, searchMethod), yes, no);
     }
     SelectionHelpers.isInGroup = isInGroup;
@@ -3097,7 +3097,7 @@ var SelectionHelpers;
             });
         }
         clearGroup(group);
-        group.add(newGroup);
+        group.push.apply(group, newGroup);
     }
     SelectionHelpers.syncGroupSelection = syncGroupSelection;
     function decorate($scope) {
