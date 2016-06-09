@@ -3252,7 +3252,7 @@ var SelectionHelpers;
     }
     SelectionHelpers.clearGroup = clearGroup;
     function toggleSelectionFromGroup(group, item, search) {
-        var searchMethod = search || item;
+        var searchMethod = search || _.matches(item);
         if (_.some(group, searchMethod)) {
             _.remove(group, searchMethod);
         }
