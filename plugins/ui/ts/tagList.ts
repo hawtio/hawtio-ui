@@ -11,6 +11,8 @@ module UI {
         selected: '=?'
       },
       link: (scope, $element, attr) => {
+        SelectionHelpers.decorate(scope);
+
         var tagBase = $templateCache.get<string>('tagBase.html');
         var tagRemove = $templateCache.get<string>('tagRemove.html');
         scope.addSelected = (tag) => {
@@ -18,15 +20,11 @@ module UI {
             scope.selected.push(tag);
           }
         };
-        scope.isSelected = (tag) => {
-          if (!scope.selected) {
-            return 'badge-success'
-          }
-          return _.any(scope.selected, (item) => tag === item) ? 'badge-success' : '';
-        }
-        scope.removeTag = (tag) => {
-          scope.tags.remove(tag);
-        };
+
+        scope.isSelected = (tag) => !scope.selected || _.include(scope.selected, tag);
+
+        scope.removeTag = (tag) => scope.tags.remove(tag);
+
         scope.$watchCollection('tags', (tags) => {
           //log.debug("Collection changed: ", tags);
           var tmp = angular.element("<div></div>");
@@ -37,7 +35,7 @@ module UI {
               el.append($interpolate(tagRemove)({ tag: tag}));
             }
             if (scope.selected) {
-              el.attr('ng-click', 'addSelected(\'' + tag + '\')');
+              el.attr('ng-click', 'toggleSelectionFromGroup(selected, \'' + tag + '\')');
             }
             tmp.append(el);
           });
