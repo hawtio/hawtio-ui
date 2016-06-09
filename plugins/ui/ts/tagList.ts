@@ -20,15 +20,11 @@ module UI {
             scope.selected.push(tag);
           }
         };
-        scope.isSelected = (tag) => {
-          if (!scope.selected) {
-            return 'badge-success'
-          }
-          return _.any(scope.selected, (item) => tag === item) ? 'badge-success' : '';
-        }
-        scope.removeTag = (tag) => {
-          scope.tags.remove(tag);
-        };
+
+        scope.isSelected = (tag) => !scope.selected || _.include(scope.selected, tag);
+
+        scope.removeTag = (tag) => scope.tags.remove(tag);
+
         scope.$watchCollection('tags', (tags) => {
           //log.debug("Collection changed: ", tags);
           var tmp = angular.element("<div></div>");
