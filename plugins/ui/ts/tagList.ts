@@ -11,6 +11,8 @@ module UI {
         selected: '=?'
       },
       link: (scope, $element, attr) => {
+        SelectionHelpers.decorate(scope);
+
         var tagBase = $templateCache.get<string>('tagBase.html');
         var tagRemove = $templateCache.get<string>('tagRemove.html');
         scope.addSelected = (tag) => {
@@ -37,7 +39,7 @@ module UI {
               el.append($interpolate(tagRemove)({ tag: tag}));
             }
             if (scope.selected) {
-              el.attr('ng-click', 'addSelected(\'' + tag + '\')');
+              el.attr('ng-click', 'toggleSelectionFromGroup(selected, \'' + tag + '\')');
             }
             tmp.append(el);
           });
