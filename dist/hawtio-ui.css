@@ -172,12 +172,6 @@ fs-donut svg g text.units {
   background: inherit;
   color: white;
 }
-ul.dynatree-container {
-  background: inherit;
-}
-ul.dynatree-container li {
-  background: inherit;
-}
 .axis line {
   stroke: #000;
 }
@@ -209,15 +203,6 @@ ul.dynatree-container li {
 }
 i.expandable-indicator {
   color: #666;
-}
-span.dynatree-expander {
-  color: #728271;
-}
-span.dynatree-icon {
-  color: #EECA7C;
-}
-span:not(.dynatree-has-children) .dynatree-icon:before {
-  color: gray;
 }
 .table-hover tbody tr:hover td.details {
   background-color: #ffffff;
@@ -1540,9 +1525,6 @@ ol.zebra-list > li:before {
 ._jsPlumb_overlay {
   z-index: 6;
 }
-.dynatree-container {
-  overflow: visible;
-}
 .search-query {
   min-width: 20em;
   padding: 5px;
@@ -2194,6 +2176,30 @@ table.dataTable tbody tr td {
 
 .editor-autoresize .CodeMirror {
   height: auto;
+}
+
+.dynatree-container {
+  background: inherit;
+  overflow: visible;
+}
+.dynatree-container li {
+  background: inherit;
+}
+.dynatree-container a {
+  margin: inherit !important;
+}
+.dynatree-container .dynatree-node > img {
+  vertical-align: middle;
+}
+span.dynatree-expander {
+  color: #728271;
+  vertical-align: top;
+}
+span.dynatree-icon {
+  color: #EECA7C;
+}
+span:not(.dynatree-has-children) .dynatree-icon:before {
+  color: gray;
 }
 
 .badge {
