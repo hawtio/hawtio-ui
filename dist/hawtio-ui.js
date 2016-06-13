@@ -1158,10 +1158,16 @@ var Tree;
                         var treeElement = $(element);
                         var children = Core.asArray(tree);
                         var hideRoot = attrs["hideroot"];
+                        var imagePath = null;
+                        if (attrs['relativeiconpaths']) {
+                            // yay, hack to allow relative path locations
+                            imagePath = [];
+                        }
                         if ("true" === hideRoot) {
                             children = tree['children'];
                         }
                         var config = {
+                            imagePath: imagePath,
                             clickFolderMode: 3,
                             /*
                               * The event handler called when a different node in the tree is selected
