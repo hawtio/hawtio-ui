@@ -113,10 +113,16 @@ module Tree {
           var treeElement = $(element);
           var children = Core.asArray(tree);
           var hideRoot = attrs["hideroot"];
+          var imagePath = null;
+          if (attrs['relativeiconpaths']) {
+            // yay, hack to allow relative path locations
+            imagePath = [];
+          }
           if ("true" === hideRoot) {
             children = tree['children'];
           }
-          var config = {
+          var config = <any> {
+            imagePath: imagePath,
             clickFolderMode: 3, // activate and expand
 
             /*
