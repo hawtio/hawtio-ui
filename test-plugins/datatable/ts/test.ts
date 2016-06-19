@@ -5,7 +5,8 @@ module DatatableTest {
     $scope.myData = [
       {name: "James", twitter: "jstrachan", city: 'LONDON', ip: '172.17.0.11'},
       {name: "Stan", twitter: "gashcrumb", city: 'boston', ip: '172.17.0.9'},
-      {name: "Claus", twitter: "davsclaus", city: 'Malmo', ip: '172.17.0.10'}
+      {name: "Claus", twitter: "davsclaus", city: 'Malmo', ip: '172.17.0.10'},
+      {name: "Alexandre", twitter: "alexkieling", city: 'Florianopolis', ip: '172.17.0.12'}     
     ];
 
     $scope.mygrid = {
@@ -67,5 +68,7 @@ module DatatableTest {
         }
       ]
     }
+
+    $scope.scrollGrid = angular.extend({maxBodyHeight: 77}, $scope.mygrid);
   }]);
 }
