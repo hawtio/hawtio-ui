@@ -105,9 +105,11 @@ var DataTable;
                                 DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
                             }
                         });
-                        config.selectedItems = reSelectedItems;
+                        config.selectedItems.length = 0;
+                        (_a = config.selectedItems).push.apply(_a, reSelectedItems);
                         Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], rows);
                         $scope.rows = rows;
+                        var _a;
                     };
                     scope.$watchCollection(dataName, listener);
                     // lets add a separate event so we can force updates
