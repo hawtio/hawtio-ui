@@ -265,9 +265,9 @@ module DataTable {
           var bodyHtml = buildBodyHtml(config.columnDefs, showCheckBox, enableRowClickSelection);
 
           if (scrollable) {
-            var $head = $compile(headHtml)($scope);
-            var $body = $compile(bodyHtml)($scope);
-            buildScrollableTable(rootElement, $head, $body, $timeout, config.maxBodyHeight);
+            var head = $compile(headHtml)($scope);
+            var body = $compile(bodyHtml)($scope);
+            buildScrollableTable(rootElement, head, body, $timeout, config.maxBodyHeight);
           } else {
             var html = headHtml + bodyHtml;
             var newContent = $compile(html)($scope);
@@ -324,6 +324,7 @@ module DataTable {
    * @param columnDefs column definitions
    * @param showCheckBox add extra column for checkboxes
    * @param multiSelect show "select all" checkbox
+   * @param scrollable table with fixed height and scrollbar
    */
   function buildHeadHtml(columnDefs, showCheckBox, multiSelect, scrollable) {
     var headHtml = "<thead><tr>";
@@ -388,18 +389,20 @@ module DataTable {
    * Transform original table into a scrollable table.
    * 
    * @param $table jQuery object referencing the DOM table element
-   * @param headHtml thead HTML
-   * @param bodyHtml tbody HTML
+   * @param head thead HTML
+   * @param body tbody HTML
+   * @param $timeout Angular's $timeout service
+   * @param maxBodyHeight maximum tbody height
    */
-  function buildScrollableTable($table, $head, $body, $timeout, maxBodyHeight) {
-    $table.html($body);
+  function buildScrollableTable($table, head, body, $timeout, maxBodyHeight) {
+    $table.html(body);
     $table.addClass('scroll-body-table');
 
     if ($table.parent().hasClass('scroll-body-table-wrapper')) {
       $table.parent().scrollTop(0);
     } else {
       var $headerTable = $table.clone();
-      $headerTable.html($head);
+      $headerTable.html(head);
       $headerTable.removeClass('scroll-body-table');
       $headerTable.addClass('scroll-header-table');
 
