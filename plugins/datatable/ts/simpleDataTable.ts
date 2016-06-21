@@ -98,8 +98,7 @@ module DataTable {
               log.debug("Data changed so keep selecting row at index " + row.index);
             }
           });
-          config.selectedItems.length = 0;
-          config.selectedItems.push(...reSelectedItems);
+          config.selectedItems = reSelectedItems;
 
           Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], rows);
           $scope.rows = rows;
@@ -214,7 +213,7 @@ module DataTable {
 
           // it may be a node selection (eg JMX plugin with Folder tree structure) then use the title
           try {
-            data = row['entity']['title'];
+              data = row['entity']['title'];
           } catch (e) {
             // ignore
           }
@@ -441,3 +440,4 @@ module DataTable {
   }
 
 }
+
