@@ -19,7 +19,7 @@ var DataTable;
  */
 var DataTable;
 (function (DataTable) {
-    DataTable._module.directive('hawtioSimpleTable', ["$compile", function ($compile) {
+    DataTable._module.directive('hawtioSimpleTable', ["$compile", "$timeout", function ($compile, $timeout) {
             return {
                 restrict: 'A',
                 scope: {
@@ -105,11 +105,9 @@ var DataTable;
                                 DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
                             }
                         });
-                        config.selectedItems.length = 0;
-                        (_a = config.selectedItems).push.apply(_a, reSelectedItems);
+                        config.selectedItems = reSelectedItems;
                         Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], rows);
                         $scope.rows = rows;
-                        var _a;
                     };
                     scope.$watchCollection(dataName, listener);
                     // lets add a separate event so we can force updates
@@ -252,36 +250,19 @@ var DataTable;
                         rootElement.empty();
                         var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
                         var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
-                        var onMouseDown;
-                        if (enableRowClickSelection) {
-                            onMouseDown = "ng-click='onRowSelected(row)' ";
+                        var scrollable = config.maxBodyHeight !== undefined;
+                        var headHtml = buildHeadHtml(config.columnDefs, showCheckBox, isMultiSelect(), scrollable);
+                        var bodyHtml = buildBodyHtml(config.columnDefs, showCheckBox, enableRowClickSelection);
+                        if (scrollable) {
+                            var head = $compile(headHtml)($scope);
+                            var body = $compile(bodyHtml)($scope);
+                            buildScrollableTable(rootElement, head, body, $timeout, config.maxBodyHeight);
                         }
                         else {
-                            onMouseDown = "";
+                            var html = headHtml + bodyHtml;
+                            var newContent = $compile(html)($scope);
+                            rootElement.html(newContent);
                         }
-                        var headHtml = "<thead><tr>";
-                        // use a function to check if a row is selected so the UI can be kept up to date asap
-                        var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' ng-class=\"{'selected': isSelected(row)}\" >";
-                        var idx = 0;
-                        if (showCheckBox) {
-                            var toggleAllHtml = isMultiSelect() ?
-                                "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' ng-change='toggleAllSelections()'>" : "";
-                            headHtml += "\n<th class='simple-table-checkbox'>" +
-                                toggleAllHtml +
-                                "</th>";
-                            bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' ng-change='toggleRowSelection(row)'></td>";
-                        }
-                        angular.forEach(config.columnDefs, function (colDef) {
-                            var field = colDef.field;
-                            var cellTemplate = colDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' + field + '}}">{{row.entity.' + field + '}}</div>';
-                            headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + field + "')\" ng-class=\"getClass('" + field + "')\">{{config.columnDefs[" + idx + "].displayName}}<span class='indicator'></span></th>";
-                            bodyHtml += "\n<td + " + onMouseDown + ">" + cellTemplate + "</td>";
-                            idx += 1;
-                        });
-                        var html = headHtml + "\n</tr></thead>\n" +
-                            bodyHtml + "\n</tr></tbody>";
-                        var newContent = $compile(html)($scope);
-                        rootElement.html(newContent);
                     });
                 }
             };
@@ -323,6 +304,109 @@ var DataTable;
             }
         }
         return true;
+    }
+    /**
+     * Builds the thead HTML.
+     *
+     * @param columnDefs column definitions
+     * @param showCheckBox add extra column for checkboxes
+     * @param multiSelect show "select all" checkbox
+     * @param scrollable table with fixed height and scrollbar
+     */
+    function buildHeadHtml(columnDefs, showCheckBox, multiSelect, scrollable) {
+        var headHtml = "<thead><tr>";
+        if (showCheckBox) {
+            headHtml += "\n<th class='simple-table-checkbox'>";
+            if (multiSelect) {
+                headHtml += "<input type='checkbox' ng-show='rows.length' ng-model='config.allRowsSelected' " +
+                    "ng-change='toggleAllSelections()'>";
+            }
+            headHtml += "</th>";
+        }
+        for (var i = 0, len = columnDefs.length; i < len; i++) {
+            var columnDef = columnDefs[i];
+            headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + columnDef.field +
+                "')\" ng-class=\"getClass('" + columnDef.field + "')\">{{config.columnDefs[" + i +
+                "].displayName}}<span class='indicator'></span></th>";
+        }
+        if (scrollable) {
+            headHtml += "\n<th class='table-header'></th>";
+        }
+        headHtml += "\n</tr></thead>\n";
+        return headHtml;
+    }
+    /**
+     * Builds the tbody HTML.
+     *
+     * @param columnDefs column definitions
+     * @param showCheckBox show selection checkboxes
+     * @param enableRowClickSelection enable row click selection
+     */
+    function buildBodyHtml(columnDefs, showCheckBox, enableRowClickSelection) {
+        // use a function to check if a row is selected so the UI can be kept up to date asap
+        var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " +
+            "ng-class=\"{'selected': isSelected(row)}\" >";
+        if (showCheckBox) {
+            bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' " +
+                "ng-change='toggleRowSelection(row)'></td>";
+        }
+        var onMouseDown = enableRowClickSelection ? "ng-click='onRowSelected(row)' " : "";
+        for (var i = 0, len = columnDefs.length; i < len; i++) {
+            var columnDef = columnDefs[i];
+            var cellTemplate = columnDef.cellTemplate || '<div class="ngCellText" title="{{row.entity.' +
+                columnDef.field + '}}">{{row.entity.' + columnDef.field + '}}</div>';
+            bodyHtml += "\n<td + " + onMouseDown + ">" + cellTemplate + "</td>";
+        }
+        bodyHtml += "\n</tr></tbody>";
+        return bodyHtml;
+    }
+    /**
+     * Transform original table into a scrollable table.
+     *
+     * @param $table jQuery object referencing the DOM table element
+     * @param head thead HTML
+     * @param body tbody HTML
+     * @param $timeout Angular's $timeout service
+     * @param maxBodyHeight maximum tbody height
+     */
+    function buildScrollableTable($table, head, body, $timeout, maxBodyHeight) {
+        $table.html(body);
+        $table.addClass('scroll-body-table');
+        if ($table.parent().hasClass('scroll-body-table-wrapper')) {
+            $table.parent().scrollTop(0);
+        }
+        else {
+            var $headerTable = $table.clone();
+            $headerTable.html(head);
+            $headerTable.removeClass('scroll-body-table');
+            $headerTable.addClass('scroll-header-table');
+            $table.wrap('<div class="scroll-body-table-wrapper"></div>');
+            var $bodyTableWrapper = $table.parent();
+            $bodyTableWrapper.css('max-height', maxBodyHeight);
+            $bodyTableWrapper.wrap('<div></div>');
+            var $tableWrapper = $bodyTableWrapper.parent();
+            $tableWrapper.addClass('table');
+            $tableWrapper.addClass('table-bordered');
+            $headerTable.insertBefore($bodyTableWrapper);
+            $timeout(function () {
+                $(window).resize(function () {
+                    // Get the tbody columns width array
+                    var colWidths = $table.find('tr:first-child td').map(function () {
+                        return $(this).width();
+                    }).get();
+                    // Set the width of thead columns
+                    $headerTable.find('th').each(function (i, th) {
+                        $(th).width(colWidths[i]);
+                    });
+                    // Set the width of tbody columns
+                    $table.find('tr').each(function (i, tr) {
+                        $(tr).find('td').each(function (j, td) {
+                            $(td).width(colWidths[j]);
+                        });
+                    });
+                }).resize(); // Trigger resize handler
+            });
+        }
     }
 })(DataTable || (DataTable = {}));
 
