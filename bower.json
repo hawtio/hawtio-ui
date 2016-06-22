@@ -40,7 +40,6 @@
     "dagre": "~0.7.1",
     "zeroclipboard": "~2.2.0",
     "toastr": "~2.1.0",
-    "angular-patternfly": "~2.7.0",
     "bootstrap": "~3.3.6",
     "font-awesome": "^4.5.0"
   },

@@ -8,7 +8,7 @@
  */
 module UI {
 
-  export var _module = angular.module(UI.pluginName, ['patternfly']);
+  export var _module = angular.module(UI.pluginName, []);
 
   _module.factory('UI', () => {
     return UI;
