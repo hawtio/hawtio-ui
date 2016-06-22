@@ -1421,7 +1421,7 @@ var UI;
  */
 var UI;
 (function (UI) {
-    UI._module = angular.module(UI.pluginName, ['patternfly']);
+    UI._module = angular.module(UI.pluginName, []);
     UI._module.factory('UI', function () {
         return UI;
     });
