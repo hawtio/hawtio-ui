@@ -387,6 +387,8 @@ var DataTable;
             var $tableWrapper = $bodyTableWrapper.parent();
             $tableWrapper.addClass('table');
             $tableWrapper.addClass('table-bordered');
+            var scrollBarWidth = $bodyTableWrapper.width() - $table.width();
+            $headerTable.find('th:last-child').width(scrollBarWidth);
             $headerTable.insertBefore($bodyTableWrapper);
             $timeout(function () {
                 $(window).resize(function () {
@@ -1139,6 +1141,265 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
+
+/// <reference path="../../includes.ts"/>
+/**
+ * @module Tree
+ * @main Tree
+ */
+var Tree;
+(function (Tree) {
+    Tree.pluginName = 'tree';
+    Tree.log = Logger.get("Tree");
+    function expandAll(el) {
+        treeAction(el, true);
+    }
+    Tree.expandAll = expandAll;
+    function contractAll(el) {
+        treeAction(el, false);
+    }
+    Tree.contractAll = contractAll;
+    function treeAction(el, expand) {
+        $(el).dynatree("getRoot").visit(function (node) {
+            node.expand(expand);
+        });
+    }
+    /**
+     * @function sanitize
+     * @param tree
+     *
+     * Use to HTML escape all entries in a tree before passing it
+     * over to the dynatree plugin to avoid cross site scripting
+     * issues.
+     *
+     */
+    function sanitize(tree) {
+        if (!tree) {
+            return;
+        }
+        if (angular.isArray(tree)) {
+            tree.forEach(function (folder) {
+                Tree.sanitize(folder);
+            });
+        }
+        var title = tree['title'];
+        if (title) {
+            tree['title'] = _.escape(_.unescape(title));
+        }
+        if (tree.children) {
+            Tree.sanitize(tree.children);
+        }
+    }
+    Tree.sanitize = sanitize;
+    Tree._module = angular.module(Tree.pluginName, []);
+    Tree._module.directive('hawtioTree', ["workspace", "$timeout", "$location", function (workspace, $timeout, $location) {
+            // return the directive link function. (compile function not needed)
+            return function (scope, element, attrs) {
+                var tree = null;
+                var data = null;
+                var widget = null;
+                var timeoutId = null;
+                var onSelectFn = lookupFunction("onselect");
+                var onDragStartFn = lookupFunction("ondragstart");
+                var onDragEnterFn = lookupFunction("ondragenter");
+                var onDropFn = lookupFunction("ondrop");
+                function lookupFunction(attrName) {
+                    var answer = null;
+                    var fnName = attrs[attrName];
+                    if (fnName) {
+                        answer = Core.pathGet(scope, fnName);
+                        if (!angular.isFunction(answer)) {
+                            answer = null;
+                        }
+                    }
+                    return answer;
+                }
+                // watch the expression, and update the UI on change.
+                var data = attrs.hawtioTree;
+                var queryParam = data;
+                scope.$watch(data, onWidgetDataChange);
+                // lets add a separate event so we can force updates
+                // if we find cases where the delta logic doesn't work
+                scope.$on("hawtio.tree." + data, function (args) {
+                    var value = Core.pathGet(scope, data);
+                    onWidgetDataChange(value);
+                });
+                // listen on DOM destroy (removal) event, and cancel the next UI update
+                // to prevent updating ofter the DOM element was removed.
+                element.bind('$destroy', function () {
+                    $timeout.cancel(timeoutId);
+                });
+                updateLater(); // kick off the UI update process.
+                // used to update the UI
+                function updateWidget() {
+                    // console.log("updating the grid!!");
+                    Core.$applyNowOrLater(scope);
+                }
+                function onWidgetDataChange(value) {
+                    tree = value;
+                    if (tree) {
+                        Tree.sanitize(tree);
+                    }
+                    if (tree && !widget) {
+                        // lets find a child table element
+                        // or lets add one if there's not one already
+                        var treeElement = $(element);
+                        var children = Core.asArray(tree);
+                        var hideRoot = attrs["hideroot"];
+                        var imagePath = null;
+                        if (attrs['relativeiconpaths']) {
+                            // yay, hack to allow relative path locations
+                            imagePath = [];
+                        }
+                        if ("true" === hideRoot) {
+                            children = tree['children'];
+                        }
+                        var config = {
+                            imagePath: imagePath,
+                            clickFolderMode: 3,
+                            /*
+                              * The event handler called when a different node in the tree is selected
+                              */
+                            onActivate: function (node) {
+                                var data = node.data;
+                                if (onSelectFn) {
+                                    onSelectFn(data, node);
+                                }
+                                else {
+                                    workspace.updateSelectionNode(data);
+                                }
+                                Core.$apply(scope);
+                            },
+                            /*
+                              onLazyRead: function(treeNode) {
+                              var folder = treeNode.data;
+                              var plugin = null;
+                              if (folder) {
+                              plugin = Jmx.findLazyLoadingFunction(workspace, folder);
+                              }
+                              if (plugin) {
+                              console.log("Lazy loading folder " + folder.title);
+                              var oldChildren = folder.childen;
+                              plugin(workspace, folder, () => {
+                              treeNode.setLazyNodeStatus(DTNodeStatus_Ok);
+                              var newChildren = folder.children;
+                              if (newChildren !== oldChildren) {
+                              treeNode.removeChildren();
+                              angular.forEach(newChildren, newChild => {
+                              treeNode.addChild(newChild);
+                              });
+                              }
+                              });
+                              } else {
+                              treeNode.setLazyNodeStatus(DTNodeStatus_Ok);
+                              }
+                              },
+                              */
+                            onClick: function (node, event) {
+                                if (event["metaKey"]) {
+                                    event.preventDefault();
+                                    var url = $location.absUrl();
+                                    if (node && node.data) {
+                                        var key = node.data["key"];
+                                        if (key) {
+                                            var hash = $location.search();
+                                            hash[queryParam] = key;
+                                            // TODO this could maybe be a generic helper function?
+                                            // lets trim after the ?
+                                            var idx = url.indexOf('?');
+                                            if (idx <= 0) {
+                                                url += "?";
+                                            }
+                                            else {
+                                                url = url.substring(0, idx + 1);
+                                            }
+                                            url += $.param(hash);
+                                        }
+                                    }
+                                    window.open(url, '_blank');
+                                    window.focus();
+                                    return false;
+                                }
+                                return true;
+                            },
+                            persist: false,
+                            debugLevel: 0,
+                            children: children,
+                            dnd: {
+                                onDragStart: onDragStartFn ? onDragStartFn : function (node) {
+                                    /* This function MUST be defined to enable dragging for the tree.
+                                      *  Return false to cancel dragging of node.
+                                      */
+                                    console.log("onDragStart!");
+                                    return true;
+                                },
+                                onDragEnter: onDragEnterFn ? onDragEnterFn : function (node, sourceNode) {
+                                    console.log("onDragEnter!");
+                                    return true;
+                                },
+                                onDrop: onDropFn ? onDropFn : function (node, sourceNode, hitMode) {
+                                    console.log("onDrop!");
+                                    /* This function MUST be defined to enable dropping of items on
+                                      *  the tree.
+                                      */
+                                    sourceNode.move(node, hitMode);
+                                    return true;
+                                }
+                            }
+                        };
+                        if (!onDropFn && !onDragEnterFn && !onDragStartFn) {
+                            delete config["dnd"];
+                        }
+                        widget = treeElement.dynatree(config);
+                        var activatedNode = false;
+                        var activateNodeName = attrs["activatenodes"];
+                        if (activateNodeName) {
+                            var values = scope[activateNodeName];
+                            var tree = treeElement.dynatree("getTree");
+                            if (values && tree) {
+                                angular.forEach(Core.asArray(values), function (value) {
+                                    //tree.selectKey(value, true);
+                                    tree.activateKey(value);
+                                    activatedNode = true;
+                                });
+                            }
+                        }
+                        var root = treeElement.dynatree("getRoot");
+                        if (root) {
+                            var onRootName = attrs["onroot"];
+                            if (onRootName) {
+                                var fn = scope[onRootName];
+                                if (fn) {
+                                    fn(root);
+                                }
+                            }
+                            // select and activate first child if we have not activated any others
+                            if (!activatedNode) {
+                                var children = root['getChildren']();
+                                if (children && children.length) {
+                                    var child = children[0];
+                                    child.expand(true);
+                                    child.activate(true);
+                                }
+                            }
+                        }
+                    }
+                    updateWidget();
+                }
+                // schedule update in one second
+                function updateLater() {
+                    // save the timeoutId for canceling
+                    timeoutId = $timeout(function () {
+                        updateWidget(); // update DOM
+                    }, 300);
+                }
+            };
+        }]);
+    Tree._module.run(["helpRegistry", function (helpRegistry) {
+            helpRegistry.addDevDoc(Tree.pluginName, 'app/tree/doc/developer.md');
+        }]);
+    hawtioPluginLoader.addModule(Tree.pluginName);
+})(Tree || (Tree = {}));
 
 /**
  * @module UI
@@ -4132,265 +4393,6 @@ var UI;
 })(UI || (UI = {}));
 
 /// <reference path="../../includes.ts"/>
-/**
- * @module Tree
- * @main Tree
- */
-var Tree;
-(function (Tree) {
-    Tree.pluginName = 'tree';
-    Tree.log = Logger.get("Tree");
-    function expandAll(el) {
-        treeAction(el, true);
-    }
-    Tree.expandAll = expandAll;
-    function contractAll(el) {
-        treeAction(el, false);
-    }
-    Tree.contractAll = contractAll;
-    function treeAction(el, expand) {
-        $(el).dynatree("getRoot").visit(function (node) {
-            node.expand(expand);
-        });
-    }
-    /**
-     * @function sanitize
-     * @param tree
-     *
-     * Use to HTML escape all entries in a tree before passing it
-     * over to the dynatree plugin to avoid cross site scripting
-     * issues.
-     *
-     */
-    function sanitize(tree) {
-        if (!tree) {
-            return;
-        }
-        if (angular.isArray(tree)) {
-            tree.forEach(function (folder) {
-                Tree.sanitize(folder);
-            });
-        }
-        var title = tree['title'];
-        if (title) {
-            tree['title'] = _.escape(_.unescape(title));
-        }
-        if (tree.children) {
-            Tree.sanitize(tree.children);
-        }
-    }
-    Tree.sanitize = sanitize;
-    Tree._module = angular.module(Tree.pluginName, []);
-    Tree._module.directive('hawtioTree', ["workspace", "$timeout", "$location", function (workspace, $timeout, $location) {
-            // return the directive link function. (compile function not needed)
-            return function (scope, element, attrs) {
-                var tree = null;
-                var data = null;
-                var widget = null;
-                var timeoutId = null;
-                var onSelectFn = lookupFunction("onselect");
-                var onDragStartFn = lookupFunction("ondragstart");
-                var onDragEnterFn = lookupFunction("ondragenter");
-                var onDropFn = lookupFunction("ondrop");
-                function lookupFunction(attrName) {
-                    var answer = null;
-                    var fnName = attrs[attrName];
-                    if (fnName) {
-                        answer = Core.pathGet(scope, fnName);
-                        if (!angular.isFunction(answer)) {
-                            answer = null;
-                        }
-                    }
-                    return answer;
-                }
-                // watch the expression, and update the UI on change.
-                var data = attrs.hawtioTree;
-                var queryParam = data;
-                scope.$watch(data, onWidgetDataChange);
-                // lets add a separate event so we can force updates
-                // if we find cases where the delta logic doesn't work
-                scope.$on("hawtio.tree." + data, function (args) {
-                    var value = Core.pathGet(scope, data);
-                    onWidgetDataChange(value);
-                });
-                // listen on DOM destroy (removal) event, and cancel the next UI update
-                // to prevent updating ofter the DOM element was removed.
-                element.bind('$destroy', function () {
-                    $timeout.cancel(timeoutId);
-                });
-                updateLater(); // kick off the UI update process.
-                // used to update the UI
-                function updateWidget() {
-                    // console.log("updating the grid!!");
-                    Core.$applyNowOrLater(scope);
-                }
-                function onWidgetDataChange(value) {
-                    tree = value;
-                    if (tree) {
-                        Tree.sanitize(tree);
-                    }
-                    if (tree && !widget) {
-                        // lets find a child table element
-                        // or lets add one if there's not one already
-                        var treeElement = $(element);
-                        var children = Core.asArray(tree);
-                        var hideRoot = attrs["hideroot"];
-                        var imagePath = null;
-                        if (attrs['relativeiconpaths']) {
-                            // yay, hack to allow relative path locations
-                            imagePath = [];
-                        }
-                        if ("true" === hideRoot) {
-                            children = tree['children'];
-                        }
-                        var config = {
-                            imagePath: imagePath,
-                            clickFolderMode: 3,
-                            /*
-                              * The event handler called when a different node in the tree is selected
-                              */
-                            onActivate: function (node) {
-                                var data = node.data;
-                                if (onSelectFn) {
-                                    onSelectFn(data, node);
-                                }
-                                else {
-                                    workspace.updateSelectionNode(data);
-                                }
-                                Core.$apply(scope);
-                            },
-                            /*
-                              onLazyRead: function(treeNode) {
-                              var folder = treeNode.data;
-                              var plugin = null;
-                              if (folder) {
-                              plugin = Jmx.findLazyLoadingFunction(workspace, folder);
-                              }
-                              if (plugin) {
-                              console.log("Lazy loading folder " + folder.title);
-                              var oldChildren = folder.childen;
-                              plugin(workspace, folder, () => {
-                              treeNode.setLazyNodeStatus(DTNodeStatus_Ok);
-                              var newChildren = folder.children;
-                              if (newChildren !== oldChildren) {
-                              treeNode.removeChildren();
-                              angular.forEach(newChildren, newChild => {
-                              treeNode.addChild(newChild);
-                              });
-                              }
-                              });
-                              } else {
-                              treeNode.setLazyNodeStatus(DTNodeStatus_Ok);
-                              }
-                              },
-                              */
-                            onClick: function (node, event) {
-                                if (event["metaKey"]) {
-                                    event.preventDefault();
-                                    var url = $location.absUrl();
-                                    if (node && node.data) {
-                                        var key = node.data["key"];
-                                        if (key) {
-                                            var hash = $location.search();
-                                            hash[queryParam] = key;
-                                            // TODO this could maybe be a generic helper function?
-                                            // lets trim after the ?
-                                            var idx = url.indexOf('?');
-                                            if (idx <= 0) {
-                                                url += "?";
-                                            }
-                                            else {
-                                                url = url.substring(0, idx + 1);
-                                            }
-                                            url += $.param(hash);
-                                        }
-                                    }
-                                    window.open(url, '_blank');
-                                    window.focus();
-                                    return false;
-                                }
-                                return true;
-                            },
-                            persist: false,
-                            debugLevel: 0,
-                            children: children,
-                            dnd: {
-                                onDragStart: onDragStartFn ? onDragStartFn : function (node) {
-                                    /* This function MUST be defined to enable dragging for the tree.
-                                      *  Return false to cancel dragging of node.
-                                      */
-                                    console.log("onDragStart!");
-                                    return true;
-                                },
-                                onDragEnter: onDragEnterFn ? onDragEnterFn : function (node, sourceNode) {
-                                    console.log("onDragEnter!");
-                                    return true;
-                                },
-                                onDrop: onDropFn ? onDropFn : function (node, sourceNode, hitMode) {
-                                    console.log("onDrop!");
-                                    /* This function MUST be defined to enable dropping of items on
-                                      *  the tree.
-                                      */
-                                    sourceNode.move(node, hitMode);
-                                    return true;
-                                }
-                            }
-                        };
-                        if (!onDropFn && !onDragEnterFn && !onDragStartFn) {
-                            delete config["dnd"];
-                        }
-                        widget = treeElement.dynatree(config);
-                        var activatedNode = false;
-                        var activateNodeName = attrs["activatenodes"];
-                        if (activateNodeName) {
-                            var values = scope[activateNodeName];
-                            var tree = treeElement.dynatree("getTree");
-                            if (values && tree) {
-                                angular.forEach(Core.asArray(values), function (value) {
-                                    //tree.selectKey(value, true);
-                                    tree.activateKey(value);
-                                    activatedNode = true;
-                                });
-                            }
-                        }
-                        var root = treeElement.dynatree("getRoot");
-                        if (root) {
-                            var onRootName = attrs["onroot"];
-                            if (onRootName) {
-                                var fn = scope[onRootName];
-                                if (fn) {
-                                    fn(root);
-                                }
-                            }
-                            // select and activate first child if we have not activated any others
-                            if (!activatedNode) {
-                                var children = root['getChildren']();
-                                if (children && children.length) {
-                                    var child = children[0];
-                                    child.expand(true);
-                                    child.activate(true);
-                                }
-                            }
-                        }
-                    }
-                    updateWidget();
-                }
-                // schedule update in one second
-                function updateLater() {
-                    // save the timeoutId for canceling
-                    timeoutId = $timeout(function () {
-                        updateWidget(); // update DOM
-                    }, 300);
-                }
-            };
-        }]);
-    Tree._module.run(["helpRegistry", function (helpRegistry) {
-            helpRegistry.addDevDoc(Tree.pluginName, 'app/tree/doc/developer.md');
-        }]);
-    hawtioPluginLoader.addModule(Tree.pluginName);
-})(Tree || (Tree = {}));
-
-/// <reference path="../../includes.ts"/>
 var UIBootstrap;
 (function (UIBootstrap) {
     var pluginName = "hawtio-ui-bootstrap";
@@ -4413,13 +4415,13 @@ $templateCache.put("plugins/ui/html/editorPreferences.html","<div ng-controller=
 $templateCache.put("plugins/ui/html/filter.html","<div class=\"inline-block section-filter\">\r\n  <input type=\"text\"\r\n         class=\"search-query\"\r\n         ng-class=\"getClass()\"\r\n         ng-model=\"ngModel\"\r\n         placeholder=\"{{placeholder}}\">\r\n  <i class=\"fa fa-remove clickable\"\r\n     title=\"Clear Filter\"\r\n     ng-click=\"ngModel = \'\'\"></i>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/icon.html","<span>\r\n  <span ng-show=\"icon && icon.type && icon.src\" title=\"{{icon.title}}\" ng-switch=\"icon.type\">\r\n    <i ng-switch-when=\"icon\" class=\"{{icon.src}} {{icon.class}}\"></i>\r\n    <img ng-switch-when=\"img\" ng-src=\"{{icon.src}}\" class=\"{{icon.class}}\">\r\n  </span>\r\n  <span ng-hide=\"icon && icon.type && icon.src\">\r\n    &nbsp;\r\n  </span>\r\n</span>\r\n\r\n");
 $templateCache.put("plugins/ui/html/layoutUI.html","<div ng-view></div>\r\n");
-$templateCache.put("plugins/ui/html/list.html","<div>\n\n  <!-- begin cell template -->\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\n    <div class=\"ngCellText\">\n      {{row.entity}}\n    </div>\n  </script>\n  <!-- end cell template -->\n\n  <!-- begin row template -->\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\n    <div class=\"hawtio-list-row\">\n      <div ng-show=\"config.showSelectionCheckbox\"\n           class=\"hawtio-list-row-select\">\n        <input type=\"checkbox\" ng-model=\"row.selected\">\n      </div>\n      <div class=\"hawtio-list-row-contents\"></div>\n    </div>\n  </script>\n  <!-- end row template -->\n\n  <!-- must have a little margin in the top -->\n  <div class=\"hawtio-list-root\" style=\"margin-top: 15px\"></div>\n\n</div>\n");
+$templateCache.put("plugins/ui/html/list.html","<div>\r\n\r\n  <!-- begin cell template -->\r\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\r\n    <div class=\"ngCellText\">\r\n      {{row.entity}}\r\n    </div>\r\n  </script>\r\n  <!-- end cell template -->\r\n\r\n  <!-- begin row template -->\r\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\r\n    <div class=\"hawtio-list-row\">\r\n      <div ng-show=\"config.showSelectionCheckbox\"\r\n           class=\"hawtio-list-row-select\">\r\n        <input type=\"checkbox\" ng-model=\"row.selected\">\r\n      </div>\r\n      <div class=\"hawtio-list-row-contents\"></div>\r\n    </div>\r\n  </script>\r\n  <!-- end row template -->\r\n\r\n  <!-- must have a little margin in the top -->\r\n  <div class=\"hawtio-list-root\" style=\"margin-top: 15px\"></div>\r\n\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/multiItemConfirmActionDialog.html","<div>\r\n  <form class=\"no-bottom-margin\">\r\n    <div class=\"modal-header\">\r\n      <span>{{options.title || \'Are you sure?\'}}</span>\r\n    </div>\r\n    <div class=\"modal-body\">\r\n      <p ng-show=\'options.action\'\r\n         ng-class=\'options.actionClass\'\r\n         ng-bind=\'options.action\'></p>\r\n      <ul>\r\n        <li ng-repeat=\"item in options.collection\" ng-bind=\"getName(item)\"></li>\r\n      </ul>\r\n      <p ng-show=\"options.custom\" \r\n         ng-class=\"options.customClass\" \r\n         ng-bind=\"options.custom\"></p>\r\n    </div>\r\n    <div class=\"modal-footer\">\r\n      <button class=\"btn\" \r\n              ng-class=\"options.okClass\" \r\n              ng-click=\"close(true)\">{{options.okText || \'Ok\'}}</button>\r\n      <button class=\"btn\" \r\n              ng-class=\"options.cancelClass\"\r\n              ng-click=\"close(false)\">{{options.cancelText || \'Cancel\'}}</button>\r\n    </div>\r\n  </form>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/object.html","<div>\r\n  <script type=\"text/ng-template\" id=\"primitiveValueTemplate.html\">\r\n    <span ng-show=\"data\" object-path=\"{{path}}\">{{data}}</span>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayValueListTemplate.html\">\r\n    <ul class=\"zebra-list\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <li ng-repeat=\"item in data\">\r\n        <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\r\n      </li>\r\n    </ul>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayValueTableTemplate.html\">\r\n    <table class=\"table table-striped\" object-path=\"{{path}}\">\r\n      <thead>\r\n      </thead>\r\n      <tbody>\r\n      </tbody>\r\n    </table>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"dateAttributeTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd ng-show=\"data && data.getTime() > 0\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</dd>\r\n      <dd ng-show=\"data && data.getTime() <= 0\"></dd>\r\n\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"dateValueTemplate.html\">\r\n    <span ng-show=\"data\">\r\n      <span ng-show=\"data && data.getTime() > 0\" object-path=\"{{path}}\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</span>\r\n      <span ng-show=\"data && data.getTime() <= 0\" object-path=\"{{path}}\"></span>\r\n    </span>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"primitiveAttributeTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>{{data}}</dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"objectAttributeTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>\r\n        <div hawtio-object=\"data\" config=\"config\" path=\"path\" row=\"row\"></div>\r\n      </dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayAttributeListTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>\r\n        <ul class=\"zebra-list\">\r\n          <li ng-repeat=\"item in data\" ng-init=\"path = path + \'/\' + $index\">\r\n            <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\r\n          </li>\r\n        </ul>\r\n      </dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayAttributeTableTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>\r\n        <table class=\"table table-striped\">\r\n          <thead>\r\n          </thead>\r\n          <tbody>\r\n          </tbody>\r\n        </table>\r\n      </dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"headerTemplate.html\">\r\n    <th object-path=\"{{path}}\">{{key}}</th>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\r\n    <tr object-path=\"{{path}}\"></tr>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\r\n    <td object-path=\"{{path}}\"></td>\r\n  </script>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/pane.html","<div class=\"pane\">\r\n  <div class=\"pane-wrapper\">\r\n    <div class=\"pane-header-wrapper\">\r\n    </div>\r\n    <div class=\"pane-viewport\">\r\n      <div class=\"pane-content\">\r\n      </div>\r\n    </div>\r\n    <div class=\"pane-bar\"\r\n         ng-mousedown=\"startMoving($event)\"\r\n         ng-click=\"toggle()\"></div>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{direction || \'right\'}}\">\r\n  <div class=slideout-title>\r\n    <div ng-show=\"{{close || \'true\'}}\" class=\"mouse-pointer pull-right\" ng-click=\"hidePanel($event)\" title=\"Close panel\">\r\n      <i class=\"fa fa-remove\"></i>\r\n    </div>\r\n    <span>{{title}}</span>\r\n  </div>\r\n  <div class=\"slideout-content\">\r\n    <div class=\"slideout-body\"></div>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/tablePager.html","<div class=\"hawtio-pager clearfix\">\r\n  <label>{{rowIndex() + 1}} / {{tableLength()}}</label>\r\n  <div class=btn-group>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"first()\"><i class=\"fa fa-fast-backward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"previous()\"><i class=\"fa fa-step-backward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"next()\"><i class=\"fa fa-step-forward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"last()\"><i class=\"fa fa-fast-forward\"></i></button>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/tagFilter.html","<div>\r\n  <ul class=\"list-unstyled label-list\">\r\n    <li ng-repeat=\"tag in visibleTags | orderBy:\'tag.id || tag\'\"\r\n        class=\"mouse-pointer\"\r\n        ng-click=\"toggleSelectionFromGroup(selected, tag.id || tag)\">\r\n              <span class=\"badge\"\r\n                    ng-class=\"isInGroup(selected, tag.id || tag, \'badge-success\', \'\')\"\r\n                      >{{tag.id || tag}}</span>\r\n              <span class=\"pull-right\"\r\n                    ng-show=\"tag.count\">{{tag.count}}&nbsp;</span>\r\n    </li>\r\n  </ul>\r\n  <div class=\"mouse-pointer\"\r\n       ng-show=\"selected.length\"\r\n       ng-click=\"clearGroup(selected)\">\r\n    <i class=\"fa fa-remove\" ></i> Clear Tags\r\n  </div>\r\n</div>\r\n");
-$templateCache.put("plugins/ui/html/tagList.html","<span>\n<script type=\"text/ng-template\" id=\"tagBase.html\">\n  <span class=\"badge mouse-pointer\"ng-class=\"isSelected(\'{{tag}}\') ? \'badge-success\' : \'\'\">{{tag}}</span>\n</script>\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\n</script>\n</span>\n");
+$templateCache.put("plugins/ui/html/tagList.html","<span>\r\n<script type=\"text/ng-template\" id=\"tagBase.html\">\r\n  <span class=\"badge mouse-pointer\"ng-class=\"isSelected(\'{{tag}}\') ? \'badge-success\' : \'\'\">{{tag}}</span>\r\n</script>\r\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\r\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\r\n</script>\r\n</span>\r\n");
 $templateCache.put("plugins/ui/html/toc.html","<div>\r\n  <div ng-repeat=\"item in myToc\">\r\n    <div id=\"{{item[\'href\']}}Target\" ng-bind-html=\"item.text\">\r\n    </div>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui-bootstrap/html/message.html","<div class=\"modal-header\">\r\n	<h3>{{ title }}</h3>\r\n</div>\r\n<div class=\"modal-body\">\r\n	<p>{{ message }}</p>\r\n</div>\r\n<div class=\"modal-footer\">\r\n	<button ng-repeat=\"btn in buttons\" ng-click=\"close(btn.result)\" class=\"btn\" ng-class=\"btn.cssClass\">{{ btn.label }}</button>\r\n</div>\r\n");}]); hawtioPluginLoader.addModule("hawtio-ui-templates");
