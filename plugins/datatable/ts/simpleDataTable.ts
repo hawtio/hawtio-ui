@@ -12,9 +12,14 @@ module DataTable {
       },
       link: ($scope, $element, $attrs) => {
 
-        var defaultPrimaryKeyFn = (entity, idx) => {
-          // default function to use id/_id/name as primary key, and fallback to use index
-          return entity["id"] || entity["_id"] || entity["_key"] || entity["name"] || idx;
+        var defaultPrimaryKeyFn = (entity) => {
+          // default function to use id/_id/_key/name as primary key, and fallback to use all property values
+          var primaryKey = entity["id"] || entity["_id"] || entity["_key"] || entity["name"];
+          if (primaryKey === undefined) {
+            throw new Error("Missing primary key. Please add a property called 'id', '_id', '_key', or 'name' " +
+              "to your entities. Alternatively, set the 'primaryKeyFn' configuration option.");
+          }
+          return primaryKey;
         };
 
         var config = $scope.config;
@@ -85,9 +90,9 @@ module DataTable {
           // and for that we need to evaluate the primary key function so we can match new data with old data.
           var reSelectedItems = [];
           rows.forEach((row:any, idx:number) => {
-            var rpk = primaryKeyFn(row.entity, row.index);
+            var rpk = primaryKeyFn(row.entity);
             var selected = _.some(config.selectedItems, (s:any) => {
-              var spk = primaryKeyFn(s, s.index);
+              var spk = primaryKeyFn(s);
               return angular.equals(rpk, spk);
             });
             if (selected) {
