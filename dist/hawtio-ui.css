@@ -2184,7 +2184,6 @@ table.scroll-header-table th:nth-last-child(2) {
   border-right: none;
 }
 table.scroll-header-table th:last-child {
-  width: 17px;
   padding: 0;
   border-left: none;
   border-top: none;
