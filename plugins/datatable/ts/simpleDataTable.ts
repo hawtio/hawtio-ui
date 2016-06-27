@@ -414,6 +414,8 @@ module DataTable {
       $tableWrapper.addClass('table');
       $tableWrapper.addClass('table-bordered');
 
+      var scrollBarWidth = $bodyTableWrapper.width() - $table.width();
+      $headerTable.find('th:last-child').width(scrollBarWidth);
       $headerTable.insertBefore($bodyTableWrapper);
 
       $timeout(function () {

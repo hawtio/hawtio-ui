@@ -2184,7 +2184,6 @@ table.scroll-header-table th:nth-last-child(2) {
   border-right: none;
 }
 table.scroll-header-table th:last-child {
-  width: 17px;
   padding: 0;
   border-left: none;
   border-top: none;
@@ -2212,30 +2211,6 @@ div.scroll-body-table-wrapper {
 
 .editor-autoresize .CodeMirror {
   height: auto;
-}
-
-.dynatree-container {
-  background: inherit;
-  overflow: visible;
-}
-.dynatree-container li {
-  background: inherit;
-}
-.dynatree-container a {
-  margin: inherit !important;
-}
-.dynatree-container .dynatree-node > img {
-  vertical-align: middle;
-}
-span.dynatree-expander {
-  color: #728271;
-  vertical-align: top;
-}
-span.dynatree-icon {
-  color: #EECA7C;
-}
-span:not(.dynatree-has-children) .dynatree-icon:before {
-  color: gray;
 }
 
 .badge {
@@ -3265,4 +3240,28 @@ ul.inline > li {
 }
 .strong {
   font-weight: bold;
+}
+
+.dynatree-container {
+  background: inherit;
+  overflow: visible;
+}
+.dynatree-container li {
+  background: inherit;
+}
+.dynatree-container a {
+  margin: inherit !important;
+}
+.dynatree-container .dynatree-node > img {
+  vertical-align: middle;
+}
+span.dynatree-expander {
+  color: #728271;
+  vertical-align: top;
+}
+span.dynatree-icon {
+  color: #EECA7C;
+}
+span:not(.dynatree-has-children) .dynatree-icon:before {
+  color: gray;
 }
