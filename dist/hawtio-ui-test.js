@@ -1,95 +1,5 @@
 ///<reference path="../defs.d.ts"/>
 
-///<reference path="../../includes.ts"/>
-var DatatableTest;
-(function (DatatableTest) {
-    var pluginName = "datatable-test";
-    DatatableTest.templatePath = "test-plugins/datatable/html";
-    DatatableTest._module = angular.module(pluginName, []);
-    DatatableTest._module.config(["$routeProvider", function ($routeProvider) {
-            $routeProvider.
-                when('/datatable/test', { templateUrl: UrlHelpers.join(DatatableTest.templatePath, 'test.html') });
-        }]);
-    DatatableTest._module.run(['HawtioNav', function (nav) {
-            var builder = nav.builder();
-            nav.add(builder.id(pluginName)
-                .href(function () { return '/datatable/test'; })
-                .title(function () { return 'Tables'; })
-                .build());
-        }]);
-    hawtioPluginLoader.addModule(pluginName);
-})(DatatableTest || (DatatableTest = {}));
-
-/// <reference path="datatablePlugin.ts"/>
-var DatatableTest;
-(function (DatatableTest) {
-    DatatableTest._module.controller('DatatableTest.SimpleTableTestController', ['$scope', '$location', function ($scope, $location) {
-            $scope.myData = [
-                { name: "James", twitter: "jstrachan", city: 'LONDON', ip: '172.17.0.11' },
-                { name: "Stan", twitter: "gashcrumb", city: 'boston', ip: '172.17.0.9' },
-                { name: "Claus", twitter: "davsclaus", city: 'Malmo', ip: '172.17.0.10' },
-                { name: "Alexandre", twitter: "alexkieling", city: 'Florianopolis', ip: '172.17.0.12' }
-            ];
-            $scope.mygrid = {
-                data: 'myData',
-                showFilter: false,
-                showColumnMenu: false,
-                multiSelect: ($location.search()["multi"] || "").startsWith("f") ? false : true,
-                filterOptions: {
-                    filterText: "",
-                    useExternalFilter: false
-                },
-                selectedItems: [],
-                rowHeight: 32,
-                selectWithCheckboxOnly: true,
-                columnDefs: [
-                    {
-                        field: 'name',
-                        displayName: 'Name',
-                        width: "***"
-                    },
-                    {
-                        field: 'city',
-                        displayName: 'City',
-                        width: "***"
-                    },
-                    {
-                        field: 'twitter',
-                        displayName: 'Twitter',
-                        cellTemplate: '<div class="ngCellText">@{{row.entity.twitter}}</div>',
-                        //width: 400
-                        width: "***"
-                    },
-                    {
-                        field: 'ip',
-                        displayName: 'Pod IP',
-                        width: "***",
-                        customSortField: function (field) {
-                            // use a custom sort to sort ip address
-                            var ip = field.ip;
-                            // i guess there is maybe nicer ways of sort this without parsing and slicing
-                            var regex = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
-                            var groups = regex.exec(ip);
-                            if (angular.isDefined(groups)) {
-                                var g1 = ("00" + groups[1]).slice(-3);
-                                var g2 = ("00" + groups[2]).slice(-3);
-                                var g3 = ("00" + groups[3]).slice(-3);
-                                var g4 = ("00" + groups[4]).slice(-3);
-                                var answer = g1 + g2 + g3 + g4;
-                                console.log(answer);
-                                return answer;
-                            }
-                            else {
-                                return 0;
-                            }
-                        }
-                    }
-                ]
-            };
-            $scope.scrollGrid = angular.extend({ maxBodyHeight: 77 }, $scope.mygrid);
-        }]);
-})(DatatableTest || (DatatableTest = {}));
-
 /// <reference path="../../includes.ts"/>
 var UITest;
 (function (UITest) {
@@ -458,7 +368,102 @@ var UITest;
         }]);
 })(UITest || (UITest = {}));
 
+<<<<<<< HEAD
 angular.module("hawtio-ui-test-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("test-plugins/ui/html/auto-columns.html","<div ng-controller=\"UI.UITestController2\">\r\n\r\n  <div>\r\n    <div class=\"row\">\r\n      <h3>Auto Columns</h3>\r\n      <p>Lays out a bunch of inline-block child elements into columns automatically based on the size of the parent container.  Specify the selector for the child items as an argument</p>\r\n\r\n      <script type=\"text/ng-template\" id=\"autoColumnTemplate\">\r\n<div id=\"container\"\r\n     style=\"height: 225px;\r\n            width: 785px;\r\n            background: lightgrey;\r\n            border-radius: 4px;\"\r\n     hawtio-auto-columns=\".ex-children\"\r\n     min-margin=\"5\">\r\n  <div class=\"ex-children\"\r\n       style=\"display: inline-block;\r\n              width: 64px; height: 64px;\r\n              border-radius: 4px;\r\n              background: lightgreen;\r\n              text-align: center;\r\n              vertical-align: middle;\r\n              margin: 5px;\"\r\n       ng-repeat=\"div in divs\">{{div}}</div>\r\n</div>\r\n      </script>\r\n      <div hawtio-editor=\"autoColumnEx\" mode=\"fileUploadExMode\"></div>\r\n      <div class=\"directive-example\">\r\n        <div compile=\"autoColumnEx\"></div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n");
+=======
+///<reference path="../../includes.ts"/>
+var DatatableTest;
+(function (DatatableTest) {
+    var pluginName = "datatable-test";
+    DatatableTest.templatePath = "test-plugins/datatable/html";
+    DatatableTest._module = angular.module(pluginName, []);
+    DatatableTest._module.config(["$routeProvider", function ($routeProvider) {
+            $routeProvider.
+                when('/datatable/test', { templateUrl: UrlHelpers.join(DatatableTest.templatePath, 'test.html') });
+        }]);
+    DatatableTest._module.run(['HawtioNav', function (nav) {
+            var builder = nav.builder();
+            nav.add(builder.id(pluginName)
+                .href(function () { return '/datatable/test'; })
+                .title(function () { return 'Tables'; })
+                .build());
+        }]);
+    hawtioPluginLoader.addModule(pluginName);
+})(DatatableTest || (DatatableTest = {}));
+
+/// <reference path="datatablePlugin.ts"/>
+var DatatableTest;
+(function (DatatableTest) {
+    DatatableTest._module.controller('DatatableTest.SimpleTableTestController', ['$scope', '$location', function ($scope, $location) {
+            $scope.myData = [
+                { id: "James", twitter: "jstrachan", city: 'LONDON', ip: '172.17.0.11' },
+                { id: "Stan", twitter: "gashcrumb", city: 'boston', ip: '172.17.0.9' },
+                { id: "Claus", twitter: "davsclaus", city: 'Malmo', ip: '172.17.0.10' },
+                { id: "Alexandre", twitter: "alexkieling", city: 'Florianopolis', ip: '172.17.0.12' }
+            ];
+            $scope.mygrid = {
+                data: 'myData',
+                showFilter: false,
+                showColumnMenu: false,
+                multiSelect: ($location.search()["multi"] || "").startsWith("f") ? false : true,
+                filterOptions: {
+                    filterText: "",
+                    useExternalFilter: false
+                },
+                selectedItems: [],
+                rowHeight: 32,
+                selectWithCheckboxOnly: true,
+                columnDefs: [
+                    {
+                        field: 'id',
+                        displayName: 'Name',
+                        width: "***"
+                    },
+                    {
+                        field: 'city',
+                        displayName: 'City',
+                        width: "***"
+                    },
+                    {
+                        field: 'twitter',
+                        displayName: 'Twitter',
+                        cellTemplate: '<div class="ngCellText">@{{row.entity.twitter}}</div>',
+                        //width: 400
+                        width: "***"
+                    },
+                    {
+                        field: 'ip',
+                        displayName: 'Pod IP',
+                        width: "***",
+                        customSortField: function (field) {
+                            // use a custom sort to sort ip address
+                            var ip = field.ip;
+                            // i guess there is maybe nicer ways of sort this without parsing and slicing
+                            var regex = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
+                            var groups = regex.exec(ip);
+                            if (angular.isDefined(groups)) {
+                                var g1 = ("00" + groups[1]).slice(-3);
+                                var g2 = ("00" + groups[2]).slice(-3);
+                                var g3 = ("00" + groups[3]).slice(-3);
+                                var g4 = ("00" + groups[4]).slice(-3);
+                                var answer = g1 + g2 + g3 + g4;
+                                console.log(answer);
+                                return answer;
+                            }
+                            else {
+                                return 0;
+                            }
+                        }
+                    }
+                ]
+            };
+            $scope.scrollGrid = angular.extend({ maxBodyHeight: 77 }, $scope.mygrid);
+        }]);
+})(DatatableTest || (DatatableTest = {}));
+
+angular.module("hawtio-ui-test-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("test-plugins/datatable/html/test.html","<div ng-controller=\"DatatableTest.SimpleTableTestController\">\r\n  <div class=\"row\">\r\n    <div class=\"section-header\">\r\n\r\n      <div class=\"section-filter\">\r\n        <input type=\"text\" class=\"search-query\" placeholder=\"Filter...\" ng-model=\"mygrid.filterOptions.filterText\">\r\n        <i class=\"fa fa-remove clickable\" title=\"Clear filter\" ng-click=\"mygrid.filterOptions.filterText = \'\'\"></i>\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n\r\n  <h3>hawtio-simple-table example</h3>\r\n\r\n  <table class=\"table table-striped table-bordered\" hawtio-simple-table=\"mygrid\"></table>\r\n\r\n  <div class=\"row\">\r\n    <p>Selected folks:</p>\r\n    <ul>\r\n      <li ng-repeat=\"person in mygrid.selectedItems\">{{person.name}}</li>\r\n    </ul>\r\n\r\n    <p>\r\n       <a class=\"btn\" href=\"\" ng-click=\"mygrid.multiSelect = !mygrid.multiSelect\">multi select is: {{mygrid.multiSelect}}</a>\r\n    </p>\r\n  </div>\r\n\r\n  <h3>hawtio-simple-table - fixed height</h3>\r\n\r\n  <table class=\"table table-striped table-bordered\" hawtio-simple-table=\"scrollGrid\"></table>\r\n\r\n  <div class=\"row\">\r\n    <p>Selected folks:</p>\r\n    <ul>\r\n      <li ng-repeat=\"person in scrollGrid.selectedItems\">{{person.name}}</li>\r\n    </ul>\r\n    <p>\r\n       <a class=\"btn\" href=\"\" ng-click=\"scrollGrid.multiSelect = !scrollGrid.multiSelect\">multi select is: {{scrollGrid.multiSelect}}</a>\r\n    </p>\r\n  </div>\r\n</div>\r\n");
+$templateCache.put("test-plugins/ui/html/auto-columns.html","<div ng-controller=\"UI.UITestController2\">\r\n\r\n  <div>\r\n    <div class=\"row\">\r\n      <h3>Auto Columns</h3>\r\n      <p>Lays out a bunch of inline-block child elements into columns automatically based on the size of the parent container.  Specify the selector for the child items as an argument</p>\r\n\r\n      <script type=\"text/ng-template\" id=\"autoColumnTemplate\">\r\n<div id=\"container\"\r\n     style=\"height: 225px;\r\n            width: 785px;\r\n            background: lightgrey;\r\n            border-radius: 4px;\"\r\n     hawtio-auto-columns=\".ex-children\"\r\n     min-margin=\"5\">\r\n  <div class=\"ex-children\"\r\n       style=\"display: inline-block;\r\n              width: 64px; height: 64px;\r\n              border-radius: 4px;\r\n              background: lightgreen;\r\n              text-align: center;\r\n              vertical-align: middle;\r\n              margin: 5px;\"\r\n       ng-repeat=\"div in divs\">{{div}}</div>\r\n</div>\r\n      </script>\r\n      <div hawtio-editor=\"autoColumnEx\" mode=\"fileUploadExMode\"></div>\r\n      <div class=\"directive-example\">\r\n        <div compile=\"autoColumnEx\"></div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n");
+>>>>>>> 610f438... log an error when there isn't a primary key
 $templateCache.put("test-plugins/ui/html/auto-dropdown.html","<div ng-controller=\"UI.UITestController2\">\r\n\r\n  <div>\r\n    <div class=\"row\">\r\n      <h3>Auto Drop Down</h3>\r\n      <p>Handy for horizontal lists of things like menus, if the width of the element is smaller than the items inside any overflowing elements will be collected into a special dropdown element that\'s required at the end of the list</p>\r\n      <script type=\"text/ng-template\" id=\"autoDropDownTemplate\">\r\n        <ul class=\"nav nav-tabs\" hawtio-auto-dropdown>\r\n          <!-- All of our menu items -->\r\n          <li ng-repeat=\"item in menuItems\">\r\n            <a href=\"\">{{item}}</a>\r\n          </li>\r\n          <!-- The dropdown that will collect overflow elements -->\r\n          <li class=\"dropdown overflow\" style=\"float: right !important; visibility: hidden;\">\r\n            <a href=\"\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">\r\n              <i class=\"fa fa-chevron-down\"></i>\r\n            </a>\r\n            <ul class=\"dropdown-menu right\"></ul>\r\n          </li>\r\n        </ul>\r\n      </script>\r\n      <div hawtio-editor=\"autoDropDown\" mode=\"fileUploadExMode\"></div>\r\n      <div class=\"directive-example\">\r\n        <div compile=\"autoDropDown\"></div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("test-plugins/ui/html/breadcrumbs.html","<div ng-controller=\"UI.UITestController2\">\r\n\r\n  <div>\r\n\r\n    <div class=\"row\">\r\n      <h3>BreadCrumbs</h3>\r\n      <p>A breadcrumb implementation that supports dropdowns for each node.  The data structure is a tree structure with a single starting node.  When the user makes a selection the directive will update the \'path\' property of the config object.  The directive also watches the \'path\' property, allowing you to also set the initial state of the breadcrumbs.</p>\r\n      <script type=\"text/ng-template\" id=\"breadcrumbTemplate\">\r\n<p>path: {{breadcrumbConfig.path}}</p>\r\n<ul class=\"nav nav-tabs\">\r\n<hawtio-breadcrumbs config=\"breadcrumbConfig\"></hawtio-breadcrumbs>\r\n</ul>\r\n      </script>\r\n      <h5>HTML</h5>\r\n      <div hawtio-editor=\"breadcrumbEx\" mode=\"fileUploadExMode\"></div>\r\n      <h5>JSON</h5>\r\n      <div hawtio-editor=\"breadcrumbConfigTxt\" mode=\"javascript\"></div>\r\n      <div class=\"directive-example\">\r\n        <div compile=\"breadcrumbEx\"></div>\r\n      </div>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("test-plugins/ui/html/color-picker.html","<div ng-controller=\"UI.UITestController1\">\r\n\r\n  <div class=\"row\">\r\n    <h3>Color picker</h3>\r\n\r\n    <p>Currently used on the preferences page to associate a color with a given URL regex</p>\r\n\r\n    <div hawtio-editor=\"colorPickerEx\" mode=\"fileUploadExMode\"></div>\r\n    <div class=\"directive-example\">\r\n      <div compile=\"colorPickerEx\"></div>\r\n    </div>\r\n    <hr>\r\n  </div>\r\n\r\n\r\n</div>\r\n");

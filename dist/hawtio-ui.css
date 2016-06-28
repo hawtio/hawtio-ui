@@ -2213,6 +2213,30 @@ div.scroll-body-table-wrapper {
   height: auto;
 }
 
+.dynatree-container {
+  background: inherit;
+  overflow: visible;
+}
+.dynatree-container li {
+  background: inherit;
+}
+.dynatree-container a {
+  margin: inherit !important;
+}
+.dynatree-container .dynatree-node > img {
+  vertical-align: middle;
+}
+span.dynatree-expander {
+  color: #728271;
+  vertical-align: top;
+}
+span.dynatree-icon {
+  color: #EECA7C;
+}
+span:not(.dynatree-has-children) .dynatree-icon:before {
+  color: gray;
+}
+
 .badge {
   display: inline-block;
   padding: 2px 4px;
@@ -3240,28 +3264,4 @@ ul.inline > li {
 }
 .strong {
   font-weight: bold;
-}
-
-.dynatree-container {
-  background: inherit;
-  overflow: visible;
-}
-.dynatree-container li {
-  background: inherit;
-}
-.dynatree-container a {
-  margin: inherit !important;
-}
-.dynatree-container .dynatree-node > img {
-  vertical-align: middle;
-}
-span.dynatree-expander {
-  color: #728271;
-  vertical-align: top;
-}
-span.dynatree-icon {
-  color: #EECA7C;
-}
-span:not(.dynatree-has-children) .dynatree-icon:before {
-  color: gray;
 }
