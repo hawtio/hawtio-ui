@@ -149,7 +149,7 @@ var DataTable;
                         selectionArray.splice(0, selectionArray.length);
                         angular.forEach($scope.rows, function (row) {
                             row.selected = newFlag;
-                            if (allRowsSelected) {
+                            if (allRowsSelected && $scope.showRow(row)) {
                                 selectionArray.push(row.entity);
                             }
                         });
