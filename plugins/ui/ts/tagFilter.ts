@@ -105,7 +105,9 @@ module UI {
           }
         });
         $scope.$watchCollection('selected', (selected) => {
-          $scope.selected = _.uniq(selected);
+          var unique = _.uniq(selected);
+          $scope.selected.length = 0;
+          $scope.selected.push(...unique);
 
           //log.debug("newValue: ", $scope.selected);
           //TODO
