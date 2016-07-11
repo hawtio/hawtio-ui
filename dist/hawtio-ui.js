@@ -3868,9 +3868,7 @@ var UI;
                         }
                     });
                     $scope.$watchCollection('selected', function (selected) {
-                        var unique = _.uniq(selected);
-                        $scope.selected.length = 0;
-                        (_a = $scope.selected).push.apply(_a, unique);
+                        $scope.selected = _.uniq(selected);
                         //log.debug("newValue: ", $scope.selected);
                         //TODO
                         /*
@@ -3881,7 +3879,6 @@ var UI;
                         }
                         */
                         maybeFilterVisibleTags();
-                        var _a;
                     });
                 }
             };
