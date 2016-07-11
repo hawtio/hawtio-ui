@@ -110,9 +110,11 @@ var DataTable;
                                 DataTable.log.debug("Data changed so keep selecting row at index " + row.index);
                             }
                         });
-                        config.selectedItems = reSelectedItems;
+                        config.selectedItems.length = 0;
+                        (_a = config.selectedItems).push.apply(_a, reSelectedItems);
                         Core.pathSet(scope, ['hawtioSimpleTable', dataName, 'rows'], rows);
                         $scope.rows = rows;
+                        var _a;
                     };
                     scope.$watchCollection(dataName, listener);
                     // lets add a separate event so we can force updates
@@ -3866,7 +3868,9 @@ var UI;
                         }
                     });
                     $scope.$watchCollection('selected', function (selected) {
-                        $scope.selected = _.uniq(selected);
+                        var unique = _.uniq(selected);
+                        $scope.selected.length = 0;
+                        (_a = $scope.selected).push.apply(_a, unique);
                         //log.debug("newValue: ", $scope.selected);
                         //TODO
                         /*
@@ -3877,6 +3881,7 @@ var UI;
                         }
                         */
                         maybeFilterVisibleTags();
+                        var _a;
                     });
                 }
             };
