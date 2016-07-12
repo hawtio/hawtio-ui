@@ -26,7 +26,9 @@ module UITest {
                      .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
                      .subPath('Auto Columns', 'auto-columns', builder.join(path, 'auto-columns.html'))
                      .subPath('Template Popover', 'template-popover', builder.join(path, 'template-popover.html'))
+                     .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                      .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
+                     .subPath('Zero Clipboard', 'zero-clipboard', builder.join(path, 'zero-clipboard.html'))
                    .build();
 
     tab1 = builder.create()
@@ -37,14 +39,12 @@ module UITest {
                      .subPath('Breadcrumbs', 'breadcrumbs', builder.join(path, 'breadcrumbs.html'))
                      .subPath('Color Picker', 'color-picker', builder.join(path, 'color-picker.html'))
                      .subPath('Confirm Dialog', 'confirm-dialog', builder.join(path, 'confirm-dialog.html'))
-                     .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                      .subPath('Editable Property', 'editable-property', builder.join(path, 'editable-property.html'))
                      .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
                      //.subPath('File Upload', 'file-upload', builder.join(path, 'file-upload.html'))
                      .subPath('JSPlumb', 'jsplumb', builder.join(path, 'jsplumb.html'))
                      .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                      .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
-                     .subPath('Zero Clipboard', 'zero-clipboard', builder.join(path, 'zero-clipboard.html'))
                    .build();
 
     builder.configureRouting($routeProvider, tab1);

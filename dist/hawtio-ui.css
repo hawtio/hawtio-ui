@@ -2110,10 +2110,6 @@ ul.nav select {
   margin-top: 10px;
 }
 
-.editor-autoresize .CodeMirror {
-  height: auto;
-}
-
 .dataTables_filter label {
   margin-bottom: 0px;
 }
@@ -2211,6 +2207,10 @@ table.scroll-body-table tr:last-child td {
 }
 div.scroll-body-table-wrapper {
   overflow-y: scroll;
+}
+
+.editor-autoresize .CodeMirror {
+  height: auto;
 }
 
 .dynatree-container {
