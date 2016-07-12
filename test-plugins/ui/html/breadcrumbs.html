@@ -1,12 +1,42 @@
 <div ng-controller="UI.UITestController2">
   <script type="text/ng-template" id="breadcrumbTemplate">
-    <h3>path: {{breadcrumbConfig.path}}</h3>
+    <p><b>path: {{breadcrumbConfig.path}}</b></p>
     <hawtio-breadcrumbs config="breadcrumbConfig"></hawtio-breadcrumbs>
   </script>
   <div class="row">
     <div class="col-md-6">
       <h3>BreadCrumbs</h3>
-      <p>A breadcrumb implementation that supports dropdowns for each node.  The data structure is a tree structure with a single starting node.  When the user makes a selection the directive will update the 'path' property of the config object.  The directive also watches the 'path' property, allowing you to also set the initial state of the breadcrumbs.</p>
+      <p>A breadcrumb implementation that supports dropdowns for each node.  The data structure is a tree structure with a single starting node.  When the user makes a selection the directive will update the 'path' property of the config object.  The directive also watches the 'path' property, allowing you to also set the initial state of the breadcrumbs.  Config options are:</p>
+      <dl>
+        <dt>
+          path
+        </dt>
+        <dd>
+          attribute that holds the current selected path of the breadcrumb widget
+        </dd>
+        <dt>
+          title
+        </dt>
+        <dd>
+          The name and path element of the breadcrumb entry
+        </dd>
+        <dt>
+          icon
+        </dt>
+        <dd>
+          font-awesome icon class for the breadcrumb entry
+        </dd>
+        <dt>
+          items
+        </dt>
+        <dd>
+          array of child breadcrumb items
+        </dd>
+      </dl>
+      <p class="well">
+        TODO - it'd be helpful to make this breadcrumb work with an async config, where the entire tree isn't known up front, see <a href="https://github.com/hawtio/hawtio-ui/issues/34">this issue</a>
+      </p>
+      <h5>Live example</h5>
       <div class="directive-example">
         <div compile="breadcrumbEx"></div>
       </div>
