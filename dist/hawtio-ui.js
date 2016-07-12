@@ -2691,7 +2691,6 @@ var UI;
      * @returns {{}}
      */
     function hawtioIcon() {
-        UI.log.debug("Creating icon directive");
         return {
             restrict: 'E',
             replace: true,
@@ -2704,7 +2703,7 @@ var UI;
                     return;
                 }
                 if (!('type' in $scope.icon) && !Core.isBlank($scope.icon.src)) {
-                    if ($scope.icon.src.startsWith("fa fa-")) {
+                    if (_.startsWith($scope.icon.src, "fa fa-")) {
                         $scope.icon.type = "icon";
                     }
                     else {
