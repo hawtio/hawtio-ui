@@ -2285,6 +2285,22 @@ span:not(.dynatree-has-children) .dynatree-icon:before {
   background-color: #1a1a1a;
 }
 
+.hawtio-breadcrumbs > ul {
+  padding: 0;
+  margin-bottom: 0;
+}
+.hawtio-breadcrumbs > ul > li {
+  list-style-type: none;
+  display: inline-block;
+}
+.hawtio-breadcrumbs .hawtio-breadcrumbs-menu {
+  display: inline-block;
+}
+.hawtio-breadcrumbs .hawtio-breadcrumbs-divider {
+  margin-left: 7px;
+  margin-right: 7px;
+}
+
 .color-picker {
   display: inline-block;
   position: relative;
