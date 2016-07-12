@@ -18,24 +18,22 @@
 
   <script type="text/ng-template" id="withoutsubmenus.html">
     <span class="hawtio-dropdown dropdown" ng-class="open(config)" ng-click="action(config, $event)">
-      <p ng-show="config.heading" ng-bind="config.heading"></p>
-      <span ng-show="config.title">
+      <p ng-if="config.heading" ng-bind="config.heading"></p>
+      <span ng-if="config.title">
         <i ng-class="icon(config)"></i>&nbsp;<span ng-bind="config.title"></span>
-        <span ng-show="config.items && config.items.length > 0" class="caret"></span>
+        <span ng-if="config.items && config.items.length > 0" class="caret"></span>
      </span>
 
-      <ul ng-hide="config.action" ng-show="config.items" class="dropdown-menu" ng-class="submenu(config)">
+      <ul ng-if="!config.action && config.items" class="dropdown-menu" ng-class="submenu(config)">
         <li ng-repeat="item in config.items track by $index" hawtio-show object-name="{{item.objectName}}" method-name="{{item.methodName}}" argument-types="{{item.argumentTypes}}" mode="remove">
           <span class="menu-item" ng-click="action(item, $event)">
             <i ng-class="icon(item)"></i>&nbsp;<span ng-bind="item.title"></span>
-            <span ng-show="item.items" class="submenu-caret"></span>
+            <span ng-if="item.items" class="submenu-caret"></span>
           </span>
         </li>
       </ul>
 
     </span>
   </script>
-
   <span compile="menuStyle"></span>
-
 </span>

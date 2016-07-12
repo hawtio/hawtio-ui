@@ -19,63 +19,40 @@ module UI {
 
         $scope.levels = {};
 
+        function resetAction(list) {
+          _.forEach(list, (item) => item.action = $scope.action);
+        }
+
+        function lastLevel() {
+          var last = _.last(_.sortBy(_.keys($scope.levels), ""));
+          return last;
+        }
+
+        $scope.isLastLevel = (level) => {
+          return level === lastLevel();
+        }
+
         $scope.itemClicked = (config, $event) => {
-          //log.debug("Item clicked: ", config);
-
-          if (config.level && angular.isNumber(config.level)) {
+          if (angular.isDefined(config.level)) {
             $scope.levels[config.level] = config;
-
             var keys = _.sortBy(_.keys($scope.levels), "");
             var toRemove = keys.slice(config.level + 1);
-
-            toRemove.forEach((i) => {
-              if (i in $scope.levels) {
-                $scope.levels[i] = {};
-                delete $scope.levels[i];
-              }
+            _.forEach(toRemove, (i) => delete $scope.levels[i]);
+            var keys = _.sortBy(_.keys($scope.levels), "");
+            var path = [];
+            _.forEach(keys, (key) => {
+              path.push($scope.levels[key]['title']);
             });
-            // reset any previously deleted action
-            angular.forEach($scope.levels, (value, key) => {
-              if (value.items && value.items.length > 0) {
-                value.items.forEach((i) => {
-                  //log.debug("Resetting action: ", i);
-                  i['action'] = $scope.action;
-                });
-              }
-            });
-            if (config.items) {
-              config.open = true;
-              config.items.forEach((i) => {
-                i['action'] = $scope.action;
-              });
-              delete config.action;
-            } else {
-              //ooh we picked a thing!
-              var keys = _.sortBy(_.keys($scope.levels), "");
-              var path = [];
-              keys.forEach((key) => {
-                path.push($scope.levels[key]['title']);
-              });
-              var pathString = '/' + path.join("/");
-              $scope.config.path = pathString
-            }
-
-            // for some reason levels > 1 get two click events :-S
-            if (config.level > 1) {
-              $event.preventDefault();
-              $event.stopPropagation();
-            }
+            var pathString = '/' + path.join("/");
+            $scope.config.path = pathString
           }
         };
 
         function addAction(config, level) {
           config.level = level;
-          if (level > 0) {
-            config.breadcrumbAction = config.action;
-            config.action = $scope.action;
-          }
+          config.action = $scope.action;
           if (config.items) {
-            config.items.forEach((item) => {
+            _.forEach(config.items, (item) => {
               addAction(item, level + 1);
             });
           }
@@ -85,54 +62,43 @@ module UI {
           if (pathParts.length === 0) {
             return;
           }
-          var part = pathParts.removeAt(0)[0];
-          //log.debug("config: ", config, " checking part: ", part, " pathParts: ", pathParts);
-
+          var part = pathParts.shift();
           if (config && config.items) {
             var matched = false;
-            config.items.forEach((item) => {
-              //log.debug("checking item: ", item, " against part: ", part);
+            _.forEach(config.items, (item) => {
               if (!matched && item['title'] === part) {
-                //log.debug("Found match");
                 matched = true;
                 $scope.levels[level] = item;
                 setLevels(item, pathParts, level + 1);
               }
             });
           }
+          var last = lastLevel();
+          _.forOwn($scope.levels, (config, level) => {
+            config.open = level === last;
+            delete config.action;
+            resetAction(config.items);
+          });
         }
 
         // watch to see if the parent scope changes the path
-        $scope.$watch('config.path', (newValue, oldValue) => {
-          if (!Core.isBlank(newValue)) {
-            var pathParts = newValue.split('/').exclude((p) => { return Core.isBlank(p); });
-            //log.debug("path: ", newValue);
-            //log.debug("pathParts: ", pathParts);
-            var matches = true;
-            pathParts.forEach((part, index) => {
-              //log.debug("Checking part: ", part, " index: ", index)
-              if (!matches) {
-                return;
-              }
-              if (!$scope.levels[index] || Core.isBlank($scope.levels[index]['title']) || $scope.levels[index]['title'] !== part) {
-                matches = false;
+        $scope.$watch('config.path', (path) => {
+          if (!Core.isBlank(path)) {
+            var pathParts = _.filter(path.split('/'), (p:string) => !Core.isBlank(p));
+            // adjust $scope.levels to match the path
+            _.forEach(_.keys($scope.levels), (key:number) => {
+              if (key > 0) {
+                delete $scope.levels[key];
               }
             });
-            //log.debug("matches: ", matches);
-            if (matches) {
-              return;
-            }
-
-            // adjust $scope.levels to match the path
-            $scope.levels = [];
-            $scope.levels['0'] = $scope.config;
-            setLevels($scope.config, pathParts.from(0), 1);
+            setLevels($scope.config, _.rest(pathParts), 1);
           }
         });
 
         $scope.$watch('config', (newValue, oldValue) => {
           addAction($scope.config, 0);
-          $scope.levels['0'] = $scope.config;
+          delete $scope.config.action;
+          $scope.levels[0] = $scope.config;
         });
       }]
     }

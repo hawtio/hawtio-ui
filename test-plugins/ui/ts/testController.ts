@@ -79,7 +79,7 @@ module UITest {
       $scope.breadcrumbSelection = 1;
 
       $scope.breadcrumbConfig = {
-        path: '/root/first child',
+        path: '/root',
         icon: 'fa fa-cogs',
         title: 'root',
         items: [{
