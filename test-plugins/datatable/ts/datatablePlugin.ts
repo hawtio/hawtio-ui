@@ -1,26 +1,27 @@
 ///<reference path="../../includes.ts"/>
 
 module DatatableTest {
+
   var pluginName = "datatable-test";
   export var templatePath = "test-plugins/datatable/html";
   export var _module = angular.module(pluginName, []);
 
-  _module.config(["$routeProvider", ($routeProvider) => {
-    $routeProvider.
-        when('/datatable/test', {templateUrl: UrlHelpers.join(templatePath, 'test.html')});
+  var simpleTableTab = null;
+
+  _module.config(["$routeProvider", 'HawtioNavBuilderProvider', ($routeProvider, builder) => {
+    simpleTableTab = builder.create()
+      .id(pluginName)
+      .title(() => "Tables")
+      .href(() => "/datatable")
+      .subPath("Simple Table", "simple-table", builder.join(templatePath, "simple-table.html"), 1)
+      .build();
+     
+     builder.configureRouting($routeProvider, simpleTableTab);
   }]);
 
   _module.run(['HawtioNav', (nav) => {
-    var builder = nav.builder();
-    nav.add(builder.id(pluginName)
-                   .href(() => '/datatable/test')
-                   .title(() => 'Tables')
-                   .build());
-
-
+    nav.add(simpleTableTab);
   }]);
-
-
 
   hawtioPluginLoader.addModule(pluginName);
 

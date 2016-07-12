@@ -1,10 +1,42 @@
 <div ng-controller="UI.UITestController1">
-
-  <div>
-    <div class="row">
+  <script type="text/ng-template" id="pagerExample.html">
+    <div>
+      <div class="btn-group" hawtio-pager="messages" on-index-change="selectRow" row-index="rowIndex"></div>
+      <pre>{{getMessage(rowIndex) | json}}</pre>
+    </div>
+  </script>
+  <div class="row">
+    <div class="col-md-6">
       <h3>Pager</h3>
-      <hr>
+      <p>Widget used to navigate an array of data by element.  Handy for tabular data.  Configuration consists of:</p>
+      <dl>
+        <dt>
+          hawtio-pager
+        </dt>
+        <dd>
+          The array that the pager will track.
+        </dd>
+        <dt>
+          on-index-change
+        </dt>
+        <dd>
+          Name of a function in your controller that the directive will call when the user clicks a button on the pager.  The function will receive the new index value.  Use this to set the index and to perform any required actions when the user clicks one of the pager buttons.
+        </dd>
+        <dt>
+          row-index
+        </dt>
+        <dd>
+          Name of the variable in your controller that will track the current index in the array.
+        </dd>
+      </dl>
+    </div>
+    <div class="col-md-6">
+      <h5>Example HTML</h5>
+      <div hawtio-editor="pagerExampleHtml" mode="html"></div>
+      <h5>Live Example</h5>
+      <div class="directive-example">
+        <div compile="pagerExampleHtml"></div>
+      </div>
     </div>
   </div>
-
 </div>
