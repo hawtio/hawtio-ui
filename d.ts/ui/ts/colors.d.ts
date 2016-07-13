@@ -1,3 +1,4 @@
+/// <reference path="uiPlugin.d.ts" />
 declare module UI {
     /**
      * Pre defined colors used in the color picker

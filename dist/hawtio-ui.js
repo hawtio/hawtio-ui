@@ -420,331 +420,6 @@ var DataTable;
 })(DataTable || (DataTable = {}));
 
 /// <reference path="../../includes.ts"/>
-/**
- * Module that contains several helper functions related to hawtio's code editor
- *
- * @module CodeEditor
- * @main CodeEditor
- */
-var CodeEditor;
-(function (CodeEditor) {
-    /**
-     * @property GlobalCodeMirrorOptions
-     * @for CodeEditor
-     * @type CodeMirrorOptions
-     */
-    CodeEditor.GlobalCodeMirrorOptions = {
-        theme: "default",
-        tabSize: 4,
-        lineNumbers: true,
-        indentWithTabs: true,
-        lineWrapping: true,
-        autoCloseTags: true
-    };
-    /**
-     * Tries to figure out what kind of text we're going to render in the editor, either
-     * text, javascript or XML.
-     *
-     * @method detectTextFormat
-     * @for CodeEditor
-     * @static
-     * @param value
-     * @returns {string}
-     */
-    function detectTextFormat(value) {
-        var answer = "text";
-        if (value) {
-            answer = "javascript";
-            var trimmed = _.trim(value);
-            if (trimmed && _.startsWith(trimmed, '<') && _.endsWith(trimmed, '>')) {
-                answer = "xml";
-            }
-        }
-        return answer;
-    }
-    CodeEditor.detectTextFormat = detectTextFormat;
-    /**
-     * Auto formats the CodeMirror editor content to pretty print
-     *
-     * @method autoFormatEditor
-     * @for CodeEditor
-     * @static
-     * @param {CodeMirrorEditor} editor
-     * @return {void}
-     */
-    function autoFormatEditor(editor) {
-        if (editor) {
-            var totalLines = editor.lineCount();
-            //var totalChars = editor.getValue().length;
-            var start = { line: 0, ch: 0 };
-            var end = { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length };
-            editor.autoFormatRange(start, end);
-            editor.setSelection(start, start);
-        }
-    }
-    CodeEditor.autoFormatEditor = autoFormatEditor;
-    /**
-     * Used to configures the default editor settings (per Editor Instance)
-     *
-     * @method createEditorSettings
-     * @for CodeEditor
-     * @static
-     * @param {Object} options
-     * @return {Object}
-     */
-    function createEditorSettings(options) {
-        if (options === void 0) { options = {}; }
-        options.extraKeys = options.extraKeys || {};
-        // Handle Mode
-        (function (mode) {
-            mode = mode || { name: "text" };
-            if (typeof mode !== "object") {
-                mode = { name: mode };
-            }
-            var modeName = mode.name;
-            if (modeName === "javascript") {
-                angular.extend(mode, {
-                    "json": true
-                });
-            }
-        })(options.mode);
-        // Handle Code folding folding
-        (function (options) {
-            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
-            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
-            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
-            // So don't have to listen to the options model and deal with re-attaching events etc...
-            var foldFunction = function (codeMirror, line) {
-                var mode = codeMirror.getOption("mode");
-                var modeName = mode["name"];
-                if (!mode || !modeName)
-                    return;
-                if (modeName === 'javascript') {
-                    javascriptFolding(codeMirror, line);
-                }
-                else if (modeName === "xml" || _.startsWith(modeName, "html")) {
-                    xmlFolding(codeMirror, line);
-                }
-                ;
-            };
-            options.onGutterClick = foldFunction;
-            options.extraKeys = angular.extend(options.extraKeys, {
-                "Ctrl-Q": function (codeMirror) {
-                    foldFunction(codeMirror, codeMirror.getCursor().line);
-                }
-            });
-        })(options);
-        var readOnly = options.readOnly;
-        if (!readOnly) {
-            /*
-             options.extraKeys = angular.extend(options.extraKeys, {
-             "'>'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '>');
-             },
-             "'/'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '/');
-             }
-             });
-             */
-            options.matchBrackets = true;
-        }
-        // Merge the global config in to this instance of CodeMirror
-        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
-        return options;
-    }
-    CodeEditor.createEditorSettings = createEditorSettings;
-})(CodeEditor || (CodeEditor = {}));
-
-/// <reference path="../../includes.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor.pluginName = "hawtio-editor";
-    HawtioEditor.templatePath = "plugins/editor/html";
-    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorGlobals.ts"/>
-/// <reference path="CodeEditor.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
-    HawtioEditor._module.run(function () {
-        HawtioEditor.log.debug("loaded");
-    });
-    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorPlugin.ts"/>
-/// <reference path="CodeEditor.ts"/>
-/**
- * @module HawtioEditor
- */
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
-            return HawtioEditor.Editor($parse);
-        }]);
-    function Editor($parse) {
-        return {
-            restrict: 'A',
-            replace: true,
-            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
-            scope: {
-                text: '=hawtioEditor',
-                mode: '=',
-                readOnly: '=?',
-                outputEditor: '@',
-                name: '@'
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                    $scope.codeMirror = null;
-                    $scope.doc = null;
-                    $scope.options = [];
-                    UI.observe($scope, $attrs, 'name', 'editor');
-                    $scope.applyOptions = function () {
-                        if ($scope.codeMirror) {
-                            _.forEach($scope.options, function (option) {
-                                try {
-                                    $scope.codeMirror.setOption(option.key, option.value);
-                                }
-                                catch (err) {
-                                }
-                            });
-                        }
-                    };
-                    $scope.$watch(_.debounce(function () {
-                        if ($scope.codeMirror) {
-                            $scope.codeMirror.refresh();
-                        }
-                    }, 100, { trailing: true }));
-                    $scope.$watch('codeMirror', function () {
-                        if ($scope.codeMirror) {
-                            $scope.doc = $scope.codeMirror.getDoc();
-                            $scope.codeMirror.on('change', function (changeObj) {
-                                $scope.text = $scope.doc.getValue();
-                                $scope.dirty = !$scope.doc.isClean();
-                                Core.$apply($scope);
-                            });
-                        }
-                    });
-                }],
-            link: function ($scope, $element, $attrs) {
-                if ('dirty' in $attrs) {
-                    $scope.dirtyTarget = $attrs['dirty'];
-                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            $scope.dirty = newValue;
-                        }
-                    });
-                }
-                var config = _.cloneDeep($attrs);
-                delete config['$$observers'];
-                delete config['$$element'];
-                delete config['$attr'];
-                delete config['class'];
-                delete config['hawtioEditor'];
-                delete config['mode'];
-                delete config['dirty'];
-                delete config['outputEditor'];
-                if ('onChange' in $attrs) {
-                    var onChange = $attrs['onChange'];
-                    delete config['onChange'];
-                    $scope.options.push({
-                        onChange: function (codeMirror) {
-                            var func = $parse(onChange);
-                            if (func) {
-                                func($scope.$parent, { codeMirror: codeMirror });
-                            }
-                        }
-                    });
-                }
-                angular.forEach(config, function (value, key) {
-                    $scope.options.push({
-                        key: key,
-                        'value': value
-                    });
-                });
-                $scope.$watch('mode', function () {
-                    if ($scope.mode) {
-                        if (!$scope.codeMirror) {
-                            $scope.options.push({
-                                key: 'mode',
-                                'value': $scope.mode
-                            });
-                        }
-                        else {
-                            $scope.codeMirror.setOption('mode', $scope.mode);
-                        }
-                    }
-                });
-                $scope.$watch('readOnly', function (readOnly) {
-                    var val = Core.parseBooleanValue(readOnly, false);
-                    if ($scope.codeMirror) {
-                        $scope.codeMirror.setOption('readOnly', val);
-                    }
-                    else {
-                        $scope.options.push({
-                            key: 'readOnly',
-                            value: val
-                        });
-                    }
-                });
-                function getEventName(type) {
-                    var name = $scope.name || 'default';
-                    return "hawtioEditor_" + name + "_" + type;
-                }
-                $scope.$watch('dirty', function (dirty) {
-                    if ('dirtyTarget' in $scope) {
-                        $scope.$parent[$scope.dirtyTarget] = dirty;
-                    }
-                    $scope.$emit(getEventName('dirty'), dirty);
-                });
-                /*
-                $scope.$watch(() => { return $element.is(':visible'); }, (newValue, oldValue) => {
-                  if (newValue !== oldValue && $scope.codeMirror) {
-                      $scope.codeMirror.refresh();
-                  }
-                });
-                */
-                $scope.$watch('text', function (text) {
-                    if (!text) {
-                        return;
-                    }
-                    if (!$scope.codeMirror) {
-                        var options = {
-                            value: text
-                        };
-                        options = CodeEditor.createEditorSettings(options);
-                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
-                        var outputEditor = $scope.outputEditor;
-                        if (outputEditor) {
-                            var outputScope = $scope.$parent || $scope;
-                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
-                        }
-                        $scope.applyOptions();
-                        $scope.$emit(getEventName('instance'), $scope.codeMirror);
-                    }
-                    else if ($scope.doc) {
-                        if (!$scope.codeMirror.hasFocus()) {
-                            var text = $scope.text || "";
-                            if (angular.isArray(text) || angular.isObject(text)) {
-                                text = JSON.stringify(text, null, "  ");
-                                $scope.mode = "javascript";
-                                $scope.codeMirror.setOption("mode", "javascript");
-                            }
-                            $scope.doc.setValue(text);
-                            $scope.doc.markClean();
-                            $scope.dirty = false;
-                        }
-                    }
-                });
-            }
-        };
-    }
-    HawtioEditor.Editor = Editor;
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="../../includes.ts"/>
 /// <reference path="forceGraphDirective.ts"/>
 /**
  * Force Graph plugin & directive
@@ -1148,6 +823,331 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
+
+/// <reference path="../../includes.ts"/>
+/**
+ * Module that contains several helper functions related to hawtio's code editor
+ *
+ * @module CodeEditor
+ * @main CodeEditor
+ */
+var CodeEditor;
+(function (CodeEditor) {
+    /**
+     * @property GlobalCodeMirrorOptions
+     * @for CodeEditor
+     * @type CodeMirrorOptions
+     */
+    CodeEditor.GlobalCodeMirrorOptions = {
+        theme: "default",
+        tabSize: 4,
+        lineNumbers: true,
+        indentWithTabs: true,
+        lineWrapping: true,
+        autoCloseTags: true
+    };
+    /**
+     * Tries to figure out what kind of text we're going to render in the editor, either
+     * text, javascript or XML.
+     *
+     * @method detectTextFormat
+     * @for CodeEditor
+     * @static
+     * @param value
+     * @returns {string}
+     */
+    function detectTextFormat(value) {
+        var answer = "text";
+        if (value) {
+            answer = "javascript";
+            var trimmed = _.trim(value);
+            if (trimmed && _.startsWith(trimmed, '<') && _.endsWith(trimmed, '>')) {
+                answer = "xml";
+            }
+        }
+        return answer;
+    }
+    CodeEditor.detectTextFormat = detectTextFormat;
+    /**
+     * Auto formats the CodeMirror editor content to pretty print
+     *
+     * @method autoFormatEditor
+     * @for CodeEditor
+     * @static
+     * @param {CodeMirrorEditor} editor
+     * @return {void}
+     */
+    function autoFormatEditor(editor) {
+        if (editor) {
+            var totalLines = editor.lineCount();
+            //var totalChars = editor.getValue().length;
+            var start = { line: 0, ch: 0 };
+            var end = { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length };
+            editor.autoFormatRange(start, end);
+            editor.setSelection(start, start);
+        }
+    }
+    CodeEditor.autoFormatEditor = autoFormatEditor;
+    /**
+     * Used to configures the default editor settings (per Editor Instance)
+     *
+     * @method createEditorSettings
+     * @for CodeEditor
+     * @static
+     * @param {Object} options
+     * @return {Object}
+     */
+    function createEditorSettings(options) {
+        if (options === void 0) { options = {}; }
+        options.extraKeys = options.extraKeys || {};
+        // Handle Mode
+        (function (mode) {
+            mode = mode || { name: "text" };
+            if (typeof mode !== "object") {
+                mode = { name: mode };
+            }
+            var modeName = mode.name;
+            if (modeName === "javascript") {
+                angular.extend(mode, {
+                    "json": true
+                });
+            }
+        })(options.mode);
+        // Handle Code folding folding
+        (function (options) {
+            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
+            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
+            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
+            // So don't have to listen to the options model and deal with re-attaching events etc...
+            var foldFunction = function (codeMirror, line) {
+                var mode = codeMirror.getOption("mode");
+                var modeName = mode["name"];
+                if (!mode || !modeName)
+                    return;
+                if (modeName === 'javascript') {
+                    javascriptFolding(codeMirror, line);
+                }
+                else if (modeName === "xml" || _.startsWith(modeName, "html")) {
+                    xmlFolding(codeMirror, line);
+                }
+                ;
+            };
+            options.onGutterClick = foldFunction;
+            options.extraKeys = angular.extend(options.extraKeys, {
+                "Ctrl-Q": function (codeMirror) {
+                    foldFunction(codeMirror, codeMirror.getCursor().line);
+                }
+            });
+        })(options);
+        var readOnly = options.readOnly;
+        if (!readOnly) {
+            /*
+             options.extraKeys = angular.extend(options.extraKeys, {
+             "'>'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '>');
+             },
+             "'/'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '/');
+             }
+             });
+             */
+            options.matchBrackets = true;
+        }
+        // Merge the global config in to this instance of CodeMirror
+        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
+        return options;
+    }
+    CodeEditor.createEditorSettings = createEditorSettings;
+})(CodeEditor || (CodeEditor = {}));
+
+/// <reference path="../../includes.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor.pluginName = "hawtio-editor";
+    HawtioEditor.templatePath = "plugins/editor/html";
+    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="editorGlobals.ts"/>
+/// <reference path="CodeEditor.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
+    HawtioEditor._module.run(function () {
+        HawtioEditor.log.debug("loaded");
+    });
+    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+
+/// <reference path="editorPlugin.ts"/>
+/// <reference path="CodeEditor.ts"/>
+/**
+ * @module HawtioEditor
+ */
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
+            return HawtioEditor.Editor($parse);
+        }]);
+    function Editor($parse) {
+        return {
+            restrict: 'A',
+            replace: true,
+            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
+            scope: {
+                text: '=hawtioEditor',
+                mode: '=',
+                readOnly: '=?',
+                outputEditor: '@',
+                name: '@'
+            },
+            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                    $scope.codeMirror = null;
+                    $scope.doc = null;
+                    $scope.options = [];
+                    UI.observe($scope, $attrs, 'name', 'editor');
+                    $scope.applyOptions = function () {
+                        if ($scope.codeMirror) {
+                            _.forEach($scope.options, function (option) {
+                                try {
+                                    $scope.codeMirror.setOption(option.key, option.value);
+                                }
+                                catch (err) {
+                                }
+                            });
+                        }
+                    };
+                    $scope.$watch(_.debounce(function () {
+                        if ($scope.codeMirror) {
+                            $scope.codeMirror.refresh();
+                        }
+                    }, 100, { trailing: true }));
+                    $scope.$watch('codeMirror', function () {
+                        if ($scope.codeMirror) {
+                            $scope.doc = $scope.codeMirror.getDoc();
+                            $scope.codeMirror.on('change', function (changeObj) {
+                                $scope.text = $scope.doc.getValue();
+                                $scope.dirty = !$scope.doc.isClean();
+                                Core.$apply($scope);
+                            });
+                        }
+                    });
+                }],
+            link: function ($scope, $element, $attrs) {
+                if ('dirty' in $attrs) {
+                    $scope.dirtyTarget = $attrs['dirty'];
+                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            $scope.dirty = newValue;
+                        }
+                    });
+                }
+                var config = _.cloneDeep($attrs);
+                delete config['$$observers'];
+                delete config['$$element'];
+                delete config['$attr'];
+                delete config['class'];
+                delete config['hawtioEditor'];
+                delete config['mode'];
+                delete config['dirty'];
+                delete config['outputEditor'];
+                if ('onChange' in $attrs) {
+                    var onChange = $attrs['onChange'];
+                    delete config['onChange'];
+                    $scope.options.push({
+                        onChange: function (codeMirror) {
+                            var func = $parse(onChange);
+                            if (func) {
+                                func($scope.$parent, { codeMirror: codeMirror });
+                            }
+                        }
+                    });
+                }
+                angular.forEach(config, function (value, key) {
+                    $scope.options.push({
+                        key: key,
+                        'value': value
+                    });
+                });
+                $scope.$watch('mode', function () {
+                    if ($scope.mode) {
+                        if (!$scope.codeMirror) {
+                            $scope.options.push({
+                                key: 'mode',
+                                'value': $scope.mode
+                            });
+                        }
+                        else {
+                            $scope.codeMirror.setOption('mode', $scope.mode);
+                        }
+                    }
+                });
+                $scope.$watch('readOnly', function (readOnly) {
+                    var val = Core.parseBooleanValue(readOnly, false);
+                    if ($scope.codeMirror) {
+                        $scope.codeMirror.setOption('readOnly', val);
+                    }
+                    else {
+                        $scope.options.push({
+                            key: 'readOnly',
+                            value: val
+                        });
+                    }
+                });
+                function getEventName(type) {
+                    var name = $scope.name || 'default';
+                    return "hawtioEditor_" + name + "_" + type;
+                }
+                $scope.$watch('dirty', function (dirty) {
+                    if ('dirtyTarget' in $scope) {
+                        $scope.$parent[$scope.dirtyTarget] = dirty;
+                    }
+                    $scope.$emit(getEventName('dirty'), dirty);
+                });
+                /*
+                $scope.$watch(() => { return $element.is(':visible'); }, (newValue, oldValue) => {
+                  if (newValue !== oldValue && $scope.codeMirror) {
+                      $scope.codeMirror.refresh();
+                  }
+                });
+                */
+                $scope.$watch('text', function (text) {
+                    if (!text) {
+                        return;
+                    }
+                    if (!$scope.codeMirror) {
+                        var options = {
+                            value: text
+                        };
+                        options = CodeEditor.createEditorSettings(options);
+                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
+                        var outputEditor = $scope.outputEditor;
+                        if (outputEditor) {
+                            var outputScope = $scope.$parent || $scope;
+                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
+                        }
+                        $scope.applyOptions();
+                        $scope.$emit(getEventName('instance'), $scope.codeMirror);
+                    }
+                    else if ($scope.doc) {
+                        if (!$scope.codeMirror.hasFocus()) {
+                            var text = $scope.text || "";
+                            if (angular.isArray(text) || angular.isObject(text)) {
+                                text = JSON.stringify(text, null, "  ");
+                                $scope.mode = "javascript";
+                                $scope.codeMirror.setOption("mode", "javascript");
+                            }
+                            $scope.doc.setValue(text);
+                            $scope.doc.markClean();
+                            $scope.dirty = false;
+                        }
+                    }
+                });
+            }
+        };
+    }
+    HawtioEditor.Editor = Editor;
+})(HawtioEditor || (HawtioEditor = {}));
 
 /// <reference path="../../includes.ts"/>
 /**
@@ -1767,6 +1767,7 @@ var UI;
         }]);
 })(UI || (UI = {}));
 
+/// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
     /**
@@ -1778,6 +1779,7 @@ var UI;
     UI.colors = ["#5484ED", "#A4BDFC", "#46D6DB", "#7AE7BF",
         "#51B749", "#FBD75B", "#FFB878", "#FF887C", "#DC2127",
         "#DBADFF", "#E1E1E1"];
+    UI._module.constant('UIColors', UI.colors);
 })(UI || (UI = {}));
 
 /**
@@ -4392,13 +4394,13 @@ $templateCache.put("plugins/ui/html/editorPreferences.html","<div ng-controller=
 $templateCache.put("plugins/ui/html/filter.html","<div class=\"inline-block section-filter\">\r\n  <input type=\"text\"\r\n         class=\"search-query\"\r\n         ng-class=\"getClass()\"\r\n         ng-model=\"ngModel\"\r\n         placeholder=\"{{placeholder}}\">\r\n  <i class=\"fa fa-remove clickable\"\r\n     title=\"Clear Filter\"\r\n     ng-click=\"ngModel = \'\'\"></i>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/icon.html","<span>\r\n  <span ng-show=\"icon && icon.type && icon.src\" title=\"{{icon.title}}\" ng-switch=\"icon.type\">\r\n    <i ng-switch-when=\"icon\" class=\"{{icon.src}} {{icon.class}}\"></i>\r\n    <img ng-switch-when=\"img\" ng-src=\"{{icon.src}}\" class=\"{{icon.class}}\">\r\n  </span>\r\n  <span ng-hide=\"icon && icon.type && icon.src\">\r\n    &nbsp;\r\n  </span>\r\n</span>\r\n\r\n");
 $templateCache.put("plugins/ui/html/layoutUI.html","<div ng-view></div>\r\n");
-$templateCache.put("plugins/ui/html/list.html","<div>\r\n\r\n  <!-- begin cell template -->\r\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\r\n    <div class=\"ngCellText\">\r\n      {{row.entity}}\r\n    </div>\r\n  </script>\r\n  <!-- end cell template -->\r\n\r\n  <!-- begin row template -->\r\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\r\n    <div class=\"hawtio-list-row\">\r\n      <div ng-show=\"config.showSelectionCheckbox\"\r\n           class=\"hawtio-list-row-select\">\r\n        <input type=\"checkbox\" ng-model=\"row.selected\">\r\n      </div>\r\n      <div class=\"hawtio-list-row-contents\"></div>\r\n    </div>\r\n  </script>\r\n  <!-- end row template -->\r\n\r\n  <!-- must have a little margin in the top -->\r\n  <div class=\"hawtio-list-root\" style=\"margin-top: 15px\"></div>\r\n\r\n</div>\r\n");
+$templateCache.put("plugins/ui/html/list.html","<div>\n\n  <!-- begin cell template -->\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\n    <div class=\"ngCellText\">\n      {{row.entity}}\n    </div>\n  </script>\n  <!-- end cell template -->\n\n  <!-- begin row template -->\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\n    <div class=\"hawtio-list-row\">\n      <div ng-show=\"config.showSelectionCheckbox\"\n           class=\"hawtio-list-row-select\">\n        <input type=\"checkbox\" ng-model=\"row.selected\">\n      </div>\n      <div class=\"hawtio-list-row-contents\"></div>\n    </div>\n  </script>\n  <!-- end row template -->\n\n  <!-- must have a little margin in the top -->\n  <div class=\"hawtio-list-root\" style=\"margin-top: 15px\"></div>\n\n</div>\n");
 $templateCache.put("plugins/ui/html/multiItemConfirmActionDialog.html","<div>\r\n  <form class=\"no-bottom-margin\">\r\n    <div class=\"modal-header\">\r\n      <span>{{options.title || \'Are you sure?\'}}</span>\r\n    </div>\r\n    <div class=\"modal-body\">\r\n      <p ng-show=\'options.action\'\r\n         ng-class=\'options.actionClass\'\r\n         ng-bind=\'options.action\'></p>\r\n      <ul>\r\n        <li ng-repeat=\"item in options.collection\" ng-bind=\"getName(item)\"></li>\r\n      </ul>\r\n      <p ng-show=\"options.custom\" \r\n         ng-class=\"options.customClass\" \r\n         ng-bind=\"options.custom\"></p>\r\n    </div>\r\n    <div class=\"modal-footer\">\r\n      <button class=\"btn\" \r\n              ng-class=\"options.okClass\" \r\n              ng-click=\"close(true)\">{{options.okText || \'Ok\'}}</button>\r\n      <button class=\"btn\" \r\n              ng-class=\"options.cancelClass\"\r\n              ng-click=\"close(false)\">{{options.cancelText || \'Cancel\'}}</button>\r\n    </div>\r\n  </form>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/object.html","<div>\r\n  <script type=\"text/ng-template\" id=\"primitiveValueTemplate.html\">\r\n    <span ng-show=\"data\" object-path=\"{{path}}\">{{data}}</span>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayValueListTemplate.html\">\r\n    <ul class=\"zebra-list\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <li ng-repeat=\"item in data\">\r\n        <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\r\n      </li>\r\n    </ul>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayValueTableTemplate.html\">\r\n    <table class=\"table table-striped\" object-path=\"{{path}}\">\r\n      <thead>\r\n      </thead>\r\n      <tbody>\r\n      </tbody>\r\n    </table>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"dateAttributeTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd ng-show=\"data && data.getTime() > 0\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</dd>\r\n      <dd ng-show=\"data && data.getTime() <= 0\"></dd>\r\n\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"dateValueTemplate.html\">\r\n    <span ng-show=\"data\">\r\n      <span ng-show=\"data && data.getTime() > 0\" object-path=\"{{path}}\">{{data | date:\"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z\"}}</span>\r\n      <span ng-show=\"data && data.getTime() <= 0\" object-path=\"{{path}}\"></span>\r\n    </span>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"primitiveAttributeTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>{{data}}</dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"objectAttributeTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>\r\n        <div hawtio-object=\"data\" config=\"config\" path=\"path\" row=\"row\"></div>\r\n      </dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayAttributeListTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>\r\n        <ul class=\"zebra-list\">\r\n          <li ng-repeat=\"item in data\" ng-init=\"path = path + \'/\' + $index\">\r\n            <div hawtio-object=\"item\" config=\"config\" path=\"path\" row=\"row\"></div>\r\n          </li>\r\n        </ul>\r\n      </dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"arrayAttributeTableTemplate.html\">\r\n    <dl class=\"\" ng-show=\"data\" object-path=\"{{path}}\">\r\n      <dt>{{key}}</dt>\r\n      <dd>\r\n        <table class=\"table table-striped\">\r\n          <thead>\r\n          </thead>\r\n          <tbody>\r\n          </tbody>\r\n        </table>\r\n      </dd>\r\n    </dl>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"headerTemplate.html\">\r\n    <th object-path=\"{{path}}\">{{key}}</th>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"rowTemplate.html\">\r\n    <tr object-path=\"{{path}}\"></tr>\r\n  </script>\r\n  <script type=\"text/ng-template\" id=\"cellTemplate.html\">\r\n    <td object-path=\"{{path}}\"></td>\r\n  </script>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/pane.html","<div class=\"pane\">\r\n  <div class=\"pane-wrapper\">\r\n    <div class=\"pane-header-wrapper\">\r\n    </div>\r\n    <div class=\"pane-viewport\">\r\n      <div class=\"pane-content\">\r\n      </div>\r\n    </div>\r\n    <div class=\"pane-bar\"\r\n         ng-mousedown=\"startMoving($event)\"\r\n         ng-click=\"toggle()\"></div>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/slideout.html","<div class=\"slideout {{direction || \'right\'}}\">\r\n  <div class=slideout-title>\r\n    <div ng-show=\"{{close || \'true\'}}\" class=\"mouse-pointer pull-right\" ng-click=\"hidePanel($event)\" title=\"Close panel\">\r\n      <i class=\"fa fa-remove\"></i>\r\n    </div>\r\n    <span>{{title}}</span>\r\n  </div>\r\n  <div class=\"slideout-content\">\r\n    <div class=\"slideout-body\"></div>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/tablePager.html","<div class=\"hawtio-pager clearfix\">\r\n  <label>{{rowIndex() + 1}} / {{tableLength()}}</label>\r\n  <div class=btn-group>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"first()\"><i class=\"fa fa-fast-backward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrFirst()\" ng-click=\"previous()\"><i class=\"fa fa-step-backward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"next()\"><i class=\"fa fa-step-forward\"></i></button>\r\n    <button class=\"btn\" ng-disabled=\"isEmptyOrLast()\" ng-click=\"last()\"><i class=\"fa fa-fast-forward\"></i></button>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/tagFilter.html","<div>\r\n  <ul class=\"list-unstyled label-list\">\r\n    <li ng-repeat=\"tag in visibleTags | orderBy:\'tag.id || tag\'\"\r\n        class=\"mouse-pointer\"\r\n        ng-click=\"toggleSelectionFromGroup(selected, tag.id || tag)\">\r\n              <span class=\"badge\"\r\n                    ng-class=\"isInGroup(selected, tag.id || tag, \'badge-success\', \'\')\"\r\n                      >{{tag.id || tag}}</span>\r\n              <span class=\"pull-right\"\r\n                    ng-show=\"tag.count\">{{tag.count}}&nbsp;</span>\r\n    </li>\r\n  </ul>\r\n  <div class=\"mouse-pointer\"\r\n       ng-show=\"selected.length\"\r\n       ng-click=\"clearGroup(selected)\">\r\n    <i class=\"fa fa-remove\" ></i> Clear Tags\r\n  </div>\r\n</div>\r\n");
-$templateCache.put("plugins/ui/html/tagList.html","<span>\r\n<script type=\"text/ng-template\" id=\"tagBase.html\">\r\n  <span class=\"badge mouse-pointer\"ng-class=\"isSelected(\'{{tag}}\') ? \'badge-success\' : \'\'\">{{tag}}</span>\r\n</script>\r\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\r\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\r\n</script>\r\n</span>\r\n");
+$templateCache.put("plugins/ui/html/tagList.html","<span>\n<script type=\"text/ng-template\" id=\"tagBase.html\">\n  <span class=\"badge mouse-pointer\"ng-class=\"isSelected(\'{{tag}}\') ? \'badge-success\' : \'\'\">{{tag}}</span>\n</script>\n<script type=\"text/ng-template\" id=\"tagRemove.html\">\n  <i class=\"fa fa-remove\" ng-click=\"removeTag({{tag}})\"></i>\n</script>\n</span>\n");
 $templateCache.put("plugins/ui/html/toc.html","<div>\r\n  <div ng-repeat=\"item in myToc\">\r\n    <div id=\"{{item[\'href\']}}Target\" ng-bind-html=\"item.text\">\r\n    </div>\r\n  </div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui-bootstrap/html/message.html","<div class=\"modal-header\">\r\n	<h3>{{ title }}</h3>\r\n</div>\r\n<div class=\"modal-body\">\r\n	<p>{{ message }}</p>\r\n</div>\r\n<div class=\"modal-footer\">\r\n	<button ng-repeat=\"btn in buttons\" ng-click=\"close(btn.result)\" class=\"btn\" ng-class=\"btn.cssClass\">{{ btn.label }}</button>\r\n</div>\r\n");}]); hawtioPluginLoader.addModule("hawtio-ui-templates");
