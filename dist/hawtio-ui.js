@@ -2207,10 +2207,10 @@ var UI;
     UI._module.directive('hawtioDropDown', ["$templateCache", UI.hawtioDropDown]);
 })(UI || (UI = {}));
 
+/// <reference path="uiPlugin.ts"/>
 /**
  * @module UI
  */
-/// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
     UI._module.directive('editableProperty', ["$parse", function ($parse) {
