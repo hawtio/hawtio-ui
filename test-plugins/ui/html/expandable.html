@@ -1,15 +1,16 @@
 <div ng-controller="UI.UITestController1">
-
   <div class="row">
-    <h3>Expandable</h3>
-
-    <p>Use to hide content under a header that a user can display when necessary</p>
-
-    <div hawtio-editor="expandableEx" mode="fileUploadExMode"></div>
-    <div class="directive-example">
-      <div compile="expandableEx"></div>
+    <div class="col-md-6">
+      <h3>Expandable</h3>
+      <p>Use to hide content under a header that a user can display when necessary.  The expandable must be defined similar to example HTML.  The root element needs to have the 'expandable' class.  The first child element should have the class 'title', and it should contain an element with the 'expandable-indicator' class.  The next child of 'expandable' should have the 'expandable-body' class, which will be then opened and closed by clicking the expandable title element.</p>
     </div>
-    <hr>
+    <div class="col-md-6">
+      <h5>Example HTML</h5>
+      <div hawtio-editor="expandableEx" mode="fileUploadExMode"></div>
+      <h5>Live example</h5>
+      <div class="directive-example">
+        <div compile="expandableEx"></div>
+      </div>
+    </div>
   </div>
-
 </div>
