@@ -1,21 +1,68 @@
 <div ng-controller="UI.UITestController1">
-
   <div class="row">
-    <h3>Confirmation Dialog</h3>
-
-    <p>Displays a simple confirmation dialog with a standard title and buttons, just the dialog body needs to be
-      provided. The buttons can be customized as well as the actions when the ok or cancel button is clicked</p>
-
-    <div hawtio-editor="confirmationEx1" mode="fileUploadExMode"></div>
-    <div class="directive-example">
-      <div compile="confirmationEx1"></div>
+    <div class="col-md-6">
+      <h3>Confirmation Dialog</h3>
+      <p>Displays a simple confirmation dialog with a standard title and buttons, just the dialog body needs to be provided. The buttons can be customized as well as the actions when the ok or cancel button is clicked.  Configuration options are:</p>
+      <dl>
+        <dt>
+          hawtio-confirm-dialog
+        </dt>
+        <dd>
+          boolean attribute your controller can use to show/hide the dialog
+        </dd>
+        <dt>
+          title
+        </dt>
+        <dd>
+          String to use as the dialog title
+        </dd>
+        <dt>
+          ok-button-text
+        </dt>
+        <dd>
+          String to use as text on the 'ok' button
+        </dd>
+        <dt>
+          cancel-button-text
+        </dt>
+        <dd>
+          String to use as text on the 'cancel' button
+        </dd>
+        <dt>
+          on-cancel
+        </dt>
+        <dd>
+          function that gets called when the user clicks the cancel button
+        </dd>
+        <dt>
+          on-ok
+        </dt>
+        <dd>
+          function that gets called when the user clicks the ok button
+        </dd>
+        <dt>
+          on-close
+        </dt>
+        <dd>
+          function that gets called when the dialog closes
+        </dd>
+      </dl>
     </div>
+    <div class="col-md-6">
+      <h5>Example 1 HTML</h5>
+      <div hawtio-editor="confirmationEx1" mode="fileUploadExMode"></div>
+      <h5>Example 1</h5>
+      <div class="directive-example">
+        <div compile="confirmationEx1"></div>
+      </div>
 
-    <div hawtio-editor="confirmationEx2" mode="fileUploadExMode"></div>
-    <div class="directive-example">
-      <div compile="confirmationEx2"></div>
+      <h5>Example 2 HTML</h5>
+      <div hawtio-editor="confirmationEx2" mode="fileUploadExMode"></div>
+      <h5>Example 2</h5>
+      <div class="directive-example">
+        <div compile="confirmationEx2"></div>
+      </div>
     </div>
-    <hr>
   </div>
 
 </div>

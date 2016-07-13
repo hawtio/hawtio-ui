@@ -144,7 +144,6 @@ module UITest {
 
     _module.controller("UI.UITestController1", ["$scope", "$templateCache", ($scope, $templateCache) => {
 
-
     $scope.jsplumbEx = $templateCache.get("jsplumbTemplate");
 
     $scope.nodes = ["node1", "node2"];
@@ -155,7 +154,6 @@ module UITest {
     $scope.createEndpoint = (nodeId) => {
       var node = $scope.jsPlumbNodesById[nodeId]
       if (node) {
-
         var anchors = $scope.anchors.subtract(node.anchors);
         console.log("anchors: ", anchors);
         if (anchors && anchors.length > 0) {
