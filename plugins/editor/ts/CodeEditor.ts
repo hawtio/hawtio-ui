@@ -142,7 +142,7 @@ module CodeEditor {
         if(!mode || !modeName) return;
         if(modeName === 'javascript') {
           javascriptFolding(codeMirror, line);
-        } else if (modeName === "xml" || modeName.startsWith("html")) {
+        } else if (modeName === "xml" || _.startsWith(modeName, "html")) {
           xmlFolding(codeMirror, line);
         };
       };

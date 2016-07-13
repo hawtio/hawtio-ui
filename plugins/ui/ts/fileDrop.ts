@@ -12,7 +12,7 @@ module UI {
           return;
         }
         // DownloadURL needs an absolute URL
-        if (!downloadURL.startsWith("http")) {
+        if (!_.startsWith(downloadURL, "http")) {
           var uri = new URI();
           downloadURL = uri.path(downloadURL).toString();
         }
