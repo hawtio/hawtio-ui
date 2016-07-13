@@ -102,7 +102,7 @@ module UI {
             if (isArray) {
               return;
             }
-            if (key.startsWith("$")) {
+            if (_.startsWith(key, "$")) {
               return;
             }
             if (!el) {

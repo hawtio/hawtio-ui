@@ -34,7 +34,7 @@ var DatatableTest;
                 data: 'myData',
                 showFilter: false,
                 showColumnMenu: false,
-                multiSelect: ($location.search()["multi"] || "").startsWith("f") ? false : true,
+                multiSelect: _.startsWith($location.search()["multi"] || "", "f") ? false : true,
                 filterOptions: {
                     filterText: "",
                     useExternalFilter: false
