@@ -52,5 +52,12 @@
   "resolutions": {
     "lodash": "~3.2.0",
     "angular": ">= 1.1.0 <= 1.6.0"
+  },
+  "overrides": {
+    "dagre": {
+      "main": [
+        "dist/dagre.core.js"
+      ]
+    }
   }
 }
