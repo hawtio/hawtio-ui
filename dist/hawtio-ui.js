@@ -2688,10 +2688,10 @@ var UI;
     UI._module.directive('hawtioIcon', UI.hawtioIcon);
 })(UI || (UI = {}));
 
+/// <reference path="./uiPlugin.ts"/>
 /**
  * @module UI
  */
-/// <reference path="./uiPlugin.ts"/>
 var UI;
 (function (UI) {
     UI._module.directive('hawtioJsplumb', ["$timeout", "$window", function ($timeout, $window) {
@@ -2765,12 +2765,12 @@ var UI;
                         var el = $(nodeEl);
                         var id = el.attr('id');
                         var anchors = el.attr('anchors');
-                        if (!Core.isBlank(anchors) && (anchors.has("{{") || anchors.has("}}"))) {
+                        if (!Core.isBlank(anchors) && (_.any(anchors.has, "{{") || _.any(anchors, "}}"))) {
                             // we don't want to add this yet...
                             return null;
                         }
                         if (!Core.isBlank(anchors)) {
-                            anchors = anchors.split(',').map(function (anchor) { return anchor.trim(); });
+                            anchors = _.map(anchors.split(','), function (anchor) { return anchor.trim(); });
                         }
                         else {
                             anchors = ["Continuous"];
@@ -2893,21 +2893,26 @@ var UI;
                         // First we'll lay out the graph and then later apply jsplumb to all
                         // of the nodes and connections
                         if (useLayout) {
-                            $scope.layout = dagre.layout()
-                                .nodeSep(nodeSep)
-                                .edgeSep(edgeSep)
-                                .rankSep(rankSep)
-                                .rankDir(direction)
-                                .nodes(nodes)
-                                .edges(transitions)
-                                .run();
+                            var graph = $scope.layout = new dagre.graphlib.Graph();
+                            graph.setGraph({});
+                            graph.setDefaultEdgeLabel(function () { return {}; });
+                            _.forEach(nodes, function (node) { return graph.setNode(node.id, node); });
+                            _.forEach(transitions, function (transition) {
+                                graph.setEdge(transition.source.id, transition.target.id);
+                            });
+                            dagre.layout(graph, {
+                                nodesep: nodeSep,
+                                edgesep: edgeSep,
+                                ranksep: rankSep,
+                                rankDir: direction
+                            });
                         }
                         angular.forEach($scope.jsPlumbNodes, function (node) {
                             if (useLayout) {
                                 var divWidth = node.el.width();
                                 var divHeight = node.el.height();
-                                var y = node.dagre.y - (divHeight / 2);
-                                var x = node.dagre.x - (divWidth / 2);
+                                var y = node.y - (divHeight / 2);
+                                var x = node.x - (divWidth / 2);
                                 node.el.css({ top: y, left: x });
                             }
                             createEndpoint($scope.jsPlumb, node);
