@@ -1,7 +1,7 @@
+/// <reference path="uiPlugin.ts"/>
 /**
  * @module UI
  */
-/// <reference path="uiPlugin.ts"/>
 module UI {
 
   _module.directive('editableProperty', ["$parse", ($parse) => {

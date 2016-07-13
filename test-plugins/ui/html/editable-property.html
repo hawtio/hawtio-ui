@@ -1,15 +1,51 @@
 <div ng-controller="UI.UITestController1">
 
   <div class="row">
-    <h3>Editable Property</h3>
-
-    <p>Use to display a value that the user can edit at will</p>
-
-    <div hawtio-editor="editablePropertyEx1" mode="fileUploadExMode"></div>
-    <div class="directive-example">
-      <div compile="editablePropertyEx1"></div>
+    <div class="col-md-6">
+      <h3>Editable Property</h3>
+      <p>Use to display a value that the user can edit inline.  Configuration options:</p>
+      <dl>
+        <dt>
+          ng-model
+        </dt>
+        <dd>
+          The object in your controller that the directive will look at
+        </dd>
+        <dt>
+          property
+        </dt>
+        <dd>
+          The property in the object that the directive will display and edit
+        </dd>
+        <dt>
+          type
+        </dt>
+        <dd>
+          The type of input field to use, for example 'text', 'number', 'password'
+        </dd>
+        <dt>
+          min
+        </dt>
+        <dd>
+          When using a 'number' input type, sets the HTML5 'min' attribute
+        </dd>
+        <dt>
+          max
+        </dt>
+        <dd>
+          When using a 'number' input type, sets the HTML5 'max' attribute
+        </dd>
+      </dl>
     </div>
-    <hr>
+
+    <div class="col-md-6">
+      <h5>Example HTML</h5>
+      <div hawtio-editor="editablePropertyEx1" mode="fileUploadExMode"></div>
+      <h5>Live example</h5>
+      <div class="directive-example">
+        <div compile="editablePropertyEx1"></div>
+      </div>
+    </div>
   </div>
 
 </div>
