@@ -148,18 +148,22 @@ module UITest {
 
     $scope.nodes = ["node1", "node2"];
     $scope.otherNodes =["node4", "node5", "node6"];
-
     $scope.anchors = ["Top", "Right", "Bottom", "Left"];
 
-    $scope.createEndpoint = (nodeId) => {
-      var node = $scope.jsPlumbNodesById[nodeId]
+    $scope.customizeEndpointOptions = (jsPlumb, node, options) => {
+      /*
       if (node) {
-        var anchors = $scope.anchors.subtract(node.anchors);
+        var anchors = [];
+        _.forEach($scope.anchors, (anchor:string) => {
+          if (_.some(node.anchors, anchor)) {
+            anchors.push(anchor);
+          }
+        });
         console.log("anchors: ", anchors);
         if (anchors && anchors.length > 0) {
-          var anchor = anchors.first();
+          var anchor = _.first(anchors);
           node.anchors.push(anchor);
-          node.endpoints.push($scope.jsPlumb.addEndpoint(node.el, {
+          node.endpoints.push(jsPlumb.addEndpoint(node.el, {
             anchor: anchor,
             isSource: true,
             isTarget: true,
@@ -167,6 +171,7 @@ module UITest {
           }));
         }
       }
+      */
     };
 
     $scope.expandableEx = '' +

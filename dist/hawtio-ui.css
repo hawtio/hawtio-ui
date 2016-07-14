@@ -1486,18 +1486,6 @@ ol.zebra-list > li:before {
   padding: 7px;
   font-weight: bold;
 }
-.ex-node-container {
-  position: relative;
-  width: 100%;
-  height: 696px;
-}
-.ex-node {
-  position: absolute;
-  width: 150px;
-  height: 90px;
-  text-align: center;
-  padding-top: 60px;
-}
 .hawtio-breadcrumb > li {
   display: inline-block;
 }
