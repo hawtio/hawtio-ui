@@ -3,42 +3,44 @@ editable-property {
   position: relative;
 }
 
-.ep.editing {
-  position: absolute;
-  top: -10px;
-  padding: 0;
-  z-index: 10000;
-  border: 1px solid #cecdcd;
-  white-space: nowrap;
-}
+.ep {
+  & form fieldset i {
+    cursor: pointer;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
 
-.ep.editing > form > fieldset > i {
-  position: relative;
-  top: 2px;
-}
+  & form.no-bottom-margin {
+    margin: 0;
+  }
 
-.ep > i {
-  cursor: pointer;
-  opacity: .25;
-  transition: opacity 0.25s ease-in-out;
-  -moz-transition: opacity 0.25s ease-in-out;
-  -webkit-transition: opacity 0.25s ease-in-out;
-}
+  & > i:hover {
+    opacity: 1;
+  }
+  & > i {
+    cursor: pointer;
+    opacity: .25;
+    transition: opacity 0.25s ease-in-out;
+    -moz-transition: opacity 0.25s ease-in-out;
+    -webkit-transition: opacity 0.25s ease-in-out;
+  }
+  & > form > fieldset input {
+    border: none;
+  }
+  &.editing {
+    position: absolute;
+    top: -28px;
+    padding: 6px;
+    z-index: 10000;
+    border: 1px solid #cecdcd;
+    white-space: nowrap;
+    background: white;
 
-.ep > form > fieldset > input {
-  border: 0;
-}
+    & > form > fieldset > i {
+      position: relative;
+      top: 2px;
 
-.ep > i:hover {
-  opacity: 1;
-}
-
-.ep form fieldset i {
-  cursor: pointer;
-  padding-left: 5px;
-}
-
-.ep form.no-bottom-margin {
-  margin: 0;
+    }
+  }
 }
 

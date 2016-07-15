@@ -75,13 +75,15 @@ module UI {
         };
 
         function inputSelector() {
-          return ':input[type=' + scope.inputType + ']';
+          return 'input[type=' + scope.inputType + ']';
         }
 
         scope.$watch('editing', (newValue, oldValue) => {
           if (newValue !== oldValue) {
             if (newValue) {
-              (<JQueryStatic>$)(element.find(inputSelector())).focus().select();
+              setTimeout(() => {
+                (<JQueryStatic>$)(element.find(inputSelector())).focus().select();
+              }, 50);
             }
           }
         });

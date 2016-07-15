@@ -745,48 +745,6 @@ var HawtioEditor;
 })(HawtioEditor || (HawtioEditor = {}));
 
 /// <reference path="../../includes.ts"/>
-var Toastr;
-(function (Toastr) {
-    var pluginName = 'hawtio-toastr';
-    var _module = angular.module(pluginName, []);
-    hawtioPluginLoader.addModule(pluginName);
-})(Toastr || (Toastr = {}));
-var Core;
-(function (Core) {
-    /**
-     * Displays an alert message which is typically the result of some asynchronous operation
-     *
-     * @method notification
-     * @static
-     * @param type which is usually "success" or "error" and matches css alert-* css styles
-     * @param message the text to display
-     *
-     */
-    function notification(type, message, options) {
-        if (options === void 0) { options = null; }
-        if (options === null) {
-            options = {};
-        }
-        if (type === 'error' || type === 'warning') {
-            if (!angular.isDefined(options.onclick)) {
-                options.onclick = window['showLogPanel'];
-            }
-        }
-        toastr[type](message, '', options);
-    }
-    Core.notification = notification;
-    /**
-     * Clears all the pending notifications
-     * @method clearNotifications
-     * @static
-     */
-    function clearNotifications() {
-        toastr.clear();
-    }
-    Core.clearNotifications = clearNotifications;
-})(Core || (Core = {}));
-
-/// <reference path="../../includes.ts"/>
 /// <reference path="forceGraphDirective.ts"/>
 /**
  * Force Graph plugin & directive
@@ -1148,6 +1106,48 @@ var ForceGraph;
     }());
     ForceGraph.GraphBuilder = GraphBuilder;
 })(ForceGraph || (ForceGraph = {}));
+
+/// <reference path="../../includes.ts"/>
+var Toastr;
+(function (Toastr) {
+    var pluginName = 'hawtio-toastr';
+    var _module = angular.module(pluginName, []);
+    hawtioPluginLoader.addModule(pluginName);
+})(Toastr || (Toastr = {}));
+var Core;
+(function (Core) {
+    /**
+     * Displays an alert message which is typically the result of some asynchronous operation
+     *
+     * @method notification
+     * @static
+     * @param type which is usually "success" or "error" and matches css alert-* css styles
+     * @param message the text to display
+     *
+     */
+    function notification(type, message, options) {
+        if (options === void 0) { options = null; }
+        if (options === null) {
+            options = {};
+        }
+        if (type === 'error' || type === 'warning') {
+            if (!angular.isDefined(options.onclick)) {
+                options.onclick = window['showLogPanel'];
+            }
+        }
+        toastr[type](message, '', options);
+    }
+    Core.notification = notification;
+    /**
+     * Clears all the pending notifications
+     * @method clearNotifications
+     * @static
+     */
+    function clearNotifications() {
+        toastr.clear();
+    }
+    Core.clearNotifications = clearNotifications;
+})(Core || (Core = {}));
 
 /// <reference path="../../includes.ts"/>
 /**
@@ -2284,12 +2284,14 @@ var UI;
                     $(element.find(".fa fa-pencil")[0]).hide();
                 };
                 function inputSelector() {
-                    return ':input[type=' + scope.inputType + ']';
+                    return 'input[type=' + scope.inputType + ']';
                 }
                 scope.$watch('editing', function (newValue, oldValue) {
                     if (newValue !== oldValue) {
                         if (newValue) {
-                            $(element.find(inputSelector())).focus().select();
+                            setTimeout(function () {
+                                $(element.find(inputSelector())).focus().select();
+                            }, 50);
                         }
                     }
                 });
@@ -4409,7 +4411,7 @@ $templateCache.put("plugins/ui/html/colorPicker.html","<div class=\"color-picker
 $templateCache.put("plugins/ui/html/confirmDialog.html","<div modal=\"show\">\r\n  <form class=\"form-horizontal no-bottom-margin\">\r\n    <div class=\"modal-header\"><h4>{{title}}</h4></div>\r\n    <div class=\"modal-body\">\r\n    </div>\r\n    <div class=\"modal-footer\">\r\n      <input class=\"btn btn-danger\" ng-show=\"{{showOkButton != \'false\'}}\" type=\"submit\" value=\"{{okButtonText}}\" ng-click=\"submit()\">\r\n      <button class=\"btn btn-primary\" ng-click=\"cancel()\">{{cancelButtonText}}</button>\r\n    </div>\r\n  </form>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/developerPage.html","<div ng-controller=\"UI.DeveloperPageController\">\r\n\r\n  <div class=\"tocify\" wiki-href-adjuster>\r\n    <div hawtio-toc-display\r\n         get-contents=\"getContents(filename, cb)\">\r\n      <ul>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/icon.html\" chapter-id=\"icons\">icons</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/auto-columns.html\" chapter-id=\"auto-columns\">auto-columns</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/auto-dropdown.html\" chapter-id=\"auto-dropdown\">auto-dropdown</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/breadcrumbs.html\" chapter-id=\"breadcrumbs\">breadcrumbs</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/color-picker.html\" chapter-id=\"color-picker\">color-picker</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/confirm-dialog.html\" chapter-id=\"confirm-dialog\">confirm-dialog</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/drop-down.html\" chapter-id=\"drop-down\">drop-down</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/editable-property.html\" chapter-id=\"editableProperty\">editable-property</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/editor.html\" chapter-id=\"editor\">editor</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/expandable.html\" chapter-id=\"expandable\">expandable</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/file-upload.html\" chapter-id=\"file-upload\">file-upload</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/jsplumb.html\" chapter-id=\"jsplumb\">jsplumb</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/pager.html\" chapter-id=\"pager\">pager</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/slideout.html\" chapter-id=\"slideout\">slideout</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/template-popover.html\" chapter-id=\"template-popover\">template-popover</a>\r\n        </li>\r\n        <li>\r\n          <a href=\"plugins/ui/html/test/zero-clipboard.html\" chapter-id=\"zero-clipboard\">zero-clipboard</a>\r\n        </li>\r\n      </ul>\r\n    </div>\r\n  </div>\r\n  <div class=\"toc-content\" id=\"toc-content\"></div>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/dropDown.html","<span>\r\n\r\n  <script type=\"text/ng-template\" id=\"withsubmenus.html\">\r\n    <span class=\"hawtio-dropdown dropdown\" ng-class=\"open(config)\" ng-click=\"action(config, $event)\">\r\n      <p ng-show=\"config.heading\" ng-bind=\"config.heading\"></p>\r\n      <span ng-show=\"config.title\">\r\n        <i ng-class=\"icon(config)\"></i>&nbsp;<span ng-bind=\"config.title\"></span>\r\n        <span ng-show=\"config.items\" ng-hide=\"config.submenu\" class=\"caret\"></span>\r\n        <span ng-show=\"config.items && config.submenu\" class=\"submenu-caret\"></span>\r\n      </span>\r\n\r\n      <ul ng-hide=\"config.action\" ng-show=\"config.items\" class=\"dropdown-menu\" ng-class=\"submenu(config)\">\r\n        <li ng-repeat=\"item in config.items track by $index\" ng-init=\"config=item; config[\'submenu\']=true\" ng-include=\"\'withsubmenus.html\'\" hawtio-show object-name=\"{{item.objectName}}\" method-name=\"{{item.methodName}}\" argument-types=\"{{item.argumentTypes}}\" mode=\"remove\">\r\n        </li>\r\n      </ul>\r\n    </span>\r\n  </script>\r\n\r\n  <script type=\"text/ng-template\" id=\"withoutsubmenus.html\">\r\n    <span class=\"hawtio-dropdown dropdown\" ng-class=\"open(config)\" ng-click=\"action(config, $event)\">\r\n      <p ng-if=\"config.heading\" ng-bind=\"config.heading\"></p>\r\n      <span ng-if=\"config.title\">\r\n        <i ng-class=\"icon(config)\"></i>&nbsp;<span ng-bind=\"config.title\"></span>\r\n        <span ng-if=\"config.items && config.items.length > 0\" class=\"caret\"></span>\r\n     </span>\r\n\r\n      <ul ng-if=\"!config.action && config.items\" class=\"dropdown-menu\" ng-class=\"submenu(config)\">\r\n        <li ng-repeat=\"item in config.items track by $index\" hawtio-show object-name=\"{{item.objectName}}\" method-name=\"{{item.methodName}}\" argument-types=\"{{item.argumentTypes}}\" mode=\"remove\">\r\n          <span class=\"menu-item\" ng-click=\"action(item, $event)\">\r\n            <i ng-class=\"icon(item)\"></i>&nbsp;<span ng-bind=\"item.title\"></span>\r\n            <span ng-if=\"item.items\" class=\"submenu-caret\"></span>\r\n          </span>\r\n        </li>\r\n      </ul>\r\n\r\n    </span>\r\n  </script>\r\n  <span compile=\"menuStyle\"></span>\r\n</span>\r\n");
-$templateCache.put("plugins/ui/html/editableProperty.html","<div ng-mouseenter=\"showEdit()\" ng-mouseleave=\"hideEdit()\" class=\"ep\" ng-dblclick=\"doEdit()\">\r\n  {{getText()}}&nbsp;<i class=\"ep-edit fa fa-pencil\" title=\"Edit this item\" ng-click=\"doEdit()\" no-click></i>\r\n</div>\r\n<div class=\"ep editing\" ng-show=\"editing\" no-click>\r\n  <form class=\"form-inline no-bottom-margin\" ng-submit=\"saveEdit()\">\r\n    <fieldset>\r\n      <span ng-switch=\"inputType\">\r\n        <span ng-switch-when=\"number\">\r\n          <input type=\"number\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\" max=\"{{max}}\" min=\"{{min}}\">\r\n        </span>\r\n        <span ng-switch-when=\"password\">\r\n          <input type=\"password\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\r\n        </span>\r\n        <span ng-switch-default>\r\n          <input type=\"text\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\r\n        </span>\r\n      </span>\r\n      <i class=\"green clickable fa fa-ok icon1point5x\" title=\"Save changes\" ng-click=\"saveEdit()\"></i>\r\n      <i class=\"red clickable fa fa-remove icon1point5x\" title=\"Discard changes\" ng-click=\"stopEdit()\"></i>\r\n    </fieldset>\r\n  </form>\r\n</div>\r\n");
+$templateCache.put("plugins/ui/html/editableProperty.html","<div ng-mouseenter=\"showEdit()\" ng-mouseleave=\"hideEdit()\" class=\"ep\" ng-dblclick=\"doEdit()\">\r\n  {{getText()}}&nbsp;<i class=\"ep-edit fa fa-pencil\" title=\"Edit this item\" ng-click=\"doEdit()\" no-click></i>\r\n</div>\r\n<div class=\"ep editing\" ng-show=\"editing\" no-click>\r\n  <form class=\"form-inline no-bottom-margin\" ng-submit=\"saveEdit()\">\r\n    <fieldset>\r\n      <span ng-switch=\"inputType\">\r\n        <span ng-switch-when=\"number\">\r\n          <input type=\"number\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\" max=\"{{max}}\" min=\"{{min}}\">\r\n        </span>\r\n        <span ng-switch-when=\"password\">\r\n          <input type=\"password\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\r\n        </span>\r\n        <span ng-switch-default>\r\n          <input type=\"text\" size=\"{{text.length}}\" ng-style=\"getInputStyle()\" value=\"{{text}}\">\r\n        </span>\r\n      </span>\r\n      <i class=\"green clickable fa fa-check icon1point5x\" title=\"Save changes\" ng-click=\"saveEdit()\"></i>\r\n      <i class=\"red clickable fa fa-remove icon1point5x\" title=\"Discard changes\" ng-click=\"stopEdit()\"></i>\r\n    </fieldset>\r\n  </form>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/editor.html","<div class=\"editor-autoresize\">\r\n  <textarea name=\"{{name}}\" ng-model=\"text\"></textarea>\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/editorPreferences.html","<div ng-controller=\"CodeEditor.PreferencesController\">\r\n  <form class=\"form-horizontal\">\r\n    <div class=\"control-group\">\r\n      <label class=\"control-label\" for=\"theme\" title=\"The default theme to be used by the code editor\">Theme</label>\r\n\r\n      <div class=\"controls\">\r\n        <select id=\"theme\" ng-model=\"preferences.theme\">\r\n          <option value=\"default\">Default</option>\r\n          <option value=\"ambiance\">Ambiance</option>\r\n          <option value=\"blackboard\">Blackboard</option>\r\n          <option value=\"cobalt\">Cobalt</option>\r\n          <option value=\"eclipse\">Eclipse</option>\r\n          <option value=\"monokai\">Monokai</option>\r\n          <option value=\"neat\">Neat</option>\r\n          <option value=\"twilight\">Twilight</option>\r\n          <option value=\"vibrant-ink\">Vibrant ink</option>\r\n        </select>\r\n      </div>\r\n    </div>\r\n  </form>\r\n\r\n  <form name=\"editorTabForm\" class=\"form-horizontal\">\r\n    <div class=\"control-group\">\r\n      <label class=\"control-label\" for=\"tabSIze\">Tab size</label>\r\n\r\n      <div class=\"controls\">\r\n        <input type=\"number\" id=\"tabSize\" name=\"tabSize\" ng-model=\"preferences.tabSize\" ng-required=\"ng-required\" min=\"1\" max=\"10\"/>\r\n        <span class=\"help-block\"\r\n            ng-hide=\"editorTabForm.tabSize.$valid\">Please specify correct size (1-10).</span>\r\n      </div>\r\n    </div>\r\n  </form>\r\n\r\n  <div compile=\"codeMirrorEx\"></div>\r\n\r\n<!-- please do not change the tabs into spaces in the following script! -->\r\n<script type=\"text/ng-template\" id=\"exampleText\">\r\nvar foo = \"World!\";\r\n\r\nvar myObject = {\r\n	message: \"Hello\",\r\n		getMessage: function() {\r\n		return message + \" \";\r\n 	}\r\n};\r\n\r\nwindow.alert(myObject.getMessage() + foo);\r\n</script>\r\n\r\n<script type=\"text/ng-template\" id=\"codeMirrorExTemplate\">\r\n  <div hawtio-editor=\"exampleText\" mode=\"javascript\"></div>\r\n</script>\r\n</div>\r\n\r\n</div>\r\n");
 $templateCache.put("plugins/ui/html/filter.html","<div class=\"inline-block section-filter\">\r\n  <input type=\"text\"\r\n         class=\"search-query\"\r\n         ng-class=\"getClass()\"\r\n         ng-model=\"ngModel\"\r\n         placeholder=\"{{placeholder}}\">\r\n  <i class=\"fa fa-remove clickable\"\r\n     title=\"Clear Filter\"\r\n     ng-click=\"ngModel = \'\'\"></i>\r\n</div>\r\n");
