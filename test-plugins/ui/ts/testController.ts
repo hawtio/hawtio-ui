@@ -127,24 +127,39 @@ module UITest {
       });
 
       $scope.breadcrumbEx = $templateCache.get("breadcrumbTemplate");
-
       $scope.dropDownEx = $templateCache.get("dropDownTemplate");
-
       $scope.autoDropDown = $templateCache.get("autoDropDownTemplate");
       $scope.zeroClipboard = $templateCache.get("zeroClipboardTemplate");
-
       $scope.popoverEx = $templateCache.get("myTemplate");
       $scope.popoverUsageEx = $templateCache.get("popoverExTemplate");
-
       $scope.autoColumnEx = $templateCache.get("autoColumnTemplate");
-
-
     }]);
 
 
     _module.controller("UI.UITestController1", ["$scope", "$templateCache", ($scope, $templateCache) => {
 
     $scope.jsplumbEx = $templateCache.get("jsplumbTemplate");
+    $scope.pagerExampleHtml = $templateCache.get("pagerExample.html");
+
+    $scope.rowIndex = 0;
+    $scope.messages = [{
+        message: 'one'
+      },
+      {
+        message: 'two'
+      },
+      {
+        message: 'three'
+      },
+      {
+        message: 'four'
+      }];
+    $scope.selectRow = (index) => {
+      $scope.rowIndex = index;
+    };
+    $scope.getMessage = (index) => {
+      return $scope.messages[index];
+    }
 
     $scope.nodes = ["node1", "node2"];
     $scope.otherNodes =["node4", "node5", "node6"];
