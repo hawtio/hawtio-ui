@@ -1,18 +1,45 @@
 <div ng-controller="UI.UITestController2">
-
-  <div>
-
-    <div class="row">
-      <h3>Drop Down</h3>
-      <p>A bootstrap.js drop-down widget driven by a simple json structure</p>
-      <script type="text/ng-template" id="dropDownTemplate">
-<p>someVal: {{someVal}}</p>
+  <script type="text/ng-template" id="dropDownTemplate">
+  <p>someVal: {{someVal}}</p>
   <div hawtio-drop-down="dropDownConfig"></div>
-      </script>
+  </script>
+  <div class="row">
+    <div class="col-md-6">
+      <h3>Drop Down</h3>
+      <p>A bootstrap.js drop-down widget driven by a simple json tree structure.  Each element in the tree can have the following attributes:</p>
+      <dl>
+        <dt>
+          icon
+        </dt>
+        <dd>
+          A font-awesome icon class to use as the icon for this menu item
+        </dd>
+        <dt>
+          title
+        </dt>
+        <dd>
+          The text to be displayed for the menu item.
+        </dd>
+        <dt>
+          action
+        </dt>
+        <dd>
+          An expression string or javascript function to execute when the menu item is clicked
+        </dd>
+        <dt>
+          items
+        </dt>
+        <dd>
+          An array of child menu items, each child can have the same configuration attributes
+        </dd>
+      </dl>
+      <h5>JSON Example</h5>
+      <div hawtio-editor="dropDownConfigTxt" mode="javascript"></div>
+    </div>
+    <div class="col-md-6">
       <h5>HTML</h5>
       <div hawtio-editor="dropDownEx" mode="fileUploadExMode"></div>
-      <h5>JSON</h5>
-      <div hawtio-editor="dropDownConfigTxt" mode="javascript"></div>
+      <h5>Live Example</h5>
       <div class="directive-example">
         <div compile="dropDownEx"></div>
       </div>
