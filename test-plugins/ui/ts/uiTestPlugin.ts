@@ -6,19 +6,17 @@ module UITest {
   export var pluginName = 'hawtio-ui-test-pages';
   export var _module = angular.module(pluginName, []);
 
-  var tab1 = null;
-  var tab2 = null;
-  var editorTab = null;
+  _module.constant('ExampleTabs', []);
 
-  _module.config(['$routeProvider', 'HawtioNavBuilderProvider', function($routeProvider, builder) {
-    editorTab = builder.create()
+  _module.config(['ExampleTabs', '$routeProvider', 'HawtioNavBuilderProvider', function(tabs, $routeProvider, builder) {
+    tabs.push(builder.create()
                   .id(builder.join(pluginName, 'editor'))
                   .href( () => '/ui' )
                   .title( () => 'Editor' )
                     .subPath('Editor', 'editor', builder.join(path, 'editor.html'))
-                  .build();
+                  .build());
 
-    tab2 = builder.create()
+    tabs.push(builder.create()
                    .id(builder.join(pluginName, 'tab2'))
                    .href(function () { return '/ui2'; })
                    .title(function () { return "UI Components 2"; })
@@ -29,9 +27,9 @@ module UITest {
                      .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                      .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
                      .subPath('Zero Clipboard', 'zero-clipboard', builder.join(path, 'zero-clipboard.html'))
-                   .build();
+                   .build());
 
-    tab1 = builder.create()
+    tabs.push(builder.create()
                    .id(builder.join(pluginName, 'tab1'))
                    .href(function () { return '/ui1'; })
                    .title(function () { return "UI Components 1"; })
@@ -45,17 +43,16 @@ module UITest {
                      .subPath('JSPlumb', 'jsplumb', builder.join(path, 'jsplumb.html'))
                      .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                      .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
-                   .build();
+                   .build());
 
-    builder.configureRouting($routeProvider, tab1);
-    builder.configureRouting($routeProvider, tab2);
-    builder.configureRouting($routeProvider, editorTab);
+    _.forEach(tabs, (tab) => builder.configureRouting($routeProvider, tab));
+
   }]);
 
-  _module.run(['HawtioNav', function(nav) {
-    nav.add(tab1);
-    nav.add(tab2);
-    nav.add(editorTab);
+  _module.run(['ExampleTabs', 'HawtioNav', function(tabs, nav) {
+    _.forEach(tabs, (tab) => {
+      nav.add(tab);
+    });
     nav.add({
       id: 'project-link',
       isSelected: function() { return false; },
