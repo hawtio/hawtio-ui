@@ -219,17 +219,15 @@ var UITest;
     var path = UITest.templatePath;
     UITest.pluginName = 'hawtio-ui-test-pages';
     UITest._module = angular.module(UITest.pluginName, []);
-    var tab1 = null;
-    var tab2 = null;
-    var editorTab = null;
-    UITest._module.config(['$routeProvider', 'HawtioNavBuilderProvider', function ($routeProvider, builder) {
-            editorTab = builder.create()
+    UITest._module.constant('ExampleTabs', []);
+    UITest._module.config(['ExampleTabs', '$routeProvider', 'HawtioNavBuilderProvider', function (tabs, $routeProvider, builder) {
+            tabs.push(builder.create()
                 .id(builder.join(UITest.pluginName, 'editor'))
                 .href(function () { return '/ui'; })
                 .title(function () { return 'Editor'; })
                 .subPath('Editor', 'editor', builder.join(path, 'editor.html'))
-                .build();
-            tab2 = builder.create()
+                .build());
+            tabs.push(builder.create()
                 .id(builder.join(UITest.pluginName, 'tab2'))
                 .href(function () { return '/ui2'; })
                 .title(function () { return "UI Components 2"; })
@@ -240,8 +238,8 @@ var UITest;
                 .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                 .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
                 .subPath('Zero Clipboard', 'zero-clipboard', builder.join(path, 'zero-clipboard.html'))
-                .build();
-            tab1 = builder.create()
+                .build());
+            tabs.push(builder.create()
                 .id(builder.join(UITest.pluginName, 'tab1'))
                 .href(function () { return '/ui1'; })
                 .title(function () { return "UI Components 1"; })
@@ -254,15 +252,13 @@ var UITest;
                 .subPath('JSPlumb', 'jsplumb', builder.join(path, 'jsplumb.html'))
                 .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                 .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
-                .build();
-            builder.configureRouting($routeProvider, tab1);
-            builder.configureRouting($routeProvider, tab2);
-            builder.configureRouting($routeProvider, editorTab);
+                .build());
+            _.forEach(tabs, function (tab) { return builder.configureRouting($routeProvider, tab); });
         }]);
-    UITest._module.run(['HawtioNav', function (nav) {
-            nav.add(tab1);
-            nav.add(tab2);
-            nav.add(editorTab);
+    UITest._module.run(['ExampleTabs', 'HawtioNav', function (tabs, nav) {
+            _.forEach(tabs, function (tab) {
+                nav.add(tab);
+            });
             nav.add({
                 id: 'project-link',
                 isSelected: function () { return false; },
