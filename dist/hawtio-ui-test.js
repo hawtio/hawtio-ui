@@ -6,18 +6,140 @@ var DatatableTest;
     var pluginName = "datatable-test";
     DatatableTest.templatePath = "test-plugins/datatable/html";
     DatatableTest._module = angular.module(pluginName, []);
-    DatatableTest._module.config(["$routeProvider", function ($routeProvider) {
-            $routeProvider.
-                when('/datatable/test', { templateUrl: UrlHelpers.join(DatatableTest.templatePath, 'test.html') });
+    var simpleTableTab = null;
+    DatatableTest._module.config(["$routeProvider", 'HawtioNavBuilderProvider', function ($routeProvider, builder) {
+            simpleTableTab = builder.create()
+                .id(pluginName)
+                .title(function () { return "Tables"; })
+                .href(function () { return "/datatable"; })
+                .subPath("Simple Table", "simple-table", builder.join(DatatableTest.templatePath, "simple-table.html"), 1)
+                .build();
+            builder.configureRouting($routeProvider, simpleTableTab);
         }]);
     DatatableTest._module.run(['HawtioNav', function (nav) {
-            var builder = nav.builder();
-            nav.add(builder.id(pluginName)
-                .href(function () { return '/datatable/test'; })
-                .title(function () { return 'Tables'; })
-                .build());
+            nav.add(simpleTableTab);
         }]);
     hawtioPluginLoader.addModule(pluginName);
+})(DatatableTest || (DatatableTest = {}));
+
+/// <reference path="datatablePlugin.ts"/>
+var DatatableTest;
+(function (DatatableTest) {
+    DatatableTest._module.controller("DatatableTest.SimpleTableController", ["$scope", "$templateCache", "$location", function ($scope, $templateCache, $location) {
+            $scope.toJson = angular.toJson;
+            // 1 - Table with single row selection via click on row
+            $scope.config1 = {
+                data: 'model1',
+                selectedItems: [],
+                columnDefs: [
+                    {
+                        field: 'name',
+                        displayName: 'Pod Name'
+                    },
+                    {
+                        field: 'status',
+                        displayName: 'Status'
+                    },
+                    {
+                        field: 'ip',
+                        displayName: 'IP',
+                        customSortField: processIpForSorting
+                    },
+                ],
+                enableRowClickSelection: true,
+                showSelectionCheckbox: false,
+                multiSelect: false,
+                sortInfo: { "sortBy": "ip", "ascending": true },
+            };
+            $scope.model1 = [
+                { name: "fabric8-311", status: "running", ip: '10.188.2.3' },
+                { name: "camel-041", status: "running", ip: '10.188.2.20' },
+                { name: "activemq-004", status: "failed", ip: '10.188.2.111' }
+            ];
+            $scope.markup1 = $templateCache.get("markup1.html");
+            // 2 - Table with multiple row selection using checkboxes
+            $scope.config2 = {
+                data: 'model2',
+                selectedItems: [],
+                columnDefs: [
+                    {
+                        field: 'name',
+                        displayName: 'Pod Name'
+                    },
+                    {
+                        field: 'status',
+                        displayName: 'Status',
+                        cellTemplate: '<div class="ngCellText status-{{row.entity.status}}">{{row.entity.status}}</div>'
+                    },
+                    {
+                        field: 'ip',
+                        displayName: 'IP',
+                        customSortField: processIpForSorting
+                    },
+                ],
+                enableRowClickSelection: false,
+                showSelectionCheckbox: true,
+                multiSelect: true,
+                primaryKeyFn: function (entity) { return entity.name + "_" + entity.ip; },
+            };
+            $scope.model2 = [
+                { name: "fabric8-311", status: "running", ip: '10.188.2.3' },
+                { name: "camel-041", status: "running", ip: '10.188.2.20' },
+                { name: "activemq-004", status: "failed", ip: '10.188.2.111' }
+            ];
+            $scope.markup2 = $templateCache.get("markup2.html");
+            // 3 - Table with fixed height and search box
+            $scope.config3 = {
+                data: 'model3',
+                selectedItems: [],
+                columnDefs: [
+                    {
+                        field: 'name',
+                        displayName: 'Pod Name'
+                    },
+                    {
+                        field: 'status',
+                        displayName: 'Status'
+                    },
+                    {
+                        field: 'ip',
+                        displayName: 'IP',
+                        customSortField: processIpForSorting
+                    },
+                ],
+                maxBodyHeight: 100,
+                filterOptions: { filterText: "" }
+            };
+            $scope.model3 = [
+                { name: "fabric8-311", status: "running", ip: '10.188.2.3' },
+                { name: "camel-041", status: "running", ip: '10.188.2.20' },
+                { name: "activemq-004", status: "failed", ip: '10.188.2.111' },
+                { name: "keycloak-511", status: "running", ip: '10.188.2.4' },
+                { name: "wildfly-241", status: "running", ip: '10.188.2.21' },
+                { name: "tomcat-377", status: "failed", ip: '10.188.2.178' },
+                { name: "karaf-033", status: "running", ip: '10.188.2.220' },
+            ];
+            $scope.markup3 = $templateCache.get("markup3.html");
+        }]);
+    function processIpForSorting(field) {
+        // use a custom sort to sort ip address
+        var ip = field.ip;
+        // i guess there is maybe nicer ways of sort this without parsing and slicing
+        var regex = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
+        var groups = regex.exec(ip);
+        if (angular.isDefined(groups)) {
+            var g1 = ("00" + groups[1]).slice(-3);
+            var g2 = ("00" + groups[2]).slice(-3);
+            var g3 = ("00" + groups[3]).slice(-3);
+            var g4 = ("00" + groups[4]).slice(-3);
+            var answer = g1 + g2 + g3 + g4;
+            console.log(answer);
+            return answer;
+        }
+        else {
+            return 0;
+        }
+    }
 })(DatatableTest || (DatatableTest = {}));
 
 /// <reference path="datatablePlugin.ts"/>
@@ -484,7 +606,8 @@ var UITest;
         }]);
 })(UITest || (UITest = {}));
 
-angular.module("hawtio-ui-test-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("test-plugins/datatable/html/test.html","<div ng-controller=\"DatatableTest.SimpleTableTestController\">\n  <div class=\"row\">\n    <div class=\"section-header\">\n\n      <div class=\"section-filter\">\n        <input type=\"text\" class=\"search-query\" placeholder=\"Filter...\" ng-model=\"mygrid.filterOptions.filterText\">\n        <i class=\"fa fa-remove clickable\" title=\"Clear filter\" ng-click=\"mygrid.filterOptions.filterText = \'\'\"></i>\n      </div>\n\n    </div>\n  </div>\n\n  <h3>hawtio-simple-table example</h3>\n\n  <table class=\"table table-striped table-bordered\" hawtio-simple-table=\"mygrid\"></table>\n\n  <div class=\"row\">\n    <p>Selected folks:</p>\n    <ul>\n      <li ng-repeat=\"person in mygrid.selectedItems\">{{person.name}}</li>\n    </ul>\n\n    <p>\n       <a class=\"btn\" href=\"\" ng-click=\"mygrid.multiSelect = !mygrid.multiSelect\">multi select is: {{mygrid.multiSelect}}</a>\n    </p>\n  </div>\n\n  <h3>hawtio-simple-table - fixed height</h3>\n\n  <table class=\"table table-striped table-bordered\" hawtio-simple-table=\"scrollGrid\"></table>\n\n  <div class=\"row\">\n    <p>Selected folks:</p>\n    <ul>\n      <li ng-repeat=\"person in scrollGrid.selectedItems\">{{person.name}}</li>\n    </ul>\n    <p>\n       <a class=\"btn\" href=\"\" ng-click=\"scrollGrid.multiSelect = !scrollGrid.multiSelect\">multi select is: {{scrollGrid.multiSelect}}</a>\n    </p>\n  </div>\n</div>\n");
+angular.module("hawtio-ui-test-templates", []).run(["$templateCache", function($templateCache) {$templateCache.put("test-plugins/datatable/html/simple-table.html","<style>\n  .status-running {\n    color: blue\n  }\n  .status-failed {\n    color: red\n  }\n</style>\n<div ng-controller=\"DatatableTest.SimpleTableController\">\n  <div class=\"row-fluid\">\n    <div class=\"col-md-12\">\n      <h1>Simple Table</h1>\n    </div>\n    <div class=\"col-md-12\">\n      <p>\n        Hawtio Simple Table component can be used to display, sort, filter, and select data from a JSON model, similarly to ng-grid or hawtio-datatable.\n        This lets you create a regular table element with whatever metadata you like and the &lt;thead&gt; and &lt;tbody&gt; will be generated from the column definitions to render the table dynamically; using the same kind of JSON configuration.\n        This means you can switch between ng-grid, hawtio-datatable and hawtio-simple-table based on your requirements and tradeoffs (layout versus performance versus dynamic, user configurable views etc).\n      </p>\n      <h4>Primary Key</h4>\n      <p>\n        The Simple Table uses a primary key to ensure that the rows can be kept selected when the underlying data changes due live updated.\n        It looks for a property called <code>id</code>, <code>_id</code>, <code>_key</code>, or <code>name</code> in the data objects.\n        If not found, it looks for a configuration property called <code>primaryKeyFn</code>, which specifies a function that returns the primary key.\n        Example:\n        <code>\n          primaryKeyFn: (entity) => { return entity.group + \"/\" + entity.name }\n        </code>\n      </p>\n      <h3>Configuration Properties</h3>\n      <p>\n        <table class=\"table\">\n          <thead>\n            <tr><th>Name</th><th>Type</th><th>Default</th><th>Mandatory</th><th>Description</th></tr>\n          </thead>\n          <tbody>\n            <tr><td>data</td><td>String</td><td></td><td>Yes</td><td>Name of $scope property referencing the array of data objects<./td></tr>\n            <tr><td>selectedItems</td><td>Array</td><td></td><td>Yes</td><td>Array where the selected data objects shall be stored.</td></tr>\n            <tr><td>columnDefs</td><td>Array</td><td></td><td>Yes</td><td>Array of column definitions. Each definition object has a <code>field</code>, <code>displayName</code>, <code>cellTemplate</code> (optional), and <code>customSortField</code> (optional).</td></tr>\n            <tr><td>primaryKeyFn</td><td>Function</td><td></td><td>No</td><td>Function that takes a reference to each data object and returns its primary key.<code></></td></tr>\n            <tr><td>showSelectionCheckbox</td><td>Boolean</td><td>true</td><td>No</td><td>Add a column with checkboxes for row selection.</td></tr>\n            <tr><td>enableRowClickSelection</td><td>Boolean</td><td>false</td><td>No</td><td>Allow row selection by clicking on the row.</td></tr>\n            <tr><td>multiSelect</td><td>Boolean</td><td>true</td><td>No</td><td>Allow the selection of multiple rows.</td></tr>\n            <tr><td>sortInfo</td><td>Object</td><td></td><td>No</td><td>Object with <code>sortBy</code> and <code>ascending</code> properties used as the default table sorting.</td></tr>\n            <tr><td>filterOptions</td><td>Object</td><td></td><td>No</td><td>Object with <code>filterText</code> property used as the default filter text (usually an empty text).</td></tr>\n            <tr><td>maxBodyHeight</td><td>Number</td><td></td><td>No</td><td>Maximum height of the table body. A scrollbar is added to the table.</td></tr>\n          </tbody>\n        </table>\n      </p>\n    </div>\n    <div class=\"col-md-12\">\n      <h2>Examples</h2>\n    </div>\n    <div class=\"col-md-12\">\n      <h3>1 - Table with single row selection via click on row</h3>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>Example Markup</h5>\n      <script type=\"text/ng-template\" id=\"markup1.html\"><table class=\"table\" hawtio-simple-table=\"config1\"></table></script>\n      <div hawtio-editor=\"markup1\" mode=\"html\"></div>\n      <h5>Example Model</h5>\n      <div hawtio-editor=\"toJson(model1, true)\" read-only=\"true\" mode=\"javascript\"></div>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>Example Configuration</h5>\n      <div hawtio-editor=\"toJson(config1, true)\" read-only=\"true\" mode=\"javascript\"></div>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>In Action</h5>\n      <div class=\"directive-example\">\n        <div compile=\"markup1\"></div>\n      </div>\n    </div>\n    <div class=\"col-md-12\">\n      <h3>2 - Table with multiple row selection using checkboxes</h3>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>Example Markup</h5>\n      <script type=\"text/ng-template\" id=\"markup2.html\"><table class=\"table table-bordered\" hawtio-simple-table=\"config2\"></table></script>\n      <div hawtio-editor=\"markup2\" mode=\"html\"></div>\n      <h5>Example Model</h5>\n      <div hawtio-editor=\"toJson(model2, true)\" read-only=\"true\" mode=\"javascript\"></div>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>Example Configuration</h5>\n      <div hawtio-editor=\"toJson(config2, true)\" read-only=\"true\" mode=\"javascript\"></div>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>In Action</h5>\n      <div class=\"directive-example\">\n        <div compile=\"markup2\"></div>\n      </div>\n    </div>\n    <div class=\"col-md-12\">\n      <h3>3 - Table with fixed height and search box</h3>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>Example Markup</h5>\n      <script type=\"text/ng-template\" id=\"markup3.html\"><table class=\"table table-bordered\" hawtio-simple-table=\"config3\"></table></script>\n      <div hawtio-editor=\"markup3\" mode=\"html\"></div>\n      <h5>Example Model</h5>\n      <div hawtio-editor=\"toJson(model3, true)\" read-only=\"true\" mode=\"javascript\"></div>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>Example Configuration</h5>\n      <div hawtio-editor=\"toJson(config3, true)\" read-only=\"true\" mode=\"javascript\"></div>\n    </div>\n    <div class=\"col-md-4\">\n      <h5>In Action</h5>\n      <div class=\"directive-example\">\n        <div>\n          <input type=\"text\" class=\"search-query\" placeholder=\"Filter...\" ng-model=\"config3.filterOptions.filterText\">\n          <i class=\"fa fa-remove clickable\" title=\"Clear filter\" ng-click=\"config3.filterOptions.filterText = \'\'\"></i>\n        </div>\n        <div compile=\"markup3\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
+$templateCache.put("test-plugins/datatable/html/test.html","<div ng-controller=\"DatatableTest.SimpleTableTestController\">\n  <div class=\"row\">\n    <div class=\"section-header\">\n\n      <div class=\"section-filter\">\n        <input type=\"text\" class=\"search-query\" placeholder=\"Filter...\" ng-model=\"mygrid.filterOptions.filterText\">\n        <i class=\"fa fa-remove clickable\" title=\"Clear filter\" ng-click=\"mygrid.filterOptions.filterText = \'\'\"></i>\n      </div>\n\n    </div>\n  </div>\n\n  <h3>hawtio-simple-table example</h3>\n\n  <table class=\"table table-striped table-bordered\" hawtio-simple-table=\"mygrid\"></table>\n\n  <div class=\"row\">\n    <p>Selected folks:</p>\n    <ul>\n      <li ng-repeat=\"person in mygrid.selectedItems\">{{person.name}}</li>\n    </ul>\n\n    <p>\n       <a class=\"btn\" href=\"\" ng-click=\"mygrid.multiSelect = !mygrid.multiSelect\">multi select is: {{mygrid.multiSelect}}</a>\n    </p>\n  </div>\n\n  <h3>hawtio-simple-table - fixed height</h3>\n\n  <table class=\"table table-striped table-bordered\" hawtio-simple-table=\"scrollGrid\"></table>\n\n  <div class=\"row\">\n    <p>Selected folks:</p>\n    <ul>\n      <li ng-repeat=\"person in scrollGrid.selectedItems\">{{person.name}}</li>\n    </ul>\n    <p>\n       <a class=\"btn\" href=\"\" ng-click=\"scrollGrid.multiSelect = !scrollGrid.multiSelect\">multi select is: {{scrollGrid.multiSelect}}</a>\n    </p>\n  </div>\n</div>\n");
 $templateCache.put("test-plugins/ui/html/auto-columns.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row\">\n      <h3>Auto Columns</h3>\n      <p>Lays out a bunch of inline-block child elements into columns automatically based on the size of the parent container.  Specify the selector for the child items as an argument</p>\n\n      <script type=\"text/ng-template\" id=\"autoColumnTemplate\">\n<div id=\"container\"\n     style=\"height: 225px;\n            width: 785px;\n            background: lightgrey;\n            border-radius: 4px;\"\n     hawtio-auto-columns=\".ex-children\"\n     min-margin=\"5\">\n  <div class=\"ex-children\"\n       style=\"display: inline-block;\n              width: 64px; height: 64px;\n              border-radius: 4px;\n              background: lightgreen;\n              text-align: center;\n              vertical-align: middle;\n              margin: 5px;\"\n       ng-repeat=\"div in divs\">{{div}}</div>\n</div>\n      </script>\n      <div hawtio-editor=\"autoColumnEx\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"autoColumnEx\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
 $templateCache.put("test-plugins/ui/html/auto-dropdown.html","<div ng-controller=\"UI.UITestController2\">\n\n  <div>\n    <div class=\"row\">\n      <h3>Auto Drop Down</h3>\n      <p>Handy for horizontal lists of things like menus, if the width of the element is smaller than the items inside any overflowing elements will be collected into a special dropdown element that\'s required at the end of the list</p>\n      <script type=\"text/ng-template\" id=\"autoDropDownTemplate\">\n        <ul class=\"nav nav-tabs\" hawtio-auto-dropdown>\n          <!-- All of our menu items -->\n          <li ng-repeat=\"item in menuItems\">\n            <a href=\"\">{{item}}</a>\n          </li>\n          <!-- The dropdown that will collect overflow elements -->\n          <li class=\"dropdown overflow\" style=\"float: right !important; visibility: hidden;\">\n            <a href=\"\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">\n              <i class=\"fa fa-chevron-down\"></i>\n            </a>\n            <ul class=\"dropdown-menu right\"></ul>\n          </li>\n        </ul>\n      </script>\n      <div hawtio-editor=\"autoDropDown\" mode=\"fileUploadExMode\"></div>\n      <div class=\"directive-example\">\n        <div compile=\"autoDropDown\"></div>\n      </div>\n    </div>\n  </div>\n</div>\n");
 $templateCache.put("test-plugins/ui/html/breadcrumbs.html","<div ng-controller=\"UI.UITestController2\">\n  <script type=\"text/ng-template\" id=\"breadcrumbTemplate\">\n    <p><b>path: {{breadcrumbConfig.path}}</b></p>\n    <hawtio-breadcrumbs config=\"breadcrumbConfig\"></hawtio-breadcrumbs>\n  </script>\n  <div class=\"row\">\n    <div class=\"col-md-6\">\n      <h3>BreadCrumbs</h3>\n      <p>A breadcrumb implementation that supports dropdowns for each node.  The data structure is a tree structure with a single starting node.  When the user makes a selection the directive will update the \'path\' property of the config object.  The directive also watches the \'path\' property, allowing you to also set the initial state of the breadcrumbs.  Config options are:</p>\n      <dl>\n        <dt>\n          path\n        </dt>\n        <dd>\n          attribute that holds the current selected path of the breadcrumb widget\n        </dd>\n        <dt>\n          title\n        </dt>\n        <dd>\n          The name and path element of the breadcrumb entry\n        </dd>\n        <dt>\n          icon\n        </dt>\n        <dd>\n          font-awesome icon class for the breadcrumb entry\n        </dd>\n        <dt>\n          items\n        </dt>\n        <dd>\n          array of child breadcrumb items\n        </dd>\n      </dl>\n      <p class=\"well\">\n        TODO - it\'d be helpful to make this breadcrumb work with an async config, where the entire tree isn\'t known up front, see <a href=\"https://github.com/hawtio/hawtio-ui/issues/34\">this issue</a>\n      </p>\n      <h5>Live example</h5>\n      <div class=\"directive-example\">\n        <div compile=\"breadcrumbEx\"></div>\n      </div>\n    </div>\n    <div class=\"col-md-6\">\n      <h5>HTML</h5>\n      <p>Example HTML markup</p>\n      <div hawtio-editor=\"breadcrumbEx\" mode=\"javascript\"></div>\n      <h5>JSON</h5>\n      <p>Example JSON configuration object</p>\n      <div hawtio-editor=\"breadcrumbConfigTxt\" mode=\"javascript\"></div>\n    </div>\n  </div>\n</div>\n");
