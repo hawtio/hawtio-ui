@@ -321,6 +321,7 @@ module UITest {
         console.log("Files: ", $scope.files);
       }
     }, true);
+    $scope.GlobalCodeMirrorOptions = CodeEditor.GlobalCodeMirrorOptions;
 
 
   }]);
