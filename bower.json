@@ -33,7 +33,7 @@
     "plugins"
   ],
   "dependencies": {
-    "angular": ">= 1.1.0 <= 1.6.0",
+    "angular": ">= 1.5.0 <= 1.6.0",
     "hawtio-core": "~2.0.0",
     "hawtio-core-navigation": "~2.0.0",
     "hawtio-utilities": "~2.0.0",
@@ -45,14 +45,14 @@
     "font-awesome": "^4.5.0"
   },
   "devDependencies": {
-    "patternfly": "~2.7.0",
+    "bootstrap": "~3.3.6",
+    "patternfly": "~3.5.1",
     "hawtio-core-dts": "~2.0.0",
     "hawtio-template-cache": "~2.0.2"
   },
   "resolutions": {
     "lodash": "~3.2.0",
-    "angular-mocks": "~1.5.0",
-    "angular": ">= 1.1.0 <= 1.6.0"
+    "angular": ">= 1.5.0 <= 1.6.0"
   },
   "overrides": {
     "dagre": {
