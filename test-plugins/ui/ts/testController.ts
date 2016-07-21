@@ -7,14 +7,9 @@ module UITest {
       $scope.fileUploadExMode = 'text/html';
 
       $scope.menuItems = [];
-      $scope.divs = [];
 
       for (var i = 0; i < 20; i++) {
         $scope.menuItems.push("Some Item " + i);
-      }
-
-      for (var i = 0; i < 20; i++) {
-        $scope.divs.push(i + 1);
       }
 
       $scope.things = [

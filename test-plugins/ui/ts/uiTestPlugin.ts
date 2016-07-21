@@ -22,7 +22,6 @@ module UITest {
                    .title(function () { return "UI Components 2"; })
                      .subPath('Tags', 'tags', builder.join(path, 'tags.html'))
                      .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
-                     .subPath('Auto Columns', 'auto-columns', builder.join(path, 'auto-columns.html'))
                      .subPath('Template Popover', 'template-popover', builder.join(path, 'template-popover.html'))
                      .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                      .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
