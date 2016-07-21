@@ -12,7 +12,6 @@
 /// <reference path="d.ts/tree/ts/treePlugin.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiHelpers.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiPlugin.d.ts"/>
-/// <reference path="d.ts/ui/ts/autoColumns.d.ts"/>
 /// <reference path="d.ts/ui/ts/autoDropDown.d.ts"/>
 /// <reference path="d.ts/ui/ts/breadcrumbs.d.ts"/>
 /// <reference path="d.ts/ui/ts/cardView.d.ts"/>
