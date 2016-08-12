@@ -11,7 +11,8 @@ var gulp = require('gulp'),
     uri = require('urijs'),
     s = require('underscore.string'),
     argv = require('yargs').argv,
-    del = require('del');
+    del = require('del'),
+    runSequence = require('run-sequence');
 
 var plugins = gulpLoadPlugins({});
 var pkg = require('./package.json');
@@ -43,6 +44,7 @@ var config = {
     declarationFiles: false,
     noExternalResolve: false
   }),
+  vendorJs: 'plugins/vendor/*.js'
 };
 
 gulp.task('bower', function() {
@@ -172,7 +174,7 @@ gulp.task('template', ['tsc'], function() {
 });
 
 gulp.task('concat', ['template'], function() {
-  return gulp.src(['compiled.js', 'templates.js'])
+  return gulp.src(['compiled.js', 'templates.js', config.vendorJs])
     .pipe(plugins.concat(config.js))
     .pipe(gulp.dest(config.dist));
 });
@@ -311,9 +313,25 @@ gulp.task('deploy', function() {
     }));
 });
 
-gulp.task('build', ['bower', 'path-adjust', 'tsc', 'less', 'template', 'concat', 'clean', 'embed-images']);
+gulp.task('build-clean', function() {
+  return del(['dist/hawtio-ui.*']);
+});
 
-gulp.task('build-example', ['example-tsc', 'test-less', 'example-template', 'example-concat', 'example-clean']);
+gulp.task('build-example-clean', function() {
+  return del(['dist/hawtio-ui-test.*']);
+});
+
+gulp.task('build', function(callback) {
+  runSequence('build-clean',
+              ['bower', 'path-adjust', 'tsc', 'less', 'template', 'concat', 'clean', 'embed-images'],
+              callback);
+});
+
+gulp.task('build-example', function(callback) {
+  runSequence('build-example-clean',
+              ['example-tsc', 'test-less', 'example-template', 'example-concat', 'example-clean'],
+              callback);
+});
 
 gulp.task('default', ['connect']);
 
