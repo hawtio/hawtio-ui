@@ -2397,6 +2397,9 @@ var UI;
                             UI.log.debug("Drag event object doesn't contain data transfer: ", event);
                         }
                     });
+                    attr.$observe('downloadUrl', function (url) {
+                        fileDetails = mimeType + ":" + fileName + ":" + url;
+                    });
                 }
             };
         }]);
