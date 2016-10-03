@@ -33,7 +33,7 @@
     "jquery-ui": "1.12.x",
     "jquery.dynatree": "1.2.x",
     "marked": "0.3.x",
-    "angular-bootstrap": "0.12.x"
+    "angular-bootstrap": "0.13.x"
   },
   "devDependencies": {
     "bootstrap": "~3.3.6",
