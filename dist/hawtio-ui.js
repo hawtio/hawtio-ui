@@ -745,48 +745,6 @@ var HawtioEditor;
 })(HawtioEditor || (HawtioEditor = {}));
 
 /// <reference path="../../includes.ts"/>
-var Toastr;
-(function (Toastr) {
-    var pluginName = 'hawtio-toastr';
-    var _module = angular.module(pluginName, []);
-    hawtioPluginLoader.addModule(pluginName);
-})(Toastr || (Toastr = {}));
-var Core;
-(function (Core) {
-    /**
-     * Displays an alert message which is typically the result of some asynchronous operation
-     *
-     * @method notification
-     * @static
-     * @param type which is usually "success" or "error" and matches css alert-* css styles
-     * @param message the text to display
-     *
-     */
-    function notification(type, message, options) {
-        if (options === void 0) { options = null; }
-        if (options === null) {
-            options = {};
-        }
-        if (type === 'error' || type === 'warning') {
-            if (!angular.isDefined(options.onclick)) {
-                options.onclick = window['showLogPanel'];
-            }
-        }
-        toastr[type](message, '', options);
-    }
-    Core.notification = notification;
-    /**
-     * Clears all the pending notifications
-     * @method clearNotifications
-     * @static
-     */
-    function clearNotifications() {
-        toastr.clear();
-    }
-    Core.clearNotifications = clearNotifications;
-})(Core || (Core = {}));
-
-/// <reference path="../../includes.ts"/>
 /// <reference path="forceGraphDirective.ts"/>
 /**
  * Force Graph plugin & directive
@@ -1148,6 +1106,48 @@ var ForceGraph;
     }());
     ForceGraph.GraphBuilder = GraphBuilder;
 })(ForceGraph || (ForceGraph = {}));
+
+/// <reference path="../../includes.ts"/>
+var Toastr;
+(function (Toastr) {
+    var pluginName = 'hawtio-toastr';
+    var _module = angular.module(pluginName, []);
+    hawtioPluginLoader.addModule(pluginName);
+})(Toastr || (Toastr = {}));
+var Core;
+(function (Core) {
+    /**
+     * Displays an alert message which is typically the result of some asynchronous operation
+     *
+     * @method notification
+     * @static
+     * @param type which is usually "success" or "error" and matches css alert-* css styles
+     * @param message the text to display
+     *
+     */
+    function notification(type, message, options) {
+        if (options === void 0) { options = null; }
+        if (options === null) {
+            options = {};
+        }
+        if (type === 'error' || type === 'warning') {
+            if (!angular.isDefined(options.onclick)) {
+                options.onclick = window['showLogPanel'];
+            }
+        }
+        toastr[type](message, '', options);
+    }
+    Core.notification = notification;
+    /**
+     * Clears all the pending notifications
+     * @method clearNotifications
+     * @static
+     */
+    function clearNotifications() {
+        toastr.clear();
+    }
+    Core.clearNotifications = clearNotifications;
+})(Core || (Core = {}));
 
 /// <reference path="../../includes.ts"/>
 /**
@@ -2571,6 +2571,48 @@ var UI;
     }
     UI.groupBy = groupBy;
     UI._module.filter('hawtioGroupBy', UI.groupBy);
+})(UI || (UI = {}));
+
+var UI;
+(function (UI) {
+    UI._module.directive('httpSrc', ['$http', function ($http) {
+            return {
+                // do not share scope with sibling img tags and parent
+                // (prevent show same images on img tag)
+                scope: {
+                    httpSrcChanged: '='
+                },
+                link: function ($scope, elem, attrs) {
+                    function revokeObjectURL() {
+                        if ($scope.objectURL) {
+                            URL.revokeObjectURL($scope.objectURL);
+                        }
+                    }
+                    $scope.$watch('objectURL', function (objectURL, oldURL) {
+                        if (objectURL !== oldURL) {
+                            elem.attr('src', objectURL);
+                            if (typeof $scope.httpSrcChanged !== 'undefined') {
+                                $scope.httpSrcChanged = objectURL;
+                            }
+                        }
+                    });
+                    $scope.$on('$destroy', revokeObjectURL);
+                    attrs.$observe('httpSrc', function (url) {
+                        revokeObjectURL();
+                        if (url && url.indexOf('data:') === 0) {
+                            $scope.objectURL = url;
+                        }
+                        else if (url) {
+                            $http.get(url, { responseType: 'arraybuffer' })
+                                .then(function (response) {
+                                var blob = new Blob([response.data], { type: attrs['mediaType'] ? attrs['mediaType'] : 'application/octet-stream' });
+                                $scope.objectURL = URL.createObjectURL(blob);
+                            });
+                        }
+                    });
+                }
+            };
+        }]);
 })(UI || (UI = {}));
 
 /**

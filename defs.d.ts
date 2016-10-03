@@ -28,6 +28,7 @@
 /// <reference path="d.ts/ui/ts/filter.d.ts"/>
 /// <reference path="d.ts/ui/ts/gridster.d.ts"/>
 /// <reference path="d.ts/ui/ts/groupBy.d.ts"/>
+/// <reference path="d.ts/ui/ts/httpSrcDirective.d.ts"/>
 /// <reference path="d.ts/ui/ts/icon.d.ts"/>
 /// <reference path="d.ts/ui/ts/jsPlumbDirective.d.ts"/>
 /// <reference path="d.ts/ui/ts/list.d.ts"/>
