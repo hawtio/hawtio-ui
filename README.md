@@ -12,3 +12,6 @@ When developing this plugin in a dependent console you can change the output dir
 
 Whenever the build completes the compiled .js file will be put into the target directory.  Don't forget to first do a `gulp build` without this flag before committing changes!
 
+### Working on the code
+
+Have a look at the hawtio 2.x [overview document](https://github.com/hawtio/hawtio/blob/master/docs/Overview2dotX.md) under "Getting Started" specifically.
