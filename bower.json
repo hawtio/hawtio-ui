@@ -27,11 +27,11 @@
     "toastr": "~2.1.0",
     "bootstrap": "~3.3.6",
     "font-awesome": "^4.5.0",
-    "d3": "3.5.x",
-    "jquery-ui": "1.12.x",
-    "jquery.dynatree": "1.2.x",
-    "marked": "0.3.x",
-    "angular-bootstrap": "~2.3.0"
+    "d3": "~3.5.0",
+    "jquery-ui": "~1.12.0",
+    "jquery.dynatree": "~1.2.0",
+    "marked": "~0.3.0",
+    "angular-bootstrap": "~0.13.0"
   },
   "devDependencies": {
     "bootstrap": "~3.3.6",
