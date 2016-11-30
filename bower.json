@@ -19,11 +19,10 @@
     "dist/hawtio-ui-test.*"
   ],
   "dependencies": {
-    "angular": ">= 1.5.0 <= 1.6.0",
     "hawtio-core": "~2.0.0",
     "hawtio-core-navigation": "~2.0.0",
     "hawtio-utilities": "~2.0.0",
-    "codemirror": "^5.0",
+    "codemirror": "~5.19.0",
     "dagre": "~0.7.1",
     "zeroclipboard": "~2.2.0",
     "toastr": "~2.1.0",
@@ -33,17 +32,13 @@
     "jquery-ui": "1.12.x",
     "jquery.dynatree": "1.2.x",
     "marked": "0.3.x",
-    "angular-bootstrap": "0.13.x"
+    "angular-bootstrap": "~2.3.0"
   },
   "devDependencies": {
     "bootstrap": "~3.3.6",
     "patternfly": "~3.5.1",
     "hawtio-core-dts": "~2.0.0",
-    "hawtio-template-cache": "~2.0.2"
-  },
-  "resolutions": {
-    "lodash": "~3.2.0",
-    "angular": ">= 1.5.0 <= 1.6.0"
+    "hawtio-template-cache": "~2.0.0"
   },
   "overrides": {
     "dagre": {
@@ -51,5 +46,8 @@
         "dist/dagre.core.js"
       ]
     }
+  },
+  "resolutions": {
+    "angular": "~1.5.9"
   }
 }
