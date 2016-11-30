@@ -1,6 +1,5 @@
 {
   "name": "hawtio-ui",
-  "version": "2.0.111",
   "keywords": [
     "hawtio"
   ],
@@ -46,8 +45,5 @@
         "dist/dagre.core.js"
       ]
     }
-  },
-  "resolutions": {
-    "angular": "~1.5.9"
   }
 }
