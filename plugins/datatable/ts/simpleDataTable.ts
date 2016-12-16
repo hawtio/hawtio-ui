@@ -234,7 +234,7 @@ module DataTable {
         };
 
         $scope.isSelected = (row) => {
-          return _.some(config.selectedItems, row.entity);
+          return row && _.some(config.selectedItems, row.entity);
         };
 
         $scope.onRowSelected = (row) => {
