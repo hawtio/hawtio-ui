@@ -47,11 +47,15 @@ module UI {
       };
 
       scope.previous = () => {
-        this.goToIndex(scope.rowIndex() - 1);
+        if (scope.rowIndex() > 0) {
+          this.goToIndex(scope.rowIndex() - 1);
+        }
       };
 
       scope.next = () => {
-        this.goToIndex(scope.rowIndex() + 1);
+        if (scope.rowIndex() < scope.tableLength() - 1) {
+          this.goToIndex(scope.rowIndex() + 1);
+        }
       };
 
       scope.isEmptyOrFirst = () => {
