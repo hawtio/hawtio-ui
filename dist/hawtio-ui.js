@@ -200,10 +200,10 @@ var DataTable;
                         if ('sortInfo' in $scope.config) {
                             if ($scope.config.sortInfo.sortBy === field) {
                                 if ($scope.config.sortInfo.ascending) {
-                                    return 'asc';
+                                    return 'sorting_asc';
                                 }
                                 else {
-                                    return 'desc';
+                                    return 'sorting_desc';
                                 }
                             }
                         }
@@ -255,6 +255,7 @@ var DataTable;
                         // lets add the header and row cells
                         var rootElement = $element;
                         rootElement.empty();
+                        rootElement.addClass('datatable');
                         var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
                         var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);
                         var scrollable = config.maxBodyHeight !== undefined;
@@ -332,12 +333,12 @@ var DataTable;
         }
         for (var i = 0, len = columnDefs.length; i < len; i++) {
             var columnDef = columnDefs[i];
-            headHtml += "\n<th class='clickable no-fade table-header' ng-click=\"sortBy('" + columnDef.field +
+            headHtml += "\n<th class='sorting' ng-click=\"sortBy('" + columnDef.field +
                 "')\" ng-class=\"getClass('" + columnDef.field + "')\">{{config.columnDefs[" + i +
-                "].displayName}}<span class='indicator'></span></th>";
+                "].displayName}}</th>";
         }
         if (scrollable) {
-            headHtml += "\n<th class='table-header'></th>";
+            headHtml += "\n<th></th>";
         }
         headHtml += "\n</tr></thead>\n";
         return headHtml;
@@ -352,7 +353,7 @@ var DataTable;
     function buildBodyHtml(columnDefs, showCheckBox, enableRowClickSelection) {
         // use a function to check if a row is selected so the UI can be kept up to date asap
         var bodyHtml = "<tbody><tr ng-repeat='row in rows track by $index' ng-show='showRow(row)' " +
-            "ng-class=\"{'selected': isSelected(row)}\" >";
+            "ng-class=\"{'active': isSelected(row)}\" >";
         if (showCheckBox) {
             bodyHtml += "\n<td class='simple-table-checkbox'><input type='checkbox' ng-model='row.selected' " +
                 "ng-change='toggleRowSelection(row)'></td>";
