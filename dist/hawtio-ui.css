@@ -2811,7 +2811,12 @@ span.dynatree-drop-target.dynatree-drop-reject {
 table.dataTable {
   table-layout: fixed;
 }
-table.dataTable tbody tr td {
+table.dataTable td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+table.dataTable td div {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
