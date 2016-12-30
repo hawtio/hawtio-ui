@@ -234,7 +234,17 @@ module DataTable {
         };
 
         $scope.isSelected = (row) => {
-          return _.some(config.selectedItems, row.entity);
+          return row && _.some(config.selectedItems, row.entity);
+        };
+
+        $scope.onRowClicked = (row) => {
+          var id = $scope.config.gridKey;
+          if (id) {
+            var func = $scope.config.onClickRowHandlers[id];
+            if (func) {
+              func(row);
+            }
+          }
         };
 
         $scope.onRowSelected = (row) => {
