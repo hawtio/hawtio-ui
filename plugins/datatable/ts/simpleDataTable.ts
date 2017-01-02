@@ -355,9 +355,13 @@ module DataTable {
     }
 
     for (var i = 0, len = columnDefs.length; i < len; i++) {
-      var columnDef = columnDefs[i];
-      headHtml += "\n<th class='sorting' ng-click=\"sortBy('" + columnDef.field +
-        "')\" ng-class=\"getClass('" + columnDef.field + "')\">{{config.columnDefs[" + i +
+      let columnDef = columnDefs[i];
+      let sortingArgs = '';
+      if (columnDef.sortable === undefined || columnDef.sortable) {
+        sortingArgs = "class='sorting' ng-click=\"sortBy('" + columnDef.field + "')\" ";
+      }
+      headHtml += "\n<th " + sortingArgs +
+        " ng-class=\"getClass('" + columnDef.field + "')\">{{config.columnDefs[" + i +
         "].displayName}}</th>";
     }
 

@@ -229,7 +229,16 @@ var DataTable;
                         return match;
                     };
                     $scope.isSelected = function (row) {
-                        return _.some(config.selectedItems, row.entity);
+                        return row && _.some(config.selectedItems, row.entity);
+                    };
+                    $scope.onRowClicked = function (row) {
+                        var id = $scope.config.gridKey;
+                        if (id) {
+                            var func = $scope.config.onClickRowHandlers[id];
+                            if (func) {
+                                func(row);
+                            }
+                        }
                     };
                     $scope.onRowSelected = function (row) {
                         var idx = config.selectedItems.indexOf(row.entity);
@@ -333,8 +342,12 @@ var DataTable;
         }
         for (var i = 0, len = columnDefs.length; i < len; i++) {
             var columnDef = columnDefs[i];
-            headHtml += "\n<th class='sorting' ng-click=\"sortBy('" + columnDef.field +
-                "')\" ng-class=\"getClass('" + columnDef.field + "')\">{{config.columnDefs[" + i +
+            var sortingArgs = '';
+            if (columnDef.sortable === undefined || columnDef.sortable) {
+                sortingArgs = "class='sorting' ng-click=\"sortBy('" + columnDef.field + "')\" ";
+            }
+            headHtml += "\n<th " + sortingArgs +
+                " ng-class=\"getClass('" + columnDef.field + "')\">{{config.columnDefs[" + i +
                 "].displayName}}</th>";
         }
         if (scrollable) {

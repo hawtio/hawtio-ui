@@ -23,13 +23,14 @@ module DatatableTest {
         {
           field: 'ip',
           displayName: 'IP',
-          customSortField: processIpForSorting
+          customSortField: processIpForSorting,
+          sortable: false
         },
       ],
       enableRowClickSelection: true,
       showSelectionCheckbox: false,
       multiSelect: false,
-      sortInfo: {"sortBy": "ip", "ascending": true},
+      sortInfo: {"sortBy": "status", "ascending": true},
     };
     $scope.model1 = [
       {name: "fabric8-311", status: "running", ip: '10.188.2.3'},
