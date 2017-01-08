@@ -36,7 +36,7 @@
           <tbody>
             <tr><td>data</td><td>String</td><td></td><td>Yes</td><td>Name of $scope property referencing the array of data objects<./td></tr>
             <tr><td>selectedItems</td><td>Array</td><td></td><td>Yes</td><td>Array where the selected data objects shall be stored.</td></tr>
-            <tr><td>columnDefs</td><td>Array</td><td></td><td>Yes</td><td>Array of column definitions. Each definition object has a <code>field</code>, <code>displayName</code>, <code>cellTemplate</code> (optional), and <code>customSortField</code> (optional).</td></tr>
+            <tr><td>columnDefs</td><td>Array</td><td></td><td>Yes</td><td>Array of column definitions. Each definition object has a <code>field</code>, <code>displayName</code>, <code>cellTemplate</code> (optional), <code>customSortField</code> (optional), and <code>sortable</code> (optional).</td></tr>
             <tr><td>primaryKeyFn</td><td>Function</td><td></td><td>No</td><td>Function that takes a reference to each data object and returns its primary key.<code></></td></tr>
             <tr><td>showSelectionCheckbox</td><td>Boolean</td><td>true</td><td>No</td><td>Add a column with checkboxes for row selection.</td></tr>
             <tr><td>enableRowClickSelection</td><td>Boolean</td><td>false</td><td>No</td><td>Allow row selection by clicking on the row.</td></tr>
@@ -52,11 +52,11 @@
       <h2>Examples</h2>
     </div>
     <div class="col-md-12">
-      <h3>1 - Table with single row selection via click on row</h3>
+      <h3>1 - Table with highlight on hover and row selection on click</h3>
     </div>
     <div class="col-md-4">
       <h5>Example Markup</h5>
-      <script type="text/ng-template" id="markup1.html"><table class="table" hawtio-simple-table="config1"></table></script>
+      <script type="text/ng-template" id="markup1.html"><table class="table table-hover" hawtio-simple-table="config1"></table></script>
       <div hawtio-editor="markup1" mode="html"></div>
       <h5>Example Model</h5>
       <div hawtio-editor="toJson(model1, true)" read-only="true" mode="javascript"></div>
