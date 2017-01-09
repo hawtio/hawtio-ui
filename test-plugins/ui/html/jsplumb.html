@@ -1,32 +1,33 @@
 <div ng-controller="UI.UITestController1">
+
   <script type="text/ng-template" id="jsplumbTemplate">
-<div class="ex-node-container" hawtio-jsplumb draggable="true" layout="true">
-  <!-- Nodes just need to have an ID and the jsplumb-node class -->
-  <div ng-repeat="node in nodes"
-       id="{{node}}"
-       anchors="Continuous"
-       class="jsplumb-node ex-node">
-    <i class="fa fa-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}
-  </div>
-  <!-- You can specify a connect-to attribute and a comma separated list of IDs to connect nodes -->
-  <div id="node3"
-       class="jsplumb-node ex-node"
-       anchors="Left,Right"
-       connect-to="node1,node2">
-    <i class="fa fa-plus clickable" ng-click="createEndpoint('node3')"></i> Node 3
-  </div>
-  <!-- Expressions and stuff will work too -->
-  <div ng-repeat="node in otherNodes"
-       id="{{node}}"
-       class="jsplumb-node ex-node"
-       anchors="Continuous"
-       connect-to="{{otherNodes[$index - 1]}}"><i class="fa fa-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}</div>
-</div>
+    <div class="ex-node-container" hawtio-jsplumb draggable="true" layout="true">
+      <!-- Nodes just need to have an ID and the jsplumb-node class -->
+      <div ng-repeat="node in nodes"
+          id="{{node}}"
+          anchors="Continuous"
+          class="jsplumb-node ex-node">
+        <i class="fa fa-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}
+      </div>
+      <!-- You can specify a connect-to attribute and a comma separated list of IDs to connect nodes -->
+      <div id="node3"
+          class="jsplumb-node ex-node"
+          anchors="Left,Right"
+          connect-to="node1,node2">
+        <i class="fa fa-plus clickable" ng-click="createEndpoint('node3')"></i> Node 3
+      </div>
+      <!-- Expressions and stuff will work too -->
+      <div ng-repeat="node in otherNodes"
+          id="{{node}}"
+          class="jsplumb-node ex-node"
+          anchors="Continuous"
+          connect-to="{{otherNodes[$index - 1]}}"><i class="fa fa-plus clickable" ng-click="createEndpoint(node)"></i> Node: {{node}}</div>
+    </div>
   </script>
 
   <div class="row">
-    <div class="col-md-6">
-      <h3>JSPlumb</h3>
+    <div class="col-md-12">
+      <h1>JSPlumb</h1>
       <p>Use to create an instance of JSPlumb.  The directive works with the markup you define as child elements using the CSS class 'jsplumb-node'.  You can specify the 'connect-to' attribute to join nodes together.  It's possible to use angularjs directives as well, and expressions can be used to create values for 'connect-to'.</p>
       <p>You can define a few functions in your controller's scope and the directive will call back into your code when it renders</p>
       <dl>
@@ -110,9 +111,15 @@
         </dd>
       </dl>
     </div>
-    <div class="col-md-6">
+  </div>
+  <div class="row">
+    <div class="col-md-12">
       <h5>Example HTML</h5>
       <div hawtio-editor="jsplumbEx" mode="fileUploadExMode"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
       <h5>Live example</h5>
       <div class="ex-node-container" hawtio-jsplumb draggable="true" layout="true">
         <!-- Nodes just need to have an ID and the jsplumb-node class -->

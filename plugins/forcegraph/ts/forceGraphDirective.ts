@@ -209,7 +209,7 @@ module ForceGraph {
               sel.classed('selected', false);
             });
 
-          function hasImage(d) {
+          let hasImage = function(d) {
             return d.image && d.image.url;
           }
 

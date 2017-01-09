@@ -52,33 +52,7 @@ module UITest {
     _.forEach(tabs, (tab) => {
       nav.add(tab);
     });
-    nav.add({
-      id: 'project-link',
-      isSelected: function() { return false; },
-      title: function() { return 'github'; },
-      attributes: {
-        class: 'pull-right'
-      },
-      linkAttributes: {
-        target: '_blank'
-      },
-      href: function() { return 'https://github.com/hawtio/hawtio-ui'; }
-    });
-    nav.add({
-      id: 'hawtio-link',
-      isSelected: function() { return false; },
-      title: function() { return 'hawtio'; },
-      attributes: {
-        class: 'pull-right'
-      },
-      linkAttributes: {
-        target: '_blank'
-      },
-      href: function() { return 'http://hawt.io'; }
-    });
   }]);
-
 
   hawtioPluginLoader.addModule(pluginName);
 }
-

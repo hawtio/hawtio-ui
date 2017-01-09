@@ -1531,9 +1531,6 @@ ol.zebra-list > li:before {
   margin-left: auto;
   margin-right: auto;
 }
-.hawtio-form input {
-  width: 20em;
-}
 .hawtio-form textarea {
   margin-left: 90px;
   width: 20em;
@@ -2810,6 +2807,10 @@ span.dynatree-drop-target.dynatree-drop-reject {
 }
 table.dataTable {
   table-layout: fixed;
+  border-collapse: collapse;
+}
+table.dataTable thead .sorting {
+  background-image: none;
 }
 table.dataTable td {
   overflow: hidden;

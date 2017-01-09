@@ -271,7 +271,7 @@ module DataTable {
           // lets add the header and row cells
           var rootElement = $element;
           rootElement.empty();
-          rootElement.addClass('datatable');
+          rootElement.addClass('dataTable');
 
           var showCheckBox = firstValueDefined(config, ["showSelectionCheckbox", "displaySelectionCheckbox"], true);
           var enableRowClickSelection = firstValueDefined(config, ["enableRowClickSelection"], false);

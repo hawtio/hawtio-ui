@@ -1,4 +1,19 @@
 <style>
+  .row-conf-model-1 .CodeMirror {
+    height: 530px;
+    overflow-y: auto;
+  }
+  .row-conf-model-2 .CodeMirror {
+    height: 550px;
+    overflow-y: auto;
+  }
+  .row-conf-model-3 .CodeMirror {
+    height: 530px;
+    overflow-y: auto;
+  }
+  .row-inaction-3 .directive-example {
+    margin-bottom: 200px;
+  }
   .status-running {
     color: blue
   }
@@ -11,6 +26,8 @@
     <div class="col-md-12">
       <h1>Simple Table</h1>
     </div>
+  </div>
+  <div class="row-fluid">
     <div class="col-md-12">
       <p>
         Hawtio Simple Table component can be used to display, sort, filter, and select data from a JSON model, similarly to ng-grid or hawtio-datatable.
@@ -48,69 +65,108 @@
         </table>
       </p>
     </div>
+  </div>
+  <div class="row-fluid">
     <div class="col-md-12">
       <h2>Examples</h2>
     </div>
+  </div>
+  <div class="row-fluid">
     <div class="col-md-12">
       <h3>1 - Table with highlight on hover and row selection on click</h3>
     </div>
-    <div class="col-md-4">
-      <h5>Example Markup</h5>
+  </div>
+  <div class="row-fluid">
+    <div class="col-md-12">
+      <h5>Markup</h5>
       <script type="text/ng-template" id="markup1.html"><table class="table table-hover" hawtio-simple-table="config1"></table></script>
       <div hawtio-editor="markup1" mode="html"></div>
-      <h5>Example Model</h5>
-      <div hawtio-editor="toJson(model1, true)" read-only="true" mode="javascript"></div>
     </div>
-    <div class="col-md-4">
-      <h5>Example Configuration</h5>
+  </div>
+  <div class="row-fluid row-conf-model-1">
+    <div class="col-md-6">
+      <h5>Configuration</h5>
       <div hawtio-editor="toJson(config1, true)" read-only="true" mode="javascript"></div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
+      <h5>Model</h5>
+      <div hawtio-editor="toJson(model1, true)" read-only="true" mode="javascript"></div>
+    </div>
+  </div>
+  <div class="row-fluid">
+    <div class="col-md-12">
       <h5>In Action</h5>
       <div class="directive-example">
         <div compile="markup1"></div>
       </div>
     </div>
+  </div>
+  <div class="row-fluid">
     <div class="col-md-12">
       <h3>2 - Table with multiple row selection using checkboxes</h3>
     </div>
-    <div class="col-md-4">
-      <h5>Example Markup</h5>
+  </div>
+  <div class="row-fluid">
+    <div class="col-md-12">
+      <h5>Markup</h5>
       <script type="text/ng-template" id="markup2.html"><table class="table table-bordered" hawtio-simple-table="config2"></table></script>
       <div hawtio-editor="markup2" mode="html"></div>
-      <h5>Example Model</h5>
-      <div hawtio-editor="toJson(model2, true)" read-only="true" mode="javascript"></div>
     </div>
-    <div class="col-md-4">
-      <h5>Example Configuration</h5>
+  </div>
+  <div class="row-fluid row-conf-model-2">
+    <div class="col-md-6">
+      <h5>Configuration</h5>
       <div hawtio-editor="toJson(config2, true)" read-only="true" mode="javascript"></div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
+      <h5>Model</h5>
+      <div hawtio-editor="toJson(model2, true)" read-only="true" mode="javascript"></div>
+    </div>
+  </div>
+  <div class="row-fluid">
+    <div class="col-md-12">
       <h5>In Action</h5>
       <div class="directive-example">
         <div compile="markup2"></div>
       </div>
     </div>
+  </div>
+  <div class="row-fluid">
     <div class="col-md-12">
       <h3>3 - Table with fixed height and search box</h3>
     </div>
-    <div class="col-md-4">
-      <h5>Example Markup</h5>
+  </div>
+  <div class="row-fluid">
+    <div class="col-md-12">
+      <h5>Markup</h5>
       <script type="text/ng-template" id="markup3.html"><table class="table table-bordered" hawtio-simple-table="config3"></table></script>
       <div hawtio-editor="markup3" mode="html"></div>
-      <h5>Example Model</h5>
-      <div hawtio-editor="toJson(model3, true)" read-only="true" mode="javascript"></div>
     </div>
-    <div class="col-md-4">
-      <h5>Example Configuration</h5>
+  </div>
+  <div class="row-fluid row-conf-model-3">
+    <div class="col-md-6">
+      <h5>Configuration</h5>
       <div hawtio-editor="toJson(config3, true)" read-only="true" mode="javascript"></div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
+      <h5>Model</h5>
+      <div hawtio-editor="toJson(model3, true)" read-only="true" mode="javascript"></div>
+    </div>
+  </div>
+  <div class="row-fluid row-inaction-3">
+    <div class="col-md-12">
       <h5>In Action</h5>
       <div class="directive-example">
-        <div>
-          <input type="text" class="search-query" placeholder="Filter..." ng-model="config3.filterOptions.filterText">
-          <i class="fa fa-remove clickable" title="Clear filter" ng-click="config3.filterOptions.filterText = ''"></i>
+        <div class="row toolbar-pf table-view-pf-toolbar">
+          <form class="toolbar-pf-actions search-pf">
+            <div class="form-group has-clear">
+              <div class="search-pf-input-group">
+                <label for="search1" class="sr-only">Filter</label>
+                <input id="search1" type="search" class="form-control" ng-model="config3.filterOptions.filterText" placeholder="Filter...">
+                <button type="button" class="clear" aria-hidden="true" ng-click="config3.filterOptions.filterText = ''"><span class="pficon pficon-close"></span></button>
+              </div>
+            </div>
+          </form>
         </div>
         <div compile="markup3"></div>
       </div>
