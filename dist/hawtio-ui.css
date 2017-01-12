@@ -993,16 +993,6 @@ strong.new,
   background: #737373;
   box-shadow: inset 0px 1px 0px 0px rgba(250, 250, 250, 0.5);
 }
-.table-header {
-  color: black;
-}
-.table-header:hover {
-  background-color: #f3f3f3;
-}
-.table-header.asc,
-.table-header.desc {
-  background-color: #f3f3f3;
-}
 .dropdown-menu {
   border-radius: 0;
 }
@@ -1541,9 +1531,6 @@ ol.zebra-list > li:before {
   margin-left: auto;
   margin-right: auto;
 }
-.hawtio-form input {
-  width: 20em;
-}
 .hawtio-form textarea {
   margin-left: 90px;
   width: 20em;
@@ -1788,30 +1775,10 @@ input.ng-invalid-pattern:focus {
   -moz-box-shadow: 0 0 6px #f8b9b7;
   box-shadow: 0 0 6px #f8b9b7;
 }
-.table-header {
-  color: black;
-  position: relative;
-}
-.table-header > .indicator:after {
-  font-family: 'FontAwesome';
-  position: absolute;
-  right: 5px;
-}
-.table-header.asc > .indicator:after {
-  content: "\f077";
-}
-.table-header.desc > .indicator:after {
-  content: "\f078";
-}
 .table > thead > tr > th {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-th > .indicator:before {
-  display: inline-block;
-  content: "\00a0";
-  margin-left: 12px;
 }
 .ngCellText .icon-replication-controller {
   width: 32px;
@@ -2840,8 +2807,17 @@ span.dynatree-drop-target.dynatree-drop-reject {
 }
 table.dataTable {
   table-layout: fixed;
+  border-collapse: collapse;
 }
-table.dataTable tbody tr td {
+table.dataTable thead .sorting {
+  background-image: none;
+}
+table.dataTable td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+table.dataTable td div {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -3674,16 +3650,6 @@ div.log-stack-trace p {
   z-index: 4090;
 }
 
-.hawtio-pager {
-  overflow: auto;
-  display: inline-block;
-}
-.hawtio-pager label {
-  min-height: 100%;
-  vertical-align: middle;
-  margin-right: 5px;
-  display: inline-block;
-}
 
 .pane {
   position: fixed;

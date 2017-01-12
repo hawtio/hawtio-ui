@@ -1,403 +1,12 @@
-// Util: PatternFly Sidebar
-// Set height of sidebar-pf to height of document minus height of navbar-pf if not mobile
-(function ($) {
+(function (window) {
   'use strict';
-  $.fn.sidebar = function () {
-    var documentHeight = 0,
-      navbarpfHeight = 0,
-      colHeight = 0;
 
-    if ($('.navbar-pf .navbar-toggle').is(':hidden')) {
-      documentHeight = $(document).height();
-      navbarpfHeight = $('.navbar-pf').outerHeight();
-      colHeight = documentHeight - navbarpfHeight;
-    }
-    $('.sidebar-pf').parent('.row').children('[class*="col-"]').css({"min-height" : colHeight});
+  var patternfly = {
+    version: "3.13.0"
   };
 
-  $(document).ready(function () {
-    // Call sidebar() on ready if .sidebar-pf exists and .datatable does not exist
-    if ($('.sidebar-pf').length > 0 && $('.datatable').length === 0) {
-      $.fn.sidebar();
-    }
-  });
-
-  $(window).resize(function () {
-    // Call sidebar() on resize if .sidebar-pf exists
-    if ($('.sidebar-pf').length > 0) {
-      $.fn.sidebar();
-    }
-  });
-}(jQuery));
-
-// Util: PatternFly Popovers
-// Add data-close="true" to insert close X icon
-(function ($) {
-  'use strict';
-
-  $.fn.popovers = function () {
-    // Initialize
-    this.popover();
-
-    // Add close icons
-    this.filter('[data-close=true]').each(function (index, element) {
-      var $this = $(element),
-        title = $this.attr('data-original-title') + '<button type="button" class="close" aria-hidden="true"><span class="pficon pficon-close"></span></button>';
-
-      $this.attr('data-original-title', title);
-    });
-
-    // Bind Close Icon to Toggle Display
-    this.on('click', function (e) {
-      var $this = $(this),
-        $title = $this.next('.popover').find('.popover-title');
-
-      // Only if data-close is true add class "x" to title for right padding
-      $title.find('.close').parent('.popover-title').addClass('closable');
-
-      // Bind x icon to close popover
-      $title.find('.close').on('click', function () {
-        $this.popover('hide');
-      });
-
-      // Prevent href="#" page scroll to top
-      e.preventDefault();
-    });
-
-    return this;
-  };
-}(jQuery));
-
-
-// Util: DataTables Settings
-(function ($) {
-  'use strict';
-  if ($.fn.dataTableExt) {
-    /* Set the defaults for DataTables initialisation */
-    $.extend(true, $.fn.dataTable.defaults, {
-      "bDestroy": true,
-      "bAutoWidth": false,
-      "iDisplayLength": 20,
-      "sDom":
-        "<'dataTables_header' f i r >" +
-        "<'table-responsive'  t >" +
-        "<'dataTables_footer' p >",
-      "oLanguage": {
-        "sInfo": "Showing <b>_START_</b> to <b>_END_</b> of <b>_TOTAL_</b> Items",
-        "sInfoFiltered" : "(of <b>_MAX_</b>)",
-        "sInfoEmpty" : "Showing <b>0</b> Results",
-        "sZeroRecords":
-          "<p>Suggestions</p>" +
-          "<ul>" +
-            "<li>Check the syntax of the search term.</li>" +
-            "<li>Check that the correct menu option is chosen (token ID vs. user ID).</li>" +
-            "<li>Use wildcards (* to match zero or more characters or ? to match a single character).</li>" +
-            "<li>Clear the search field, then click Search to return to the 20 most recent records.</li>" +
-          "</ul>",
-        "sSearch": ""
-      },
-      "sPaginationType": "bootstrap_input"
-    });
-
-    /* Default class modification */
-    $.extend($.fn.dataTableExt.oStdClasses, {
-      "sWrapper": "dataTables_wrapper"
-    });
-
-    /* API method to get paging information */
-    $.fn.dataTableExt.oApi.fnPagingInfo = function (oSettings) {
-      return {
-        "iStart":         oSettings._iDisplayStart,
-        "iEnd":           oSettings.fnDisplayEnd(),
-        "iLength":        oSettings._iDisplayLength,
-        "iTotal":         oSettings.fnRecordsTotal(),
-        "iFilteredTotal": oSettings.fnRecordsDisplay(),
-        "iPage":          oSettings._iDisplayLength === -1 ? 0 : Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength),
-        "iTotalPages":    oSettings._iDisplayLength === -1 ? 0 : Math.ceil(oSettings.fnRecordsDisplay() / oSettings._iDisplayLength)
-      };
-    };
-
-    /* Combination of Bootstrap + Input Text style pagination control */
-    $.extend($.fn.dataTableExt.oPagination, {
-      "bootstrap_input": {
-        "fnInit": function (oSettings, nPaging, fnDraw) {
-          var fnClickHandler = function (e) {
-              e.preventDefault();
-              if (oSettings.oApi._fnPageChange(oSettings, e.data.action)) {
-                fnDraw(oSettings);
-              }
-            },
-            els,
-            nInput;
-
-          $(nPaging).append(
-            '<ul class="pagination">' +
-              '  <li class="first disabled"><span class="i fa fa-angle-double-left"></span></li>' +
-              '  <li class="prev disabled"><span class="i fa fa-angle-left"></span></li>' +
-              '</ul>' +
-              '<div class="pagination-input">' +
-              '  <input type="text" class="paginate_input">' +
-              '  <span class="paginate_of">of <b>3</b></span>' +
-              '</div>' +
-              '<ul class="pagination">' +
-              '  <li class="next disabled"><span class="i fa fa-angle-right"></span></li>' +
-              '  <li class="last disabled"><span class="i fa fa-angle-double-right"></span></li>' +
-              '</ul>'
-          );
-
-          els = $('li', nPaging);
-          $(els[0]).bind('click.DT', { action: "first" }, fnClickHandler);
-          $(els[1]).bind('click.DT', { action: "previous" }, fnClickHandler);
-          $(els[2]).bind('click.DT', { action: "next" }, fnClickHandler);
-          $(els[3]).bind('click.DT', { action: "last" }, fnClickHandler);
-
-          nInput = $('input', nPaging);
-          $(nInput).keyup(function (e) {
-            if (e.which === 38 || e.which === 39) {
-              this.value += 1;
-            } else if ((e.which === 37 || e.which === 40) && this.value > 1) {
-              this.value -= 1;
-            }
-
-            if (this.value === "" || !this.value.match(/[0-9]/)) {
-              /* Nothing entered or non-numeric character */
-              return;
-            }
-
-            var iNewStart = oSettings._iDisplayLength * (this.value - 1);
-            if (iNewStart > oSettings.fnRecordsDisplay()) {
-              /* Display overrun */
-              oSettings._iDisplayStart = (Math.ceil((oSettings.fnRecordsDisplay() - 1) /
-                oSettings._iDisplayLength) - 1) * oSettings._iDisplayLength;
-              fnDraw(oSettings);
-              return;
-            }
-
-            oSettings._iDisplayStart = iNewStart;
-            fnDraw(oSettings);
-          });
-        },
-
-        "fnUpdate": function (oSettings, fnDraw) {
-          var oPaging = oSettings.oInstance.fnPagingInfo(),
-            an = oSettings.aanFeatures.p,
-            ien = an.length,
-            iPages = Math.ceil((oSettings.fnRecordsDisplay()) / oSettings._iDisplayLength),
-            iCurrentPage = Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength) + 1,
-            i;
-
-          for (i = 0; i < ien; i += 1) {
-            $('.paginate_input', an[i]).val(iCurrentPage)
-              .siblings('.paginate_of').find('b').html(iPages);
-
-            // Add / remove disabled classes from the static elements
-            if (oPaging.iPage === 0) {
-              $('li.first', an[i]).addClass('disabled');
-              $('li.prev', an[i]).addClass('disabled');
-            } else {
-              $('li.first', an[i]).removeClass('disabled');
-              $('li.prev', an[i]).removeClass('disabled');
-            }
-
-            if (oPaging.iPage === oPaging.iTotalPages - 1 || oPaging.iTotalPages === 0) {
-              $('li.next', an[i]).addClass('disabled');
-              $('li.last', an[i]).addClass('disabled');
-            } else {
-              $('li.next', an[i]).removeClass('disabled');
-              $('li.last', an[i]).removeClass('disabled');
-            }
-          }
-        }
-      }
-    });
-  }
-}(jQuery));
-
-// Util: PatternFly Collapsible Left Hand Navigation
-// Must have navbar-toggle in navbar-pf-alt for expand/collapse
-(function ($) {
-
-  'use strict';
-
-  $.fn.navigation = function () {
-
-    var navElement = $('.layout-pf-alt-fixed .nav-pf-vertical-alt'),
-      bodyContentElement = $('.container-pf-alt-nav-pf-vertical-alt'),
-      toggleNavBarButton = $('.navbar-toggle'),
-      explicitCollapse = false,
-      breakpoints = {
-        'tablet': 768,
-        'desktop': 1024
-      },
-      checkNavState = function () {
-        var width = $(window).width();
-
-        //Always remove the hidden & peek class
-        navElement.removeClass('hidden show-mobile-nav collapsed');
-
-        //Set the body class back to the default
-        bodyContentElement.removeClass('collapsed-nav hidden-nav');
-
-        // Check to see if the nav needs to collapse
-        if (width < breakpoints.desktop || explicitCollapse) {
-          navElement.addClass('collapsed');
-          bodyContentElement.addClass('collapsed-nav');
-        }
-
-        // Check to see if we need to move down to the mobile state
-        if (width < breakpoints.tablet) {
-          //Set the nav to being hidden
-          navElement.addClass('hidden');
-
-          //Make sure this is expanded
-          navElement.removeClass('collapsed');
-
-          //Set the body class to the correct state
-          bodyContentElement.removeClass('collapsed-nav');
-          bodyContentElement.addClass('hidden-nav');
-        }
-      },
-      collapseMenu = function () {
-        //Make sure this is expanded
-        navElement.addClass('collapsed');
-        //Set the body class to the correct state
-        bodyContentElement.addClass('collapsed-nav');
-
-        explicitCollapse = true;
-      },
-      enableTransitions = function () {
-        // enable transitions only when toggleNavBarButton is clicked or window is resized
-        $('html').addClass('transitions');
-      },
-      expandMenu = function () {
-        //Make sure this is expanded
-        navElement.removeClass('collapsed');
-        //Set the body class to the correct state
-        bodyContentElement.removeClass('collapsed-nav');
-
-        explicitCollapse = false;
-      },
-      bindMenuBehavior = function () {
-        toggleNavBarButton.on('click', function (e) {
-          enableTransitions();
-          var inMobileState = bodyContentElement.hasClass('hidden-nav');
-
-          if (inMobileState && navElement.hasClass('show-mobile-nav')) {
-            //In mobile state just need to hide the nav
-            navElement.removeClass('show-mobile-nav');
-          } else if (inMobileState) {
-            navElement.addClass('show-mobile-nav');
-          } else if (navElement.hasClass('collapsed')) {
-            expandMenu();
-          } else {
-            collapseMenu();
-          }
-        });
-      },
-      setTooltips = function () {
-        $('.nav-pf-vertical-alt [data-toggle="tooltip"]').tooltip({'container': 'body', 'delay': { 'show': '500', 'hide': '200' }});
-
-        $(".nav-pf-vertical-alt").on("show.bs.tooltip", function (e) {
-          if (!$(this).hasClass("collapsed")) {
-            return false;
-          }
-        });
-
-      },
-      init = function () {
-        //Set correct state on load
-        checkNavState();
-
-        // Bind Top level hamburger menu with menu behavior;
-        bindMenuBehavior();
-
-        //Set tooltips
-        setTooltips();
-      };
-
-    //Listen for the window resize event and collapse/hide as needed
-    $(window).on('resize', function () {
-      checkNavState();
-      enableTransitions();
-    });
-
-    init();
-
-  };
-
-  $(document).ready(function () {
-    if ($('.nav-pf-vertical-alt').length > 0) {
-      $.fn.navigation();
-    }
-  });
-
-}(jQuery));
-
-// Count and Display Remaining Characters
-(function ($) {
-
-  'use strict';
-
-  $.fn.countRemainingChars = function (options) {
-
-    var settings = $.extend({
-      // These are the defaults.
-      charsMaxLimit: 100,
-      charsWarnRemaining: 5,
-      blockInputAtMaxLimit: false
-    }, options),
-      $taFld = this,
-      $countFld = $('#'  + settings.countFld).text(settings.charsMaxLimit),
-      charsRemainingFn = function (charsLength) {
-        var charsRemaining = settings.charsMaxLimit - charsLength;
-        $countFld.text(charsRemaining);
-        $countFld.toggleClass('chars-warn-remaining-pf', charsRemaining <= settings.charsWarnRemaining);
-        if (charsRemaining < 0) {
-          $taFld.trigger("overCharsMaxLimitEvent", $taFld.attr('id'));
-        } else {
-          $taFld.trigger("underCharsMaxLimitEvent", $taFld.attr('id'));
-        }
-      };
-
-    this.on('paste', function (event) {
-      setTimeout(function () {
-        var charsLength = $taFld.val().length, maxTxt;
-
-        if (settings.blockInputAtMaxLimit && charsLength > settings.charsMaxLimit) {
-          maxTxt = $taFld.val();
-          maxTxt = maxTxt.substring(0, settings.charsMaxLimit);
-          $taFld.val(maxTxt);
-          charsLength = $taFld.val().length;
-        }
-
-        charsRemainingFn(charsLength);
-      }, 100);
-    });
-
-    this.keyup(function (event) {
-      charsRemainingFn($taFld.val().length);
-    });
-
-    this.keydown(function (event) {
-      var charsLength = $taFld.val().length;
-
-      if (settings.blockInputAtMaxLimit && charsLength >= settings.charsMaxLimit) {
-        // Except backspace
-        if (event.keyCode !== 8) {
-          event.preventDefault();
-        }
-      }
-    });
-
-    return this;
-  };
-}(jQuery));
-
-// Util: PatternFly Palette colors
-(function ($) {
-  'use strict';
-
-  $.pfPaletteColors = {
+  // Util: PatternFly Palette colors
+  patternfly.pfPaletteColors = {
     black:         '#030303',
     black100:      '#fafafa',
     black200:      '#ededed',
@@ -479,20 +88,16 @@
     red400:        '#470000',
     red500:        '#2c0000'
   };
-}(jQuery));
 
-// Util: PatternFly C3 Chart Defaults
-(function ($) {
-  'use strict';
-
-  $.fn.pfSetDonutChartTitle = function (selector, primary, secondary) {
+  // Util: PatternFly C3 Chart Defaults
+  patternfly.pfSetDonutChartTitle = function (selector, primary, secondary) {
     var donutChartRightTitle = window.d3.select(selector).select('text.c3-chart-arcs-title');
     donutChartRightTitle.text("");
     donutChartRightTitle.insert('tspan').text(primary).classed('donut-title-big-pf', true).attr('dy', 0).attr('x', 0);
     donutChartRightTitle.insert('tspan').text(secondary).classed('donut-title-small-pf', true).attr('dy', 20).attr('x', 0);
   };
 
-  $.fn.pfDonutTooltipContents = function (d, defaultTitleFormat, defaultValueFormat, color) {
+  patternfly.pfDonutTooltipContents = function (d, defaultTitleFormat, defaultValueFormat, color) {
     return '<table class="c3-tooltip">' +
       '  <tr>' +
       '    <td><span style="background-color:' + color(d[0].id) + '"></span>' + '<strong>' + d[0].value + '</strong> ' + d[0].name + '</td>' +
@@ -501,7 +106,7 @@
       '</table>';
   };
 
-  $.fn.pfGetUtilizationDonutTooltipContentsFn = function (units) {
+  patternfly.pfGetUtilizationDonutTooltipContentsFn = function (units) {
     return function (d) {
       return '<span class="donut-tooltip-pf" style="white-space: nowrap;">' +
         (Math.round(d[0].ratio * 1000) / 10) + '%' + ' ' + units + ' ' + d[0].name +
@@ -509,7 +114,7 @@
     };
   };
 
-  $.fn.pfGetBarChartTooltipContentsFn = function (categories) {
+  patternfly.pfGetBarChartTooltipContentsFn = function (categories) {
     return function (d) {
       var name = categories ? categories[d[0].index] : d[0].index;
       return '<table class="c3-tooltip">' +
@@ -521,7 +126,7 @@
     };
   };
 
-  $.fn.pfSingleLineChartTooltipContentsFn = function (categories) {
+  patternfly.pfSingleLineChartTooltipContentsFn = function (categories) {
     return function (d) {
       var name = categories ? categories[d[0].index] : d[0].index;
       return '<table class="c3-tooltip">' +
@@ -533,20 +138,20 @@
     };
   };
 
-  $.fn.pfPieTooltipContents = function (d, defaultTitleFormat, defaultValueFormat, color) {
-    return $().pfDonutTooltipContents(d, defaultTitleFormat, defaultValueFormat, color);
+  patternfly.pfPieTooltipContents = function (d, defaultTitleFormat, defaultValueFormat, color) {
+    return patternfly.pfDonutTooltipContents(d, defaultTitleFormat, defaultValueFormat, color);
   };
 
-  $.fn.c3ChartDefaults = function () {
+  patternfly.c3ChartDefaults = function () {
     var
       getDefaultColors = function () {
         return {
           pattern: [
-            $.pfPaletteColors.blue,
-            $.pfPaletteColors.blue300,
-            $.pfPaletteColors.green,
-            $.pfPaletteColors.orange,
-            $.pfPaletteColors.red
+            patternfly.pfPaletteColors.blue,
+            patternfly.pfPaletteColors.blue300,
+            patternfly.pfPaletteColors.green,
+            patternfly.pfPaletteColors.orange,
+            patternfly.pfPaletteColors.red
           ]
         };
       },
@@ -559,7 +164,7 @@
       },
       getDefaultBarTooltip = function (categories) {
         return {
-          contents: $().pfGetBarChartTooltipContentsFn(categories)
+          contents: patternfly.pfGetBarChartTooltipContentsFn(categories)
         };
       },
       getDefaultBarLegend = function () {
@@ -613,8 +218,8 @@
       getDefaultDonutColors = function () {
         return {
           pattern: [
-            $.pfPaletteColors.blue,
-            $.pfPaletteColors.black300
+            patternfly.pfPaletteColors.blue,
+            patternfly.pfPaletteColors.black300
           ]
         };
       },
@@ -654,8 +259,8 @@
       getDefaultPieColors = function () {
         return {
           pattern: [
-            $.pfPaletteColors.blue,
-            $.pfPaletteColors.black300
+            patternfly.pfPaletteColors.blue,
+            patternfly.pfPaletteColors.black300
           ]
         };
       },
@@ -880,6 +485,441 @@
       getDefaultSingleAreaConfig: getDefaultSingleAreaConfig
     };
   };
+
+  // definition of breakpoint sizes for tablet and desktop modes
+  patternfly.pfBreakpoints = {
+    'tablet': 768,
+    'desktop': 1200
+  };
+
+  window.patternfly = patternfly;
+})(window);
+
+
+// Util: PatternFly Sidebar
+// Set height of sidebar-pf to height of document minus height of navbar-pf if not mobile
+(function ($) {
+  'use strict';
+  $.fn.sidebar = function () {
+    var documentHeight = 0,
+      navbarpfHeight = 0,
+      colHeight = 0;
+
+    if ($('.navbar-pf .navbar-toggle').is(':hidden')) {
+      documentHeight = $(document).height();
+      navbarpfHeight = $('.navbar-pf').outerHeight();
+      colHeight = documentHeight - navbarpfHeight;
+    }
+    $('.sidebar-pf').parent('.row').children('[class*="col-"]').css({"min-height" : colHeight});
+  };
+
+  $(document).ready(function () {
+    // Call sidebar() on ready if .sidebar-pf exists and .datatable does not exist
+    if ($('.sidebar-pf').length > 0 && $('.datatable').length === 0) {
+      $.fn.sidebar();
+    }
+  });
+
+  $(window).resize(function () {
+    // Call sidebar() on resize if .sidebar-pf exists
+    if ($('.sidebar-pf').length > 0) {
+      $.fn.sidebar();
+    }
+  });
+}(jQuery));
+
+// Util: PatternFly Popovers
+// Add data-close="true" to insert close X icon
+(function ($) {
+  'use strict';
+
+  $.fn.popovers = function () {
+    // Initialize
+    this.popover();
+
+    // Add close icons
+    this.filter('[data-close=true]').each(function (index, element) {
+      var $this = $(element),
+        title = $this.attr('data-original-title') + '<button type="button" class="close" aria-hidden="true"><span class="pficon pficon-close"></span></button>';
+
+      $this.attr('data-original-title', title);
+    });
+
+    // Bind Close Icon to Toggle Display
+    this.on('click', function (e) {
+      var $this = $(this),
+        $title = $this.next('.popover').find('.popover-title');
+
+      // Only if data-close is true add class "x" to title for right padding
+      $title.find('.close').parent('.popover-title').addClass('closable');
+
+      // Bind x icon to close popover
+      $title.find('.close').on('click', function () {
+        $this.popover('hide');
+      });
+
+      // Prevent href="#" page scroll to top
+      e.preventDefault();
+    });
+
+    return this;
+  };
+}(jQuery));
+
+
+// Util: DataTables Settings
+(function ($) {
+  'use strict';
+  if ($.fn.dataTableExt) {
+    /* Set the defaults for DataTables initialisation */
+    $.extend(true, $.fn.dataTable.defaults, {
+      "bDestroy": true,
+      "bAutoWidth": false,
+      "iDisplayLength": 20,
+      "sDom":
+        "<'dataTables_header' f i r >" +
+        "<'table-responsive'  t >" +
+        "<'dataTables_footer' p >",
+      "oLanguage": {
+        "sInfo": "Showing <b>_START_</b> to <b>_END_</b> of <b>_TOTAL_</b> Items",
+        "sInfoFiltered" : "(of <b>_MAX_</b>)",
+        "sInfoEmpty" : "Showing <b>0</b> Results",
+        "sZeroRecords":
+          "<p>Suggestions</p>" +
+          "<ul>" +
+            "<li>Check the javascript regular expression syntax of the search term.</li>" +
+            "<li>Check that the correct menu option is chosen (token ID vs. user ID).</li>" +
+            "<li>Use wildcards (* to match 0 or more characters, + to match 1 or more characters, ? to match 0 or 1 character).</li>" +
+            "<li>Clear the search field, then click Search to return to the 20 most recent records.</li>" +
+          "</ul>",
+        "sSearch": ""
+      },
+      "sPaginationType": "bootstrap_input",
+      "oSearch": {
+        "sSearch": "",
+        "bRegex": true,
+        "bSmart": false
+      }
+    });
+
+    /* Default class modification */
+    $.extend($.fn.dataTableExt.oStdClasses, {
+      "sWrapper": "dataTables_wrapper"
+    });
+
+    /* API method to get paging information */
+    $.fn.dataTableExt.oApi.fnPagingInfo = function (oSettings) {
+      return {
+        "iStart":         oSettings._iDisplayStart,
+        "iEnd":           oSettings.fnDisplayEnd(),
+        "iLength":        oSettings._iDisplayLength,
+        "iTotal":         oSettings.fnRecordsTotal(),
+        "iFilteredTotal": oSettings.fnRecordsDisplay(),
+        "iPage":          oSettings._iDisplayLength === -1 ? 0 : Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength),
+        "iTotalPages":    oSettings._iDisplayLength === -1 ? 0 : Math.ceil(oSettings.fnRecordsDisplay() / oSettings._iDisplayLength)
+      };
+    };
+
+    /* Combination of Bootstrap + Input Text style pagination control */
+    $.extend($.fn.dataTableExt.oPagination, {
+      "bootstrap_input": {
+        "fnInit": function (oSettings, nPaging, fnDraw) {
+          var fnClickHandler = function (e) {
+              e.preventDefault();
+              if (oSettings.oApi._fnPageChange(oSettings, e.data.action)) {
+                fnDraw(oSettings);
+              }
+            },
+            els,
+            nInput;
+
+          $(nPaging).append(
+            '<ul class="pagination">' +
+              '  <li class="first disabled"><span class="i fa fa-angle-double-left"></span></li>' +
+              '  <li class="prev disabled"><span class="i fa fa-angle-left"></span></li>' +
+              '</ul>' +
+              '<div class="pagination-input">' +
+              '  <input type="text" class="paginate_input">' +
+              '  <span class="paginate_of">of <b>3</b></span>' +
+              '</div>' +
+              '<ul class="pagination">' +
+              '  <li class="next disabled"><span class="i fa fa-angle-right"></span></li>' +
+              '  <li class="last disabled"><span class="i fa fa-angle-double-right"></span></li>' +
+              '</ul>'
+          );
+
+          els = $('li', nPaging);
+          $(els[0]).bind('click.DT', { action: "first" }, fnClickHandler);
+          $(els[1]).bind('click.DT', { action: "previous" }, fnClickHandler);
+          $(els[2]).bind('click.DT', { action: "next" }, fnClickHandler);
+          $(els[3]).bind('click.DT', { action: "last" }, fnClickHandler);
+
+          nInput = $('input', nPaging);
+          $(nInput).keyup(function (e) {
+            var iNewStart;
+            if (e.which === 38 || e.which === 39) {
+              this.value += 1;
+            } else if ((e.which === 37 || e.which === 40) && this.value > 1) {
+              this.value -= 1;
+            }
+
+            if (this.value === "" || !this.value.match(/[0-9]/)) {
+              /* Nothing entered or non-numeric character */
+              return;
+            }
+
+            iNewStart = oSettings._iDisplayLength * (this.value - 1);
+            if (iNewStart >= oSettings.fnRecordsDisplay()) {
+              /* Display overrun */
+              oSettings._iDisplayStart = (Math.ceil((oSettings.fnRecordsDisplay() - 1) /
+                oSettings._iDisplayLength) - 1) * oSettings._iDisplayLength;
+              fnDraw(oSettings);
+              return;
+            }
+
+            oSettings._iDisplayStart = iNewStart;
+            fnDraw(oSettings);
+          });
+        },
+
+        "fnUpdate": function (oSettings, fnDraw) {
+          var oPaging = oSettings.oInstance.fnPagingInfo(),
+            an = oSettings.aanFeatures.p,
+            ien = an.length,
+            iPages = Math.ceil((oSettings.fnRecordsDisplay()) / oSettings._iDisplayLength),
+            iCurrentPage = Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength) + 1,
+            i;
+
+          for (i = 0; i < ien; i += 1) {
+            $('.paginate_input', an[i]).val(iCurrentPage)
+              .siblings('.paginate_of').find('b').html(iPages);
+
+            // Add / remove disabled classes from the static elements
+            if (oPaging.iPage === 0) {
+              $('li.first', an[i]).addClass('disabled');
+              $('li.prev', an[i]).addClass('disabled');
+            } else {
+              $('li.first', an[i]).removeClass('disabled');
+              $('li.prev', an[i]).removeClass('disabled');
+            }
+
+            if (oPaging.iPage === oPaging.iTotalPages - 1 || oPaging.iTotalPages === 0) {
+              $('li.next', an[i]).addClass('disabled');
+              $('li.last', an[i]).addClass('disabled');
+            } else {
+              $('li.next', an[i]).removeClass('disabled');
+              $('li.last', an[i]).removeClass('disabled');
+            }
+          }
+        }
+      }
+    });
+  }
+}(jQuery));
+
+// Util: definition of breakpoint sizes for tablet and desktop modes
+(function ($) {
+  'use strict';
+  if (patternfly !== undefined) {
+    $.pfBreakpoints = patternfly.pfBreakpoints;
+  }
+}(jQuery));
+
+// Util: PatternFly Collapsible Left Hand Navigation
+// Must have navbar-toggle in navbar-pf-alt for expand/collapse
+(function ($) {
+
+  'use strict';
+
+  $.fn.navigation = function () {
+
+    var navElement = $('.layout-pf-alt-fixed .nav-pf-vertical-alt'),
+      bodyContentElement = $('.container-pf-alt-nav-pf-vertical-alt'),
+      toggleNavBarButton = $('.navbar-toggle'),
+      explicitCollapse = false,
+      checkNavState = function () {
+        var width = $(window).width();
+
+        //Always remove the hidden & peek class
+        navElement.removeClass('hidden show-mobile-nav collapsed');
+
+        //Set the body class back to the default
+        bodyContentElement.removeClass('collapsed-nav hidden-nav');
+
+        // Check to see if the nav needs to collapse
+        if (width < $.pfBreakpoints.desktop || explicitCollapse) {
+          navElement.addClass('collapsed');
+          bodyContentElement.addClass('collapsed-nav');
+        }
+
+        // Check to see if we need to move down to the mobile state
+        if (width < $.pfBreakpoints.tablet) {
+          //Set the nav to being hidden
+          navElement.addClass('hidden');
+
+          //Make sure this is expanded
+          navElement.removeClass('collapsed');
+
+          //Set the body class to the correct state
+          bodyContentElement.removeClass('collapsed-nav');
+          bodyContentElement.addClass('hidden-nav');
+        }
+      },
+      collapseMenu = function () {
+        //Make sure this is expanded
+        navElement.addClass('collapsed');
+        //Set the body class to the correct state
+        bodyContentElement.addClass('collapsed-nav');
+
+        explicitCollapse = true;
+      },
+      enableTransitions = function () {
+        // enable transitions only when toggleNavBarButton is clicked or window is resized
+        $('html').addClass('transitions');
+      },
+      expandMenu = function () {
+        //Make sure this is expanded
+        navElement.removeClass('collapsed');
+        //Set the body class to the correct state
+        bodyContentElement.removeClass('collapsed-nav');
+
+        explicitCollapse = false;
+      },
+      bindMenuBehavior = function () {
+        toggleNavBarButton.on('click', function (e) {
+          var inMobileState = bodyContentElement.hasClass('hidden-nav');
+          enableTransitions();
+
+          if (inMobileState && navElement.hasClass('show-mobile-nav')) {
+            //In mobile state just need to hide the nav
+            navElement.removeClass('show-mobile-nav');
+          } else if (inMobileState) {
+            navElement.addClass('show-mobile-nav');
+          } else if (navElement.hasClass('collapsed')) {
+            expandMenu();
+          } else {
+            collapseMenu();
+          }
+        });
+      },
+      setTooltips = function () {
+        $('.nav-pf-vertical-alt [data-toggle="tooltip"]').tooltip({'container': 'body', 'delay': { 'show': '500', 'hide': '200' }});
+
+        $(".nav-pf-vertical-alt").on("show.bs.tooltip", function (e) {
+          return $(this).hasClass("collapsed");
+        });
+
+      },
+      init = function () {
+        //Set correct state on load
+        checkNavState();
+
+        // Bind Top level hamburger menu with menu behavior;
+        bindMenuBehavior();
+
+        //Set tooltips
+        setTooltips();
+      };
+
+    //Listen for the window resize event and collapse/hide as needed
+    $(window).on('resize', function () {
+      checkNavState();
+      enableTransitions();
+    });
+
+    init();
+
+  };
+
+  $(document).ready(function () {
+    if ($('.nav-pf-vertical-alt').length > 0) {
+      $.fn.navigation();
+    }
+  });
+
+}(jQuery));
+
+// Count and Display Remaining Characters
+(function ($) {
+
+  'use strict';
+
+  $.fn.countRemainingChars = function (options) {
+
+    var settings = $.extend({
+        // These are the defaults.
+        charsMaxLimit: 100,
+        charsWarnRemaining: 5,
+        blockInputAtMaxLimit: false
+      }, options),
+      $taFld = this,
+      $countFld = $('#'  + settings.countFld).text(settings.charsMaxLimit),
+      charsRemainingFn = function (charsLength) {
+        var charsRemaining = settings.charsMaxLimit - charsLength;
+        $countFld.text(charsRemaining);
+        $countFld.toggleClass('chars-warn-remaining-pf', charsRemaining <= settings.charsWarnRemaining);
+        if (charsRemaining < 0) {
+          $taFld.trigger("overCharsMaxLimitEvent", $taFld.attr('id'));
+        } else {
+          $taFld.trigger("underCharsMaxLimitEvent", $taFld.attr('id'));
+        }
+      };
+
+    this.on('paste', function (event) {
+      setTimeout(function () {
+        var charsLength = $taFld.val().length, maxTxt;
+
+        if (settings.blockInputAtMaxLimit && charsLength > settings.charsMaxLimit) {
+          maxTxt = $taFld.val();
+          maxTxt = maxTxt.substring(0, settings.charsMaxLimit);
+          $taFld.val(maxTxt);
+          charsLength = $taFld.val().length;
+        }
+
+        charsRemainingFn(charsLength);
+      }, 100);
+    });
+
+    this.keyup(function (event) {
+      charsRemainingFn($taFld.val().length);
+    });
+
+    this.keydown(function (event) {
+      var charsLength = $taFld.val().length;
+
+      if (settings.blockInputAtMaxLimit && charsLength >= settings.charsMaxLimit) {
+        // Except backspace
+        if (event.keyCode !== 8) {
+          event.preventDefault();
+        }
+      }
+    });
+
+    return this;
+  };
+}(jQuery));
+
+// Util: PatternFly Palette colors
+(function ($) {
+  'use strict';
+
+  if (patternfly !== undefined) {
+    $.pfPaletteColors = patternfly.pfPaletteColors;
+  }
+}(jQuery));
+
+// Util: PatternFly C3 Chart Defaults
+(function ($) {
+  'use strict';
+  if (patternfly !== undefined) {
+    $.fn.pfSetDonutChartTitle = patternfly.pfSetDonutChartTitle;
+    $.fn.pfDonutTooltipContents = patternfly.pfDonutTooltipContents;
+    $.fn.pfGetUtilizationDonutTooltipContentsFn = patternfly.pfGetUtilizationDonutTooltipContentsFn;
+    $.fn.pfGetBarChartTooltipContentsFn = patternfly.pfGetBarChartTooltipContentsFn;
+    $.fn.pfSingleLineChartTooltipContentsFn = patternfly.pfSingleLineChartTooltipContentsFn;
+    $.fn.pfPieTooltipContents = patternfly.pfPieTooltipContents;
+    $.fn.c3ChartDefaults = patternfly.c3ChartDefaults;
+  }
 }(jQuery));
 
 // Util: PatternFly Collapse with fixed heights
@@ -927,7 +967,7 @@
       setTimeout(function () {
         // Set the max-height for the collapse panels
         parentElement.find('[data-toggle="collapse"]').each($.proxy(function (i, element) {
-          var $element, selector, $target, scrollElement, innerHeight;
+          var $element, selector, $target, scrollElement, innerHeight = 0;
           $element = $(element);
 
           // Determine the selector to find the target
@@ -974,7 +1014,7 @@
 (function ($) {
   'use strict';
 
-  function getParent(rows, node) {
+  function getParent (rows, node) {
     var parent = node.attr('data-parent');
 
     if (typeof parent === "string") {
@@ -985,9 +1025,10 @@
       }
       return parent;
     }
+    return undefined;
   }
 
-  function renderItem(item, parent) {
+  function renderItem (item, parent) {
     if (parent) {
       parent.find('.treegrid-node > span.expand-icon')
         .toggleClass('fa-angle-right', parent.hasClass('collapsed'))
@@ -999,7 +1040,7 @@
     }
   }
 
-  function reStripe(tree) {
+  function reStripe (tree) {
     tree.find('tbody > tr').removeClass('odd');
     tree.find('tbody > tr:not(.hidden):odd').addClass('odd');
   }
@@ -1017,11 +1058,12 @@
 
       // Set up an event listener for the node
       node.children('.treegrid-node').on('click', function (e) {
+        var icon = node.find('span.expand-icon');
+
         if (options && typeof options.callback === 'function') {
           options.callback(e);
         }
 
-        var icon = node.find('span.expand-icon');
         if (icon.hasClass('fa-angle-right')) {
           node.removeClass('collapsed');
         }
@@ -1048,7 +1090,7 @@
   };
 }(jQuery));
 
-// Util: PatternFly Collapsible Vertical Navigation
+// Util: PatternFly Vertical Navigation
 // Must have navbar-toggle in navbar-pf-vertical for expand/collapse
 (function ($) {
   'use strict';
@@ -1060,25 +1102,17 @@
       toggleNavBarButton = $('.navbar-toggle'),
       explicitCollapse = false,
       subDesktop = false,
-      breakpoints = {
-        'tablet': 768,
-        'desktop': 1200
-      },
+      hoverDelay = 500,
+      hideDelay = hoverDelay + 200,
 
       inMobileState = function () {
         return bodyContentElement.hasClass('hidden-nav');
       },
 
-      forceResize = function () {
+      forceResize = function (delay) {
         setTimeout(function () {
-          if (window.dispatchEvent) {
-            window.dispatchEvent(new Event('resize'));
-          }
-          // Special case for IE
-          if ($(document).fireEvent) {
-            $(document).fireEvent('onresize');
-          }
-        }, 100);
+          $(window).trigger('resize');
+        }, delay);
       },
 
       showSecondaryMenu = function () {
@@ -1090,7 +1124,7 @@
         // Dispatch a resize event when showing the secondary menu in non-subdesktop state to
         // allow content to adjust to the secondary menu sizing
         if (!subDesktop) {
-          forceResize();
+          forceResize(100);
         }
       },
 
@@ -1102,36 +1136,30 @@
         });
       },
 
-      showSecondaryMenuForItem = function (item) {
-        if (item.find('.nav-pf-persistent-secondary').length > 0) {
-          showSecondaryMenu();
-        } else {
-          hideSecondaryMenu();
-          navElement.removeClass('show-mobile-nav');
-        }
-      },
-
-      setActiveItem = function (item) {
+      setPrimaryActiveItem = function (item) {
         // Make the clicked on item active
-        $(document).find('.nav-pf-vertical > .list-group > .list-group-item').each(function (index, element) {
-          if ($(element).hasClass('active')) {
-            $(element).removeClass('active');
-          }
+        $(document).find('.nav-pf-vertical > .list-group > .list-group-item.active').each(function (index, element) {
+          $(element).removeClass('active');
         });
-        if (!item.hasClass('active')) {
-          item.addClass('active');
-        }
+        item.addClass('active');
       },
 
-      setSecondaryActiveItem = function ($parent, item) {
-        var parentItem = $(document).find('[data-target="#' + $parent.attr('id') + '"]');
-
-        $parent.find('.list-group > .list-group-item').each(function (index, element) {
+      setSecondaryActiveItem = function (item, $primaryParent) {
+        $(document).find('.nav-pf-secondary-nav > .list-group > .list-group-item.active').each(function (index, element) {
           $(element).removeClass('active');
         });
         item.addClass('active');
 
-        setActiveItem($(parentItem));
+        setPrimaryActiveItem($primaryParent);
+      },
+
+      setTertiaryActiveItem = function (item, $secondaryParent, $primaryParent) {
+        $(document).find('.nav-pf-tertiary-nav > .list-group > .list-group-item.active').each(function (index, element) {
+          $(element).removeClass('active');
+        });
+        item.addClass('active');
+
+        setSecondaryActiveItem($secondaryParent, $primaryParent);
       },
 
       updateSecondaryMenuDisplayAfterSelection = function () {
@@ -1166,11 +1194,55 @@
         }
       },
 
+      updateTertiaryCollapsedState = function (setCollapsed, collapsedItem) {
+        if (setCollapsed) {
+          collapsedItem.addClass('collapsed');
+          navElement.addClass('collapsed-tertiary-nav-pf');
+          bodyContentElement.addClass('collapsed-tertiary-nav-pf');
+          updateSecondaryCollapsedState(false);
+        } else {
+          if (collapsedItem) {
+            collapsedItem.removeClass('collapsed');
+          } else {
+            // Remove any collapsed tertiary menus
+            navElement.find('[data-toggle="collapse-tertiary-nav"]').each(function (index, element) {
+              var $e = $(element);
+              $e.removeClass('collapsed');
+            });
+          }
+          navElement.removeClass('collapsed-tertiary-nav-pf');
+          bodyContentElement.removeClass('collapsed-tertiary-nav-pf');
+        }
+      },
+
+      updateMobileMenu = function (selected, secondaryItem) {
+        $(document).find('.list-group-item.mobile-nav-item-pf').each(function (index, item) {
+          $(item).removeClass('mobile-nav-item-pf');
+        });
+        $(document).find('.list-group-item.mobile-secondary-item-pf').each(function (index, item) {
+          $(item).removeClass('mobile-secondary-item-pf');
+        });
+        if (selected) {
+          selected.addClass('mobile-nav-item-pf');
+          if (secondaryItem) {
+            secondaryItem.addClass('mobile-secondary-item-pf');
+            navElement.removeClass('show-mobile-secondary');
+            navElement.addClass('show-mobile-tertiary');
+          } else {
+            navElement.addClass('show-mobile-secondary');
+            navElement.removeClass('show-mobile-tertiary');
+          }
+        } else {
+          navElement.removeClass('show-mobile-secondary');
+          navElement.removeClass('show-mobile-tertiary');
+        }
+      },
+
       checkNavState = function () {
         var width = $(window).width(), makeSecondaryVisible;
 
         // Check to see if we need to enter/exit the mobile state
-        if (width < breakpoints.tablet) {
+        if (width < $.pfBreakpoints.tablet) {
           if (!navElement.hasClass('hidden')) {
             //Set the nav to being hidden
             navElement.addClass('hidden');
@@ -1180,8 +1252,9 @@
             bodyContentElement.removeClass('collapsed-nav');
             bodyContentElement.addClass('hidden-nav');
 
-            // Reset the secondary collapsed state
+            // Reset the collapsed states
             updateSecondaryCollapsedState(false);
+            updateTertiaryCollapsedState(false);
 
             explicitCollapse = false;
           }
@@ -1194,20 +1267,21 @@
         }
 
         // Check to see if we need to enter/exit the sub desktop state
-        if (width < breakpoints.desktop) {
+        if (width < $.pfBreakpoints.desktop) {
           if (!subDesktop) {
             // Collapse the navigation bars when entering sub desktop mode
             navElement.addClass('collapsed');
             bodyContentElement.addClass('collapsed-nav');
           }
-          if (width >= breakpoints.tablet) {
+          if (width >= $.pfBreakpoints.tablet) {
             hideSecondaryMenu();
           }
           subDesktop = true;
         } else {
-          makeSecondaryVisible = subDesktop && (navElement.find('.persistent-secondary.active').length > 0);
+          makeSecondaryVisible = subDesktop && (navElement.find('.secondary-nav-item-pf.active').length > 0);
           subDesktop = false;
           if (makeSecondaryVisible) {
+
             showSecondaryMenu();
           }
         }
@@ -1250,7 +1324,7 @@
         // Dispatch a resize event when showing the expanding then menu to
         // allow content to adjust to the menu sizing
         if (!subDesktop) {
-          forceResize();
+          forceResize(100);
         }
       },
 
@@ -1264,12 +1338,14 @@
               navElement.removeClass('show-mobile-nav');
             } else {
               // Always start at the primary menu
-              hideSecondaryMenu();
+              updateMobileMenu();
               navElement.addClass('show-mobile-nav');
             }
           } else if (navElement.hasClass('collapsed')) {
+            window.localStorage.setItem('patternfly-navigation-primary', 'expanded');
             expandMenu();
           } else {
+            window.localStorage.setItem('patternfly-navigation-primary', 'collapsed');
             collapseMenu();
           }
         });
@@ -1283,64 +1359,101 @@
       },
 
       bindMenuItemsBehavior = function (handleSelection) {
-        // Set main nav active item on click, and show secondary nav if it has a secondary nav bar
-        $(document).on('click.pf.secondarynav.data-api', '.nav-pf-vertical > .list-group > .list-group-item', function (element) {
-          var $this = $(this);
+        $(document).find('.nav-pf-vertical > .list-group > .list-group-item').each(function (index, primaryItem) {
+          var $primaryItem = $(primaryItem);
 
-          showSecondaryMenuForItem($this);
+          // Set main nav active item on click or show secondary nav if it has a secondary nav bar and we are in the mobile state
+          $primaryItem.on('click.pf.secondarynav.data-api', function (event) {
+            var $this = $(this), $secondaryItem, tertiaryItem;
 
-          if (inMobileState()) {
-            if ($this.find('.nav-pf-persistent-secondary').length > 0) {
-              $this.addClass('mobile-nav-item-pf');
+            if (!$this.hasClass('secondary-nav-item-pf')) {
+              hideSecondaryMenu();
+              if (inMobileState()) {
+                updateMobileMenu();
+                navElement.removeClass('show-mobile-nav');
+              }
+              if (handleSelection) {
+                setPrimaryActiveItem($this);
+                // Don't process the click on the item
+                event.stopImmediatePropagation();
+              }
+            } else if (inMobileState()) {
+              updateMobileMenu($this);
             } else if (handleSelection) {
-              setActiveItem($this);
-            }
-          } else if (handleSelection) {
-            setActiveItem($this);
-          }
-        });
-
-        // Set secondary menu click handlers
-        $(document).find('.nav-pf-persistent-secondary').each(function (index, element) {
-          var $e = $(element);
-
-          // Ignore clicks that are not handled
-          if (handleSelection) {
-            $e.on('click.pf.secondarynav.data-api', function (event) {
-              // Don't process the click on the parent item
-              event.stopImmediatePropagation();
-            });
-          }
-
-          // Set the active items on an item click
-          $e.on('click.pf.secondarynav.data-api', '.list-group > .list-group-item', function (event) {
-            updateSecondaryMenuDisplayAfterSelection();
-
-            if (handleSelection) {
-              setSecondaryActiveItem($e, $(this));
-              // Don't process the click on the parent item
+              $secondaryItem = $($primaryItem.find('.nav-pf-secondary-nav > .list-group > .list-group-item')[0]);
+              if ($secondaryItem.hasClass('tertiary-nav-item-pf')) {
+                tertiaryItem = $secondaryItem.find('.nav-pf-tertiary-nav > .list-group > .list-group-item')[0];
+                setTertiaryActiveItem($(tertiaryItem), $secondaryItem, $primaryItem);
+              } else {
+                setSecondaryActiveItem($secondaryItem, $this);
+              }
               event.stopImmediatePropagation();
             }
           });
 
+          $primaryItem.find('.nav-pf-secondary-nav > .list-group > .list-group-item').each(function (index, secondaryItem) {
+            var $secondaryItem = $(secondaryItem);
+            // Set secondary nav active item on click or show tertiary nav if it has a tertiary nav bar and we are in the mobile state
+            $secondaryItem.on('click.pf.secondarynav.data-api', function (event) {
+              var $this = $(this), tertiaryItem;
+              if (!$this.hasClass('tertiary-nav-item-pf')) {
+                if (inMobileState()) {
+                  updateMobileMenu();
+                  navElement.removeClass('show-mobile-nav');
+                }
+                updateSecondaryMenuDisplayAfterSelection();
+                if (handleSelection) {
+                  setSecondaryActiveItem($secondaryItem, $primaryItem);
+                  // Don't process the click on the item
+                  event.stopImmediatePropagation();
+                }
+              } else if (inMobileState()) {
+                updateMobileMenu($this, $primaryItem);
+                event.stopImmediatePropagation();
+              } else if (handleSelection) {
+                tertiaryItem = $secondaryItem.find('.nav-pf-tertiary-nav > .list-group > .list-group-item')[0];
+                setTertiaryActiveItem($(tertiaryItem), $secondaryItem, $primaryItem);
+                event.stopImmediatePropagation();
+              }
+            });
+
+            $secondaryItem.find('.nav-pf-tertiary-nav > .list-group > .list-group-item').each(function (index, tertiaryItem) {
+              var $tertiaryItem = $(tertiaryItem);
+              // Set tertiary nav active item on click
+              $tertiaryItem.on('click.pf.secondarynav.data-api', function (event) {
+                if (inMobileState()) {
+                  updateMobileMenu();
+                  navElement.removeClass('show-mobile-nav');
+                }
+                updateSecondaryMenuDisplayAfterSelection();
+                if (handleSelection) {
+                  setTertiaryActiveItem($tertiaryItem, $secondaryItem, $primaryItem);
+                  // Don't process the click on the item
+                  event.stopImmediatePropagation();
+                }
+              });
+            });
+          });
+        });
+
+        $(document).find('.secondary-nav-item-pf').each(function (index, secondaryItem) {
+          var $secondaryItem = $(secondaryItem);
+
           // Collapse the secondary nav bar when the toggle is clicked
-          $e.on('click.pf.secondarynav.data-api', '[data-toggle="collapse-secondary-nav"]', function (e) {
+          $secondaryItem.on('click.pf.secondarynav.data-api', '[data-toggle="collapse-secondary-nav"]', function (e) {
             var $this = $(this);
             if (inMobileState()) {
-              hideSecondaryMenu();
-              forceHideSecondaryMenu();
+              updateMobileMenu();
+              e.stopImmediatePropagation();
             } else {
               if ($this.hasClass('collapsed')) {
+                window.localStorage.setItem('patternfly-navigation-secondary', 'expanded');
+                window.localStorage.setItem('patternfly-navigation-tertiary', 'expanded');
                 updateSecondaryCollapsedState(false, $this);
-                if ($(window).width() < breakpoints.desktop) {
-                  forceHideSecondaryMenu();
-                }
+                forceHideSecondaryMenu();
               } else {
-                if ($this.parents('.persistent-secondary.active').length > 0) {
-                  updateSecondaryCollapsedState(true, $this);
-                } else {
-                  forceHideSecondaryMenu();
-                }
+                window.localStorage.setItem('patternfly-navigation-secondary', 'collapsed');
+                updateSecondaryCollapsedState(true, $this);
               }
             }
             navElement.removeClass('hover-secondary-nav-pf');
@@ -1349,30 +1462,141 @@
               e.stopImmediatePropagation();
             }
           });
+
+          $secondaryItem.find('.tertiary-nav-item-pf').each(function (index, primaryItem) {
+            var $primaryItem = $(primaryItem);
+            // Collapse the tertiary nav bar when the toggle is clicked
+            $primaryItem.on('click.pf.tertiarynav.data-api', '[data-toggle="collapse-tertiary-nav"]', function (e) {
+              var $this = $(this);
+              if (inMobileState()) {
+                updateMobileMenu($secondaryItem);
+                e.stopImmediatePropagation();
+              } else {
+                if ($this.hasClass('collapsed')) {
+                  window.localStorage.setItem('patternfly-navigation-secondary', 'expanded');
+                  window.localStorage.setItem('patternfly-navigation-tertiary', 'expanded');
+                  updateTertiaryCollapsedState(false, $this);
+                  forceHideSecondaryMenu();
+                } else {
+                  window.localStorage.setItem('patternfly-navigation-tertiary', 'collapsed');
+                  updateTertiaryCollapsedState(true, $this);
+                }
+              }
+              navElement.removeClass('hover-secondary-nav-pf');
+              navElement.removeClass('hover-tertiary-nav-pf');
+              if (handleSelection) {
+                // Don't process the click on the parent item
+                e.stopImmediatePropagation();
+              }
+            });
+          });
         });
 
-        // Show secondary nav bar on hover of nav items
-        $(document).on('mouseover.pf.secondarynav.data-api', '.persistent-secondary', function (e) {
+        // Show secondary nav bar on hover of secondary nav items
+        $(document).on('mouseenter.pf.tertiarynav.data-api', '.secondary-nav-item-pf', function (e) {
+          var $this = $(this);
           if (!inMobileState()) {
-            navElement.addClass('hover-secondary-nav-pf');
+            if ($this[0].navUnHoverTimeout !== undefined) {
+              clearTimeout($this[0].navUnHoverTimeout);
+              $this[0].navUnHoverTimeout = undefined;
+            } else if ($this[0].navHoverTimeout === undefined) {
+              $this[0].navHoverTimeout = setTimeout(function () {
+                navElement.addClass('hover-secondary-nav-pf');
+                $this.addClass('is-hover');
+                $this[0].navHoverTimeout = undefined;
+              }, hoverDelay);
+            }
           }
         });
-        $(document).on('mouseout.pf.secondarynav.data-api', '.persistent-secondary', function (e) {
-          navElement.removeClass('hover-secondary-nav-pf');
+
+        $(document).on('mouseleave.pf.tertiarynav.data-api', '.secondary-nav-item-pf', function (e) {
+          var $this = $(this);
+          if ($this[0].navHoverTimeout !== undefined) {
+            clearTimeout($this[0].navHoverTimeout);
+            $this[0].navHoverTimeout = undefined;
+          } else if ($this[0].navUnHoverTimeout === undefined) {
+            $this[0].navUnHoverTimeout = setTimeout(function () {
+              if (navElement.find('.secondary-nav-item-pf.is-hover').length <= 1) {
+                navElement.removeClass('hover-secondary-nav-pf');
+              }
+              $this.removeClass('is-hover');
+              $this[0].navUnHoverTimeout = undefined;
+            }, hideDelay);
+          }
+        });
+
+        // Show tertiary nav bar on hover of secondary nav items
+        $(document).on('mouseover.pf.tertiarynav.data-api', '.tertiary-nav-item-pf', function (e) {
+          var $this = $(this);
+          if (!inMobileState()) {
+            if ($this[0].navUnHoverTimeout !== undefined) {
+              clearTimeout($this[0].navUnHoverTimeout);
+              $this[0].navUnHoverTimeout = undefined;
+            } else if ($this[0].navHoverTimeout === undefined) {
+              $this[0].navHoverTimeout = setTimeout(function () {
+                navElement.addClass('hover-tertiary-nav-pf');
+                $this.addClass('is-hover');
+                $this[0].navHoverTimeout = undefined;
+              }, hoverDelay);
+            }
+          }
+        });
+        $(document).on('mouseout.pf.tertiarynav.data-api', '.tertiary-nav-item-pf', function (e) {
+          var $this = $(this);
+          if ($this[0].navHoverTimeout !== undefined) {
+            clearTimeout($this[0].navHoverTimeout);
+            $this[0].navHoverTimeout = undefined;
+          } else if ($this[0].navUnHoverTimeout === undefined) {
+            $this[0].navUnHoverTimeout = setTimeout(function () {
+              if (navElement.find('.tertiary-nav-item-pf.is-hover').length <= 1) {
+                navElement.removeClass('hover-tertiary-nav-pf');
+              }
+              $this.removeClass('is-hover');
+              $this[0].navUnHoverTimeout = undefined;
+            }, hideDelay);
+          }
         });
       },
 
-      setTooltips = function () {
-        $('.nav-pf-vertical [data-toggle="tooltip"]').tooltip({'container': 'body', 'delay': { 'show': '500', 'hide': '200' }});
+      loadFromLocalStorage = function () {
+        if (inMobileState()) {
+          return;
+        }
 
-        $(".nav-pf-vertical").on("show.bs.tooltip", function (e) {
-          if (!$(this).hasClass("collapsed")) {
-            return false;
+        if (window.localStorage.getItem('patternfly-navigation-primary') === 'collapsed') {
+          collapseMenu();
+        }
+
+        if ($('.nav-pf-vertical.nav-pf-vertical-collapsible-menus').length > 0) {
+          if (window.localStorage.getItem('patternfly-navigation-secondary') === 'collapsed') {
+            updateSecondaryCollapsedState(true, $('.secondary-nav-item-pf.active [data-toggle=collapse-secondary-nav]'));
           }
+
+          if (window.localStorage.getItem('patternfly-navigation-tertiary') === 'collapsed') {
+            updateTertiaryCollapsedState(true, $('.tertiary-nav-item-pf.active [data-toggle=collapse-tertiary-nav]'));
+          }
+        }
+      },
+
+      setTooltips = function () {
+        var tooltipOptions = {
+          container: 'body',
+          placement: 'bottom',
+          delay: { 'show': '500', 'hide': '200' },
+          template: '<div class="nav-pf-vertical-tooltip tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+        };
+        $('.nav-pf-vertical [data-toggle="tooltip"]').tooltip(tooltipOptions);
+
+        $('.nav-pf-vertical').on("show.bs.tooltip", function (e) {
+          return $(this).hasClass("collapsed");
         });
       },
 
       init = function (handleItemSelections) {
+        // Hide the nav menus during initialization
+        navElement.addClass('hide-nav-pf');
+        bodyContentElement.addClass('hide-nav-pf');
+
         //Set correct state on load
         checkNavState();
 
@@ -1384,6 +1608,13 @@
 
         //Set tooltips
         setTooltips();
+
+        loadFromLocalStorage();
+
+        // Show the nav menus
+        navElement.removeClass('hide-nav-pf');
+        bodyContentElement.removeClass('hide-nav-pf');
+        forceResize(250);
       };
 
     //Listen for the window resize event and collapse/hide as needed
@@ -1395,3 +1626,4 @@
     init(handleItemSelections);
   };
 }(jQuery));
+

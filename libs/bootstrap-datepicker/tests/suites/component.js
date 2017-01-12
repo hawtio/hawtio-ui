@@ -28,6 +28,14 @@ test('Activation by component', function(){
     ok(this.picker.is(':visible'));
 });
 
+test('Dont activation (by disabled) by component', function(){
+    ok(!this.picker.is(':visible'));
+    this.input.prop('disabled', true);
+    this.addon.click();
+    ok(!this.picker.is(':visible'));
+    this.input.prop('disabled', false);
+});
+
 test('simple keyboard nav test', function(){
     var target;
 
@@ -160,15 +168,25 @@ test('Selecting date resets viewDate and date', function(){
     equal(target.text(), '29'); // Should be Jan 29
 });
 
-test('"remove" removes associated HTML', function(){
+test('"destroy" removes associated HTML', function(){
     var datepickerDivSelector = '.datepicker';
 
     $('#datepicker').datepicker('show');
 
     //there should be one datepicker initiated so that means one hidden .datepicker div
     equal($(datepickerDivSelector).length, 1);
-    this.component.datepicker('remove');
+    this.component.datepicker('destroy');
     equal($(datepickerDivSelector).length, 0);//hidden HTML should be gone
+});
+
+test('"remove" is an alias for "destroy"', function(){
+    var called, originalDestroy = this.dp.destroy;
+    this.dp.destroy = function () {
+        called = true;
+        return originalDestroy.apply(this, arguments);
+    };
+    this.dp.remove();
+    ok(called);
 });
 
 test('Does not block events', function(){
@@ -200,3 +218,23 @@ test('date and viewDate must be between startDate and endDate when setEndDate ca
     datesEqual(this.dp.viewDate, UTCDate(2013, 5, 6));
     equal(this.dp.dates.length, 0);
 });
+
+test('picker should render fine when `$.fn.show` and `$.fn.hide` are overridden', patch_show_hide(function () {
+    var viewModes = $.fn.datepicker.DPGlobal.modes,
+        minViewMode = this.dp.o.minViewMode,
+        maxViewMode = this.dp.o.maxViewMode,
+        childDivs = this.picker.children('div');
+
+    this.dp.showMode(minViewMode);
+
+    // Overwritten `$.fn.hide` method adds the `foo` class to its matched elements
+    var curDivShowing = childDivs.filter('.datepicker-' + viewModes[minViewMode].clsName);
+    ok(!curDivShowing.hasClass('foo'), 'Shown div does not have overridden `$.fn.hide` side-effects');
+
+    // Check that other classes do have `foo` class
+    var divNotShown;
+    for (var curViewMode = minViewMode + 1; curViewMode <= maxViewMode; curViewMode++) {
+        divNotShown = childDivs.filter('.datepicker-' + viewModes[curViewMode].clsName);
+        ok(divNotShown.hasClass('foo'), 'Other divs do have overridden `$.fn.hide` side-effects');
+    }
+}));

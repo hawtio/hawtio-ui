@@ -1,5 +1,5 @@
 /*
- *  Bootstrap TouchSpin - v3.0.1
+ *  Bootstrap TouchSpin - v3.1.2
  *  A mobile and touch friendly input spinner component for Bootstrap 3.
  *  http://www.virtuosoft.eu/code/bootstrap-touchspin/
  *
@@ -43,6 +43,7 @@
       min: 0,
       max: 100,
       initval: '',
+      replacementval: '',
       step: 1,
       decimals: 0,
       stepinterval: 100,
@@ -61,14 +62,15 @@
       mousewheel: true,
       buttondown_class: 'btn btn-default',
       buttonup_class: 'btn btn-default',
-	  buttondown_txt: '-',
-	  buttonup_txt: '+'
+      buttondown_txt: '-',
+      buttonup_txt: '+'
     };
 
     var attributeMap = {
       min: 'min',
       max: 'max',
       initval: 'init-val',
+      replacementval: 'replacement-val',
       step: 'step',
       decimals: 'decimals',
       stepinterval: 'step-interval',
@@ -87,8 +89,8 @@
       mousewheel: 'mouse-wheel',
       buttondown_class: 'button-down-class',
       buttonup_class: 'button-up-class',
-	  buttondown_txt: 'button-down-txt',
-	  buttonup_txt: 'button-up-txt'
+      buttondown_txt: 'button-down-txt',
+      buttonup_txt: 'button-up-txt'
     };
 
     return this.each(function() {
@@ -170,6 +172,14 @@
 
       function _updateSettings(newsettings) {
         settings = $.extend({}, settings, newsettings);
+
+        // Update postfix and prefix texts if those settings were changed.
+        if (newsettings.postfix) {
+          originalinput.parent().find('.bootstrap-touchspin-postfix').text(newsettings.postfix);
+        }
+        if (newsettings.prefix) {
+          originalinput.parent().find('.bootstrap-touchspin-prefix').text(newsettings.prefix);
+        }
       }
 
       function _buildHtml() {
@@ -519,6 +529,10 @@
         val = originalinput.val();
 
         if (val === '') {
+          if (settings.replacementval !== '') {
+            originalinput.val(settings.replacementval);
+            originalinput.trigger('change');
+          }
           return;
         }
 
@@ -529,7 +543,12 @@
         parsedval = parseFloat(val);
 
         if (isNaN(parsedval)) {
-          parsedval = 0;
+          if (settings.replacementval !== '') {
+            parsedval = settings.replacementval;
+          }
+          else {
+            parsedval = 0;
+          }
         }
 
         returnval = parsedval;

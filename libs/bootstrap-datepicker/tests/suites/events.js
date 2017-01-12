@@ -301,6 +301,117 @@ test('setDate: triggers change and changeDate events', function(){
 
     this.dp.setDate(new Date(2011, 2, 5));
 
-    equal(triggered_change, 2);
+    equal(triggered_change, 1);
     equal(triggered_changeDate, 1);
 });
+
+test('paste must update the date', function() {
+    var dateToPaste = '22-07-2015';
+    var evt = {
+        type: 'paste',
+        originalEvent: {
+            clipboardData: {
+                types: ['text/plain'],
+                getData: function() { return dateToPaste; }
+            }
+        }
+    };
+    this.input.trigger(evt);
+    datesEqual(this.dp.dates[0], UTCDate(2015, 6, 22));
+});
+
+test('clicking outside datepicker triggers \'hide\' event', function(){
+    var $otherelement = $('<div />');
+    $('body').append($otherelement);
+	
+    var isHideTriggered;
+    this.input.on('hide', function() { isHideTriggered = true; });
+
+    $otherelement.trigger('mousedown');
+	
+    ok(isHideTriggered, '\'hide\' event is not triggered');
+
+    $otherelement.remove();
+});
+
+test('Selecting date from previous month triggers changeMonth', function() {
+    var target,
+        triggered = 0;
+
+    this.input.on('changeMonth', function(){
+        triggered++;
+    });
+
+    // find first day of previous month
+    target = this.picker.find('.datepicker-days tbody td:first');
+    target.click();
+
+    // ensure event has been triggered
+    equal(triggered, 1);
+})
+
+test('Selecting date from previous month in january triggers changeMonth/changeYear', function() {
+    var target,
+        triggeredM = 0,
+        triggeredY = 0;
+
+    this.input.val('01-01-2011');
+    this.dp.update();
+
+    this.input.on('changeMonth', function(){
+        triggeredM++;
+    });
+
+    this.input.on('changeYear', function(){
+        triggeredY++;
+    });
+
+    // find first day of previous month
+    target = this.picker.find('.datepicker-days tbody td:first');
+    target.click();
+
+    // ensure event has been triggered
+    equal(triggeredM, 1);
+    equal(triggeredY, 1);
+})
+
+test('Selecting date from next month triggers changeMonth', function() {
+    var target,
+        triggered = 0;
+
+    this.input.on('changeMonth', function(){
+        triggered++;
+    });
+
+    // find first day of previous month
+    target = this.picker.find('.datepicker-days tbody td:last');
+    target.click();
+
+    // ensure event has been triggered
+    equal(triggered, 1);
+})
+
+test('Selecting date from next month in december triggers changeMonth/changeYear', function() {
+    var target,
+        triggeredM = 0,
+        triggeredY = 0;
+
+    this.input.val('01-12-2011');
+    this.dp.update();
+
+    this.input.on('changeMonth', function(){
+        triggeredM++;
+    });
+
+    this.input.on('changeYear', function(){
+        triggeredY++;
+    });
+
+    // find first day of previous month
+    target = this.picker.find('.datepicker-days tbody td:last');
+    target.click();
+
+    // ensure event has been triggered
+    equal(triggeredM, 1);
+    equal(triggeredY, 1);
+})
