@@ -3723,6 +3723,7 @@ div.log-stack-trace p {
 }
 .popover {
   width: auto;
+  max-width: 600px;
 }
 
 /* slideout directive stuff */
