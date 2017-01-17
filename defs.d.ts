@@ -10,7 +10,6 @@
 /// <reference path="d.ts/forcegraph/ts/graphBuilder.d.ts"/>
 /// <reference path="d.ts/toastr/ts/toastrPlugin.d.ts"/>
 /// <reference path="d.ts/tree/ts/treePlugin.d.ts"/>
-/// <reference path="d.ts/ui-bootstrap/ts/uiBootstrapPlugin.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiHelpers.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiPlugin.d.ts"/>
 /// <reference path="d.ts/ui/ts/autoDropDown.d.ts"/>
@@ -46,3 +45,4 @@
 /// <reference path="d.ts/ui/ts/viewport.d.ts"/>
 /// <reference path="d.ts/ui/ts/windowHeight.d.ts"/>
 /// <reference path="d.ts/ui/ts/zeroclipboard.d.ts"/>
+/// <reference path="d.ts/ui-bootstrap/ts/uiBootstrapPlugin.d.ts"/>

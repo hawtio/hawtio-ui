@@ -1,18 +1,23 @@
 <div ng-controller="UI.UITestController2">
   <script type="text/ng-template" id="popoverExTemplate">
 <ul>
-  <li ng-repeat="stuff in things" hawtio-template-popover content="myTemplate" placement="auto">{{stuff.name}}</li>
+  <li ng-repeat="contact in contacts" hawtio-template-popover content="myTemplate" title="Contact details"
+      placement="auto">
+    {{contact.name}}
+  </li>
 </ul>
   </script>
   <script type="text/ng-template" id="myTemplate">
-<table>
-  <tbody>
-    <tr ng-repeat="(k, v) in stuff track by $index">
-      <td>{{k}}</td>
-      <td>{{v}}</td>
-    </tr>
-  </tbody>
-</table>
+    <small>
+      <table class="table">
+        <tbody>
+        <tr ng-repeat="(k, v) in contact track by $index">
+          <td class="property-name">{{k}}</td>
+          <td class="property-value">{{v}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </small>
   </script>
   <div class="row">
     <div class="col-md-6">
