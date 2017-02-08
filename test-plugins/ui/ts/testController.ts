@@ -216,7 +216,7 @@ module UITest {
     $scope.colorPickerEx = 'My Color ({{myColor}}): <div hawtio-color-picker="myColor"></div>';
 
     $scope.confirmationEx1 = '' +
-      '<button class="btn" ng-click="showDeleteOne.open()">Delete stuff</button>\n' +
+      '<button class="btn btn-default" ng-click="showDeleteOne.open()">Delete stuff</button>\n' +
       '\n' +
       '<div hawtio-confirm-dialog="showDeleteOne.show"\n' +
       'title="Delete stuff?"\n' +
@@ -231,23 +231,8 @@ module UITest {
       '  </div>\n' +
       '</div>\n';
 
-    $scope.confirmationEx2 = '' +
-      '<button class="btn" ng-click="showDeleteTwo.open()">Delete other stuff</button>\n' +
-      '\n' +
-      '<!-- Use more defaults -->\n' +
-      '<div hawtio-confirm-dialog="showDeleteTwo.show\n"' +
-      '  on-cancel="onCancelled(\'Two\')"\n' +
-      '  on-ok="onOk(\'Two\')">\n' +
-      '  <div class="dialog-body">\n' +
-      '    <p>\n' +
-      '      Are you sure you want to delete all the other stuff?\n' +
-      '    </p>\n' +
-      '  </div>\n' +
-      '</div>';
-
-
     $scope.sliderEx1 = '' +
-      '<button class="btn" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right</button>\n' +
+      '<button class="btn btn-default" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right</button>\n' +
       '<div hawtio-slideout="showSlideoutRight" title="Hey look a slider!">\n' +
       '   <div class="dialog-body">\n' +
       '     <div>\n' +
@@ -257,7 +242,7 @@ module UITest {
       '</div>';
 
     $scope.sliderEx2 = '' +
-      '<button class="btn" ng-click="showSlideoutLeft = !showSlideoutLeft">Show slideout left</button>\n' +
+      '<button class="btn btn-default" ng-click="showSlideoutLeft = !showSlideoutLeft">Show slideout left</button>\n' +
       '<div hawtio-slideout="showSlideoutLeft" direction="left" title="Hey, another slider!">\n' +
       '   <div class="dialog-body">\n' +
       '     <div hawtio-editor="someText" mode="javascript"></div>\n' +
@@ -265,7 +250,7 @@ module UITest {
       '</div>\n';
 
     $scope.sliderEx3 = '' +
-      '<button class="btn" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right no close button</button>\n' +
+      '<button class="btn btn-default" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right no close button</button>\n' +
       '<div hawtio-slideout="showSlideoutRight" close="false" title="Hey look a slider with no close button!">\n' +
       '   <div class="dialog-body">\n' +
       '     <div>\n' +
