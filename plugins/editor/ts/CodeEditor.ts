@@ -7,6 +7,8 @@
  */
 module CodeEditor {
 
+  declare var window: any;
+  
   /**
    * Options for the CodeMirror text editor
    *
@@ -90,14 +92,19 @@ module CodeEditor {
    * @param {CodeMirrorEditor} editor
    * @return {void}
    */
-  export function autoFormatEditor(editor:CodeMirrorEditor) {
+  export function autoFormatEditor(editor: CodeMirrorEditor) {
     if (editor) {
-      var totalLines = editor.lineCount();
-      //var totalChars = editor.getValue().length;
-      var start = {line: 0, ch: 0};
-      var end = {line: totalLines - 1, ch: editor.getLine(totalLines - 1).length};
-      editor.autoFormatRange(start, end);
-      editor.setSelection(start, start);
+      let content = editor.getValue();
+      let mode = editor.getOption('mode');
+      switch (mode) {
+        case 'xml':
+          content = window.html_beautify(content, {indent_size: 2});
+          break;
+        case 'javascript':
+          content = window.js_beautify(content, {indent_size: 2});
+          break;
+      }
+      editor.setValue(content);
     }
   }
 

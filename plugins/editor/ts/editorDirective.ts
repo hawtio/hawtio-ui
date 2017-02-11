@@ -137,9 +137,6 @@ module HawtioEditor {
         });
         */
         $scope.$watch('text', (text) => {
-          if (!text) {
-            return;
-          }
           if (!$scope.codeMirror) {
             var options:any = {
               value: text 

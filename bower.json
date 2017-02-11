@@ -30,7 +30,8 @@
     "jquery-ui": "~1.12.0",
     "jquery.dynatree": "~1.2.0",
     "marked": "~0.3.0",
-    "angular-patternfly": "^3.0.0"
+    "angular-patternfly": "^3.0.0",
+    "js-beautify": "~1.6.0"
   },
   "devDependencies": {
     "hawtio-core-dts": "~2.0.0"
