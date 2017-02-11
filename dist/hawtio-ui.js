@@ -488,12 +488,17 @@ var CodeEditor;
      */
     function autoFormatEditor(editor) {
         if (editor) {
-            var totalLines = editor.lineCount();
-            //var totalChars = editor.getValue().length;
-            var start = { line: 0, ch: 0 };
-            var end = { line: totalLines - 1, ch: editor.getLine(totalLines - 1).length };
-            editor.autoFormatRange(start, end);
-            editor.setSelection(start, start);
+            var content = editor.getValue();
+            var mode = editor.getOption('mode');
+            switch (mode) {
+                case 'xml':
+                    content = window.html_beautify(content, { indent_size: 2 });
+                    break;
+                case 'javascript':
+                    content = window.js_beautify(content, { indent_size: 2 });
+                    break;
+            }
+            editor.setValue(content);
         }
     }
     CodeEditor.autoFormatEditor = autoFormatEditor;
@@ -721,9 +726,6 @@ var HawtioEditor;
                 });
                 */
                 $scope.$watch('text', function (text) {
-                    if (!text) {
-                        return;
-                    }
                     if (!$scope.codeMirror) {
                         var options = {
                             value: text
