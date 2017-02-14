@@ -1,6 +1,4 @@
 /// <reference path="d.ts/includes.d.ts"/>
-/// <reference path="d.ts/datatable/ts/datatablePlugin.d.ts"/>
-/// <reference path="d.ts/datatable/ts/simpleDataTable.d.ts"/>
 /// <reference path="d.ts/editor/ts/CodeEditor.d.ts"/>
 /// <reference path="d.ts/editor/ts/editorGlobals.d.ts"/>
 /// <reference path="d.ts/editor/ts/editorPlugin.d.ts"/>
@@ -8,8 +6,10 @@
 /// <reference path="d.ts/forcegraph/ts/forceGraphPlugin.d.ts"/>
 /// <reference path="d.ts/forcegraph/ts/forceGraphDirective.d.ts"/>
 /// <reference path="d.ts/forcegraph/ts/graphBuilder.d.ts"/>
-/// <reference path="d.ts/toastr/ts/toastrPlugin.d.ts"/>
+/// <reference path="d.ts/datatable/ts/datatablePlugin.d.ts"/>
+/// <reference path="d.ts/datatable/ts/simpleDataTable.d.ts"/>
 /// <reference path="d.ts/tree/ts/treePlugin.d.ts"/>
+/// <reference path="d.ts/toastr/ts/toastrPlugin.d.ts"/>
 /// <reference path="d.ts/ui-bootstrap/ts/uiBootstrapPlugin.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiHelpers.d.ts"/>
 /// <reference path="d.ts/ui/ts/uiPlugin.d.ts"/>
