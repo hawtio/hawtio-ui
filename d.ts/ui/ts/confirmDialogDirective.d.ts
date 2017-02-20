@@ -64,6 +64,13 @@ declare module UI {
          * @type String
          */
         onClose: string;
+        /**
+         * Optional dialog size: 'sm', 'lg'
+         *
+         * @property optionalSize
+         * @type string
+         */
+        optionalSize: string;
     }
     /**
      * Directive that opens a simple standard confirmation dialog.  See ConfigDialogConfig

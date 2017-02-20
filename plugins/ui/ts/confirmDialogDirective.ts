@@ -69,6 +69,13 @@ module UI {
      * @type String
      */
     onClose: string;
+    /**
+     * Optional dialog size: 'sm', 'lg'
+     *
+     * @property optionalSize
+     * @type string
+     */
+    optionalSize: string;
   }
 
   /**
@@ -95,12 +102,18 @@ module UI {
       cancelButtonText: '@',
       onCancel: '&?',
       onOk: '&?',
-      onClose: '&?'
+      onClose: '&?',
+      optionalSize: '@'
     };
 
     public controller = ["$scope", "$element", "$attrs", "$transclude", "$compile" ,($scope, $element, $attrs, $transclude, $compile) => {
 
       $scope.clone = null;
+
+      // Set optional size modifier class    
+      if ($scope.optionalSize === 'sm' || $scope.optionalSize === 'lg') {
+        $scope.optionalSizeClass = 'modal-' + $scope.optionalSize;
+      }
 
       $transclude(function(clone) {
         $scope.clone = $(clone).filter('.dialog-body');

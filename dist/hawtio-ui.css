@@ -440,37 +440,6 @@ table.table thead .sorting_desc:after {
 .bundle-item a.toggle-action .icon-play-circle {
   color: green;
 }
-div.hawtio-form-tabs div.tab-content {
-  border: 1px solid #d4d4d4;
-  border-radius: 4px;
-  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
-}
-div.hawtio-form-tabs ul.nav-tabs {
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  background: inherit;
-  background-color: inherit !important;
-  background-image: inherit !important;
-  border-top: none !important;
-}
-div.hawtio-form-tabs ul.nav-tabs li {
-  border: 1px solid #d4d4d4 !important;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  background-color: inherit;
-  box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.08) !important;
-}
-div.hawtio-form-tabs ul.nav-tabs li.active {
-  border-bottom: 1px solid white !important;
-  background-color: white;
-  box-shadow: 0 -10px 10px -10px rgba(0, 0, 0, 0.1) !important;
-}
-div.hawtio-form-tabs ul.nav-tabs li.active a {
-  box-shadow: none !important;
-  text-shadow: none !important;
-  background-color: inherit !important;
-}
 .slideout {
   box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
   border: 1px solid #d4d4d4;
@@ -1496,11 +1465,6 @@ ol.zebra-list > li:before {
 .navbar-fixed-top [hawtio-sub-tabs] li a {
   padding-top: 2px;
   padding-bottom: 2px;
-}
-.hawtio-form textarea {
-  margin-left: 90px;
-  width: 20em;
-  min-height: 5em;
 }
 
 body {
