@@ -956,6 +956,11 @@ strong.new,
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
 }
+.hawtio-dropdown > ul > li:hover > a {
+  color: #ffffff;
+  background-color: unset;
+  border-color: transparent;
+}
 .hawtio-dropdown > ul > li:hover > span > ul.sub-menu > li {
   color: #333333;
 }
@@ -2997,9 +3002,6 @@ h4 > .contained {
   right: 0;
   border-radius: 0;
 }
-.hawtio-dropdown .dropdown-menu > li:hover > a {
-  text-shadow: 0px 0px 1px white;
-}
 .hawtio-dropdown .dropdown-menu:before {
   display: none !important;
 }
@@ -3055,6 +3057,9 @@ h4 > .contained {
 span.hawtio-dropdown {
   position: relative;
   display: block;
+  cursor: pointer;
+}
+li.hawtio-dropdown {
   cursor: pointer;
 }
 span.hawtio-dropdown .dropdown-menu {
