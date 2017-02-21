@@ -956,6 +956,11 @@ strong.new,
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
 }
+.hawtio-dropdown > ul > li:hover > a {
+  color: #ffffff;
+  background-color: unset;
+  border-color: transparent;
+}
 .hawtio-dropdown > ul > li:hover > span > ul.sub-menu > li {
   color: #333333;
 }
@@ -2988,7 +2993,7 @@ h4 > .contained {
   width: 100%;
 }
 
-.dropdown-menu {
+.hawtio-dropdown .dropdown-menu {
   padding-top: 0;
   padding-bottom: 0;
   margin-top: 0;
@@ -2997,24 +3002,21 @@ h4 > .contained {
   right: 0;
   border-radius: 0;
 }
-.dropdown-menu > li:hover > a {
-  text-shadow: 0px 0px 1px white;
-}
-.dropdown-menu:before {
+.hawtio-dropdown .dropdown-menu:before {
   display: none !important;
 }
-.dropdown-menu:after {
+.hawtio-dropdown .dropdown-menu:after {
   display: none !important;
 }
-.dropdown-menu.right {
+.hawtio-dropdown .dropdown-menu.right {
   left: auto;
   right: 0;
 }
-.dropdown-menu.right:before {
+.hawtio-dropdown .dropdown-menu.right:before {
   left: auto !important;
   right: 9px;
 }
-.dropdown-menu.right:after {
+.hawtio-dropdown .dropdown-menu.right:after {
   left: auto !important;
   right: 10px;
 }
@@ -3044,17 +3046,20 @@ h4 > .contained {
   top: 0;
   right: -2px;
 }
-.dropdown-menu .sub-menu {
+.hawtio-dropdown .dropdown-menu .sub-menu {
   position: absolute;
   left: 195px;
   top: -8px;
 }
-.dropdown-menu .dropdown .caret {
+.hawtio-dropdown .dropdown-menu .dropdown .caret {
   display: none;
 }
 span.hawtio-dropdown {
   position: relative;
   display: block;
+  cursor: pointer;
+}
+li.hawtio-dropdown {
   cursor: pointer;
 }
 span.hawtio-dropdown .dropdown-menu {
@@ -3068,15 +3073,15 @@ span.hawtio-dropdown .dropdown-menu {
   margin-top: 5px;
   text-align: left;
 }
-.dropdown.perspective-selector > .dropdown-menu {
+.hawtio-dropdown .dropdown.perspective-selector > .dropdown-menu {
   min-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dropdown.perspective-selector .dropdown-menu > div {
+.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div {
   display: block;
 }
-.dropdown.perspective-selector .dropdown-menu > div > p,
+.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div > p,
 .hawtio-dropdown p {
   font-size: smaller;
   padding-left: 3px;
@@ -3086,10 +3091,10 @@ span.hawtio-dropdown .dropdown-menu {
 .nav .hawtio-dropdown {
   margin-top: 2px;
 }
-.dropdown.perspective-selector .dropdown-menu > div > ul {
+.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div > ul {
   margin-top: 0;
 }
-.dropdown.perspective-selector .dropdown-menu > div > ul > li.clear-recent > a {
+.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div > ul > li.clear-recent > a {
   padding: 3px 5px;
 }
 .nav.nav-tabs li .hawtio-dropdown .dropdown-menu {

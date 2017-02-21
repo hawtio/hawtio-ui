@@ -1537,6 +1537,7 @@ var UI;
                     }
                 }
                 var overflowEl = $($element.find('.overflow'));
+                overflowEl.addClass('hawtio-dropdown');
                 var overflowMenu = $(overflowEl.find('ul.dropdown-menu'));
                 /*
                 Logger.info("element inner width: ", $element.innerWidth());
