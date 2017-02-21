@@ -2811,13 +2811,6 @@ div.scroll-body-table-wrapper {
   overflow-y: scroll;
 }
 
-.editor-autoresize .CodeMirror {
-  height: auto;
-}
-.editor-autoresize .CodeMirror-scroll {
-  min-height: 100px;
-}
-
 .dynatree-container {
   background: inherit;
   overflow: visible;
@@ -2840,6 +2833,13 @@ span.dynatree-icon {
 }
 span:not(.dynatree-has-children) .dynatree-icon:before {
   color: gray;
+}
+
+.editor-autoresize .CodeMirror {
+  height: auto;
+}
+.editor-autoresize .CodeMirror-scroll {
+  min-height: 100px;
 }
 
 .badge {
