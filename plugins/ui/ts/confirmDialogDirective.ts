@@ -70,10 +70,14 @@ module UI {
      */
     onClose: string;
     /**
-     * Optional dialog size: 'sm', 'lg'
+     * Alternative size: 'sm', 'lg'
      *
-     * @property optionalSize
+     * @property size
      * @type string
+     */
+    size: string;
+    /**
+     * @deprecated Use 'size'
      */
     optionalSize: string;
   }
@@ -103,16 +107,18 @@ module UI {
       onCancel: '&?',
       onOk: '&?',
       onClose: '&?',
-      optionalSize: '@'
+      size: '@',
+      optionalSize: '@' // deprecated
     };
 
     public controller = ["$scope", "$element", "$attrs", "$transclude", "$compile" ,($scope, $element, $attrs, $transclude, $compile) => {
 
       $scope.clone = null;
 
-      // Set optional size modifier class    
-      if ($scope.optionalSize === 'sm' || $scope.optionalSize === 'lg') {
-        $scope.optionalSizeClass = 'modal-' + $scope.optionalSize;
+      // Set optional size modifier class
+      $scope.size = $scope.size || $scope.optionalSize;
+      if ($scope.size === 'sm' || $scope.size === 'lg') {
+        $scope.sizeClass = 'modal-' + $scope.size;
       }
 
       $transclude(function(clone) {

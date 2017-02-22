@@ -65,10 +65,14 @@ declare module UI {
          */
         onClose: string;
         /**
-         * Optional dialog size: 'sm', 'lg'
+         * Alternative size: 'sm', 'lg'
          *
-         * @property optionalSize
+         * @property size
          * @type string
+         */
+        size: string;
+        /**
+         * @deprecated Use 'size'
          */
         optionalSize: string;
     }
