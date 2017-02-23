@@ -1716,6 +1716,19 @@ var UI;
         }]);
 })(UI || (UI = {}));
 
+var UI;
+(function (UI) {
+    setTimeout(function () {
+        var clipboard = new window.Clipboard('.btn-clipboard');
+        clipboard.on('success', function (e) {
+            var button = $(e.trigger);
+            button.tooltip({ placement: 'bottom', title: 'Copied!', trigger: 'click' });
+            button.tooltip('show');
+            button.mouseleave(function () { return button.tooltip('hide'); });
+        });
+    }, 1000);
+})(UI || (UI = {}));
+
 /// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
