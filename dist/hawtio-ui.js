@@ -1722,9 +1722,19 @@ var UI;
         var clipboard = new window.Clipboard('.btn-clipboard');
         clipboard.on('success', function (e) {
             var button = $(e.trigger);
+            var title = null;
+            if (button.attr('title')) {
+                title = button.attr('title');
+                button.removeAttr('title');
+            }
             button.tooltip({ placement: 'bottom', title: 'Copied!', trigger: 'click' });
             button.tooltip('show');
-            button.mouseleave(function () { return button.tooltip('hide'); });
+            button.mouseleave(function () {
+                button.tooltip('hide');
+                if (title) {
+                    button.attr('title', title);
+                }
+            });
         });
     }, 1000);
 })(UI || (UI = {}));
