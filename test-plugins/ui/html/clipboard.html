@@ -1,0 +1,33 @@
+<div ng-controller="UI.UITestController2">
+  <div class="row">
+    <div class="col-md-12">
+      <h1>Clipboard</h1>
+      <p>Integration of clipboard.js, a library to copy text to clipboard.</p>
+    </div>
+    <div class="col-md-12">
+      <h3>HTML Example</h3>
+      <div hawtio-editor="clipboard" mode="fileUploadExMode"></div>
+    </div>
+    <div class="col-md-6">
+      <h3>Live Example</h3>
+      <div class="directive-example">
+        <div compile="clipboard"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/ng-template" id="clipboardTemplate">
+  <form>
+    <div class="form-group">
+      <label for="url-field">Clone with HTTPS</label>
+      <div class="input-group">
+        <input type="text" id="url-field" class="form-control" value="https://github.com/hawtio/hawtio-ui.git" readonly>
+        <div class="input-group-addon input-group-button">
+          <button class="btn btn-sm btn-default btn-clipboard" data-clipboard-target="#url-field">
+            <i class="fa fa-clipboard" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</script>

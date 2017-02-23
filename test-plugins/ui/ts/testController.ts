@@ -130,6 +130,7 @@ module UITest {
     $scope.dropDownEx = $templateCache.get("dropDownTemplate");
     $scope.autoDropDown = $templateCache.get("autoDropDownTemplate");
     $scope.zeroClipboard = $templateCache.get("zeroClipboardTemplate");
+    $scope.clipboard = $templateCache.get("clipboardTemplate");
     $scope.popoverEx = $templateCache.get("myTemplate");
     $scope.popoverUsageEx = $templateCache.get("popoverExTemplate");
     $scope.autoColumnEx = $templateCache.get("autoColumnTemplate");

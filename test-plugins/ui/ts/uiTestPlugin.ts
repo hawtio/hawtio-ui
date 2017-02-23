@@ -26,6 +26,7 @@ module UITest {
                      .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                      .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
                      .subPath('Zero Clipboard', 'zero-clipboard', builder.join(path, 'zero-clipboard.html'))
+                     .subPath('Clipboard', 'clipboard', builder.join(path, 'clipboard.html'))
                    .build());
 
     tabs.push(builder.create()
