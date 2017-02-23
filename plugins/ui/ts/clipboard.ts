@@ -5,9 +5,22 @@ module UI {
 
     clipboard.on('success', function (e) {
       let button = ($(e.trigger) as any);
+      
+      let title = null;
+      if (button.attr('title')) {
+        title = button.attr('title');
+        button.removeAttr('title');
+      }
+      
       button.tooltip({placement: 'bottom', title: 'Copied!', trigger: 'click'})
       button.tooltip('show');
-      button.mouseleave(() => button.tooltip('hide'));
+
+      button.mouseleave(function() {
+        button.tooltip('hide');
+        if (title) {
+          button.attr('title', title);
+        }
+      });
     });
   }, 1000);
 
