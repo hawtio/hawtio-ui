@@ -2912,7 +2912,7 @@ span:not(.dynatree-has-children) .dynatree-icon:before {
 .input-group-button {
   padding: 0;
 }
-.btn-clipboard {
+.input-group-button .btn-clipboard {
   padding: 3px 7px;
   border-width: 0;
 }
