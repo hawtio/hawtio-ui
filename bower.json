@@ -49,5 +49,8 @@
         "dist/dagre.core.js"
       ]
     }
+  },
+  "resolutions": {
+    "jquery": "~2.1.0"
   }
 }
