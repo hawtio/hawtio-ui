@@ -18,7 +18,6 @@ module UI {
     restrict: 'A',
     link: ($scope, $element, $attrs) => {
 
-
       function locateElements (event) {
         var el = $element.get(0);
         if (event && event.relatedNode !== el && event.type) {
@@ -27,8 +26,7 @@ module UI {
           }
         }
 
-        var overflowEl = $($element.find('.overflow'));
-        overflowEl.addClass('hawtio-dropdown');
+        var overflowEl = $($element.find('.dropdown.overflow'));
         var overflowMenu = $(overflowEl.find('ul.dropdown-menu'));
         /*
         Logger.info("element inner width: ", $element.innerWidth());
@@ -41,31 +39,38 @@ module UI {
         var availableWidth = 0;
 
         try {
+          overflowEl.addClass('pull-right');
           margin = overflowEl.outerWidth() - overflowEl.innerWidth();
           availableWidth = overflowEl.position().left - $element.position().left - 50;
+          overflowEl.removeClass('pull-right');
         } catch (e) {
           log.debug("caught " + e);
         }
 
+        overflowMenu.children().insertBefore(overflowEl);
 
-        $element.children('li:not(.overflow):not(.pull-right):not(:hidden)').each(function() {
+        let overflowItems = [];
+
+        $element.children(':not(.overflow):not(:hidden)').each(function() {
           var self = $(this);
           availableWidth = availableWidth - self.outerWidth(true);
           if (availableWidth < 0) {
-            self.detach();
-            self.prependTo(overflowMenu);
+            overflowItems.push(self);
           }
         });
 
+        for (let i = overflowItems.length - 1; i > -1; i--) {
+          overflowItems[i].prependTo(overflowMenu);
+        }
+
         if (overflowMenu.children().length > 0) {
-          overflowEl.css({visibility: "visible"});
+          overflowEl.css('visibility', 'visible');
         }
 
         if (availableWidth > 130) {
-
           var noSpace = false;
 
-          overflowMenu.children('li:not(.overflow):not(.pull-right)').filter(function() {
+          overflowMenu.children(':not(.overflow)').filter(function() {
             return $(this).css('display') !== 'none';
           }).each(function() {
             if (noSpace) {
@@ -75,7 +80,6 @@ module UI {
 
             if (availableWidth > self.outerWidth()) {
               availableWidth = availableWidth - self.outerWidth();
-              self.detach();
               self.insertBefore(overflowEl);
             } else {
               noSpace = true;
@@ -84,16 +88,14 @@ module UI {
         }
 
         if (overflowMenu.children().length === 0) {
-          overflowEl.css({visibility: "hidden"});
+          overflowEl.css('visibility', 'hidden');
         }
 
       }
 
-
-      $(window).resize(locateElements);
-      $element.get(0).addEventListener("DOMNodeInserted", locateElements);
+      $(window).resize(_.throttle(locateElements, 100));
+      $scope.$root.$on('jmxTreeClicked', () => setTimeout(locateElements, 0));
       $scope.$watch(setTimeout(locateElements, 500));
-
     }
   };
 

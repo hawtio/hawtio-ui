@@ -1,31 +1,55 @@
 <div ng-controller="UI.UITestController2">
-  <script type="text/ng-template" id="autoDropDownTemplate">
+
+  <script type="text/ng-template" id="autoDropDownTemplate1">
     <ul class="nav nav-tabs" hawtio-auto-dropdown>
       <!-- All of our menu items -->
       <li ng-repeat="item in menuItems">
         <a href="">{{item}}</a>
       </li>
       <!-- The dropdown that will collect overflow elements -->
-      <li class="dropdown overflow" style="float: right !important; visibility: hidden;">
-        <a href="" class="dropdown-toggle" data-toggle="dropdown">
+      <li class="dropdown overflow">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          More <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu"></ul>
+      </li>
+    </ul>
+  </script>
+
+  <script type="text/ng-template" id="autoDropDownTemplate2">
+    <ul class="nav nav-tabs" hawtio-auto-dropdown>
+      <!-- All of our menu items -->
+      <li ng-repeat="item in menuItems">
+        <a href="">{{item}}</a>
+      </li>
+      <!-- The dropdown that will collect overflow elements -->
+      <li class="dropdown hawtio-dropdown overflow" style="float: right">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
           <i class="fa fa-chevron-down"></i>
         </a>
         <ul class="dropdown-menu right"></ul>
       </li>
     </ul>
   </script>
+
   <div class="row">
-    <div class="col-md-6">
-      <h3>Auto Drop Down</h3>
-      <p>Handy for horizontal lists of things like menus, if the width of the element is smaller than the items inside any overflowing elements will be collected into a special dropdown element that's required at the end of the list</p>
-      <h5>HTML Example</h5>
-      <div hawtio-editor="autoDropDown" mode="fileUploadExMode"></div>
-    </div>
-    <div class="col-md-6">
-      <h5>Live example</h5>
+    <div class="col-md-12">
+      <h1>Auto Drop Down</h3>
+      <p>Handy for horizontal lists of things like menus, if the width of the element is smaller than the items inside any overflowing elements will be collected into a special dropdown element that's required at the end of the list.</p>
+      <h3>HTML Example 1</h3>
+      <div hawtio-editor="autoDropDown1" mode="fileUploadExMode"></div>
+      <h3>Live example 1</h3>
       <div class="directive-example">
-        <div compile="autoDropDown"></div>
+        <div compile="autoDropDown1"></div>
       </div>
+      <h3>HTML Example 2</h3>
+      <div hawtio-editor="autoDropDown2" mode="fileUploadExMode"></div>
+      <h3>Live example 2</h3>
+      <div class="directive-example">
+        <div compile="autoDropDown2"></div>
+      </div>
+      <br><br><br><br><br><br><br><br><br><br><br>
     </div>
   </div>
+
 </div>

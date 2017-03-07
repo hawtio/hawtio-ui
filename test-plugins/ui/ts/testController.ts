@@ -8,7 +8,7 @@ module UITest {
 
     $scope.menuItems = [];
 
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < 10; i++) {
       $scope.menuItems.push("Some Item " + i);
     }
 
@@ -128,7 +128,8 @@ module UITest {
 
     $scope.breadcrumbEx = $templateCache.get("breadcrumbTemplate");
     $scope.dropDownEx = $templateCache.get("dropDownTemplate");
-    $scope.autoDropDown = $templateCache.get("autoDropDownTemplate");
+    $scope.autoDropDown1 = $templateCache.get("autoDropDownTemplate1");
+    $scope.autoDropDown2 = $templateCache.get("autoDropDownTemplate2");
     $scope.zeroClipboard = $templateCache.get("zeroClipboardTemplate");
     $scope.clipboard = $templateCache.get("clipboardTemplate");
     $scope.popoverEx = $templateCache.get("myTemplate");
