@@ -2856,6 +2856,10 @@ span:not(.dynatree-has-children) .dynatree-icon:before {
   color: gray;
 }
 
+.dropdown.overflow {
+  visibility: hidden;
+}
+
 .badge {
   display: inline-block;
   padding: 2px 4px;
