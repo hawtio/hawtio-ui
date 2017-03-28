@@ -70,8 +70,7 @@ $("#{{include.tableId}}").DataTable({
     ],
     paginationSelector: "#{{include.paginationId}}",
     toolbarSelector: "#{{include.toolbarId}}",
-    selectAllSelector: 'th:first-child input[type="checkbox"]',
-    colvisMenuSelector: '.table-view-pf-colvis-menu'
+    selectAllSelector: 'th:first-child input[type="checkbox"]'
   },
   select: {
     selector: 'td:first-child input[type="checkbox"]',

@@ -673,9 +673,8 @@ var HawtioMainNav;
             return true;
           }
           if (item.tabs) {
-            var answer = _.any(item.tabs, function(subTab) {
-              var answer = subTab.isSelected();
-              return answer;
+            var answer = _.some(item.tabs, function(subTab) {
+              return subTab.isSelected();
             });
             if (answer) {
               return true;
@@ -794,9 +793,7 @@ var HawtioMainNav;
               }
               uri.search(function(search) {
                 _.merge(search, uri.query(true));
-                if (!search['main-tab']) {
-                  search['main-tab'] = item.id;
-                }
+                search['main-tab'] = item.id;
                 search['sub-tab'] = subItem.id;
               });
               return uri.toString();

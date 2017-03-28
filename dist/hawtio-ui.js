@@ -1684,7 +1684,7 @@ var UI;
                                     delete $scope.levels[key];
                                 }
                             });
-                            setLevels($scope.config, _.rest(pathParts), 1);
+                            setLevels($scope.config, _.tail(pathParts), 1);
                         }
                     });
                     $scope.$watch('config', function (newValue, oldValue) {
@@ -3934,7 +3934,7 @@ var UI;
                             scope.selected.push(tag);
                         }
                     };
-                    scope.isSelected = function (tag) { return !scope.selected || _.include(scope.selected, tag); };
+                    scope.isSelected = function (tag) { return !scope.selected || _.includes(scope.selected, tag); };
                     scope.removeTag = function (tag) { return scope.tags.remove(tag); };
                     scope.$watchCollection('tags', function (tags) {
                         //log.debug("Collection changed: ", tags);

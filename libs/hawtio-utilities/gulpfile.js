@@ -81,9 +81,9 @@ gulp.task('reload', function() {
     .pipe(plugins.connect.reload());
 });
 
-gulp.task('build', ['tsc']);
+gulp.task('build', ['bower', 'tsc']);
 
-gulp.task('default', ['watch']);
+gulp.task('default', ['connect']);
 
 
 

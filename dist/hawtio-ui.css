@@ -1477,14 +1477,6 @@ ol.zebra-list > li:before {
 .toolbar-pf .form-group:first-child {
   padding-left: 0;
 }
-.spinner.loading-page {
-  margin-top: 20px;
-}
-.loading-message {
-  margin-top: 20px;
-  font-weight: bold;
-  text-align: center;
-}
 
 body {
   padding-top: 90px;
