@@ -91,7 +91,7 @@ module UI {
                 delete $scope.levels[key];
               }
             });
-            setLevels($scope.config, _.rest(pathParts), 1);
+            setLevels($scope.config, _.tail(pathParts), 1);
           }
         });
 

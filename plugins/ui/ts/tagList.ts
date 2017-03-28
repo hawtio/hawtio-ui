@@ -21,7 +21,7 @@ module UI {
           }
         };
 
-        scope.isSelected = (tag) => !scope.selected || _.include(scope.selected, tag);
+        scope.isSelected = (tag) => !scope.selected || _.includes(scope.selected, tag);
 
         scope.removeTag = (tag) => scope.tags.remove(tag);
 
