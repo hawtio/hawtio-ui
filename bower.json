@@ -51,6 +51,6 @@
   },
   "resolutions": {
     "jquery": "~2.1.0",
-    "lodash": "^4.0.0"
+    "lodash": "^3.0.0"
   }
 }
