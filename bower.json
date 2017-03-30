@@ -21,7 +21,6 @@
     "jquery-ui": "~1.12.0",
     "jquery.dynatree": "~1.2.0",
     "codemirror": "~5.19.0",
-    "dagre": "~0.7.0",
     "zeroclipboard": "~2.2.0",
     "clipboard": "~1.6.0",
     "toastr": "~2.1.0",
@@ -41,11 +40,6 @@
       "main": [
         "dist/css/bootstrap.css",
         "dist/js/bootstrap.js"
-      ]
-    },
-    "dagre": {
-      "main": [
-        "dist/dagre.core.js"
       ]
     }
   },

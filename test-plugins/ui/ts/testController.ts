@@ -140,7 +140,6 @@ module UITest {
 
   _module.controller("UI.UITestController1", ["$scope", "$templateCache", ($scope, $templateCache) => {
 
-    $scope.jsplumbEx = $templateCache.get("jsplumbTemplate");
     $scope.pagerExampleHtml = $templateCache.get("pagerExample.html");
 
     $scope.rowIndex = 0;
@@ -166,30 +165,6 @@ module UITest {
     $scope.nodes = ["node1", "node2"];
     $scope.otherNodes = ["node4", "node5", "node6"];
     $scope.anchors = ["Top", "Right", "Bottom", "Left"];
-
-    $scope.customizeEndpointOptions = (jsPlumb, node, options) => {
-      /*
-      if (node) {
-        var anchors = [];
-        _.forEach($scope.anchors, (anchor:string) => {
-          if (_.some(node.anchors, anchor)) {
-            anchors.push(anchor);
-          }
-        });
-        console.log("anchors: ", anchors);
-        if (anchors && anchors.length > 0) {
-          var anchor = _.first(anchors);
-          node.anchors.push(anchor);
-          node.endpoints.push(jsPlumb.addEndpoint(node.el, {
-            anchor: anchor,
-            isSource: true,
-            isTarget: true,
-            maxConnections: -1
-          }));
-        }
-      }
-      */
-    };
 
     $scope.expandableEx = '' +
       '<div class="expandable closed">\n' +

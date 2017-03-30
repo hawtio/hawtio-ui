@@ -40,7 +40,6 @@ module UITest {
                      .subPath('Editable Property', 'editable-property', builder.join(path, 'editable-property.html'))
                      .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
                      //.subPath('File Upload', 'file-upload', builder.join(path, 'file-upload.html'))
-                     .subPath('JSPlumb', 'jsplumb', builder.join(path, 'jsplumb.html'))
                      .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                      .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
                    .build());
