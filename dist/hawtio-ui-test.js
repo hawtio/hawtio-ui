@@ -288,7 +288,6 @@ var UITest;
                 .subPath('Confirm Dialog', 'confirm-dialog', builder.join(path, 'confirm-dialog.html'))
                 .subPath('Editable Property', 'editable-property', builder.join(path, 'editable-property.html'))
                 .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
-                .subPath('JSPlumb', 'jsplumb', builder.join(path, 'jsplumb.html'))
                 .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                 .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
                 .build());
@@ -463,7 +462,6 @@ var UITest;
             $scope.autoColumnEx = $templateCache.get("autoColumnTemplate");
         }]);
     UITest._module.controller("UI.UITestController1", ["$scope", "$templateCache", function ($scope, $templateCache) {
-            $scope.jsplumbEx = $templateCache.get("jsplumbTemplate");
             $scope.pagerExampleHtml = $templateCache.get("pagerExample.html");
             $scope.rowIndex = 0;
             $scope.messages = [{
@@ -487,29 +485,6 @@ var UITest;
             $scope.nodes = ["node1", "node2"];
             $scope.otherNodes = ["node4", "node5", "node6"];
             $scope.anchors = ["Top", "Right", "Bottom", "Left"];
-            $scope.customizeEndpointOptions = function (jsPlumb, node, options) {
-                /*
-                if (node) {
-                  var anchors = [];
-                  _.forEach($scope.anchors, (anchor:string) => {
-                    if (_.some(node.anchors, anchor)) {
-                      anchors.push(anchor);
-                    }
-                  });
-                  console.log("anchors: ", anchors);
-                  if (anchors && anchors.length > 0) {
-                    var anchor = _.first(anchors);
-                    node.anchors.push(anchor);
-                    node.endpoints.push(jsPlumb.addEndpoint(node.el, {
-                      anchor: anchor,
-                      isSource: true,
-                      isTarget: true,
-                      maxConnections: -1
-                    }));
-                  }
-                }
-                */
-            };
             $scope.expandableEx = '' +
                 '<div class="expandable closed">\n' +
                 '   <div title="The title" class="title">\n' +
