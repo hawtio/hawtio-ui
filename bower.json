@@ -26,7 +26,6 @@
     "toastr": "~2.1.0",
     "d3": "~3.5.0",
     "marked": "~0.3.0",
-    "angular-patternfly": "^4.0.0",
     "js-beautify": "~1.6.0",
     "hawtio-core-navigation": "~3.0.0",
     "hawtio-template-cache": "~3.0.0",
