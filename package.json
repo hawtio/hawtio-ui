@@ -1,6 +1,11 @@
 {
   "name": "hawtio-ui",
   "version": "3.0.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hawtio/hawtio-ui.git"
+  },
   "scripts": {
     "start": "gulp",
     "build": "gulp build"
