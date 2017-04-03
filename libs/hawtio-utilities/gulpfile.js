@@ -30,7 +30,7 @@ gulp.task('clean-defs', function() {
 
 gulp.task('bower', function() {
   return gulp.src('index.html')
-    .pipe(wiredep({}))
+    .pipe(wiredep({devDependencies: true}))
     .pipe(gulp.dest('.'));
 });
 

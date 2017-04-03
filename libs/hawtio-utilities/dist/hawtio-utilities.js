@@ -1235,18 +1235,16 @@ var Core;
         return false;
     }
     Core.isNumberTypeName = isNumberTypeName;
-    function encodeMBeanPath(mbean) {
-        return mbean.replace(/\//g, '!/').replace(':', '/').escapeURL();
-    }
-    Core.encodeMBeanPath = encodeMBeanPath;
+    /**
+     * Escapes the mbean path according to jolokia path rules: http://www.jolokia.org/reference/html/protocol.html#escape-rules
+     *
+     * @param mbean the mbean
+     * @returns {String}
+     */
     function escapeMBeanPath(mbean) {
         return mbean.replace(/\//g, '!/').replace(':', '/');
     }
     Core.escapeMBeanPath = escapeMBeanPath;
-    function encodeMBean(mbean) {
-        return mbean.replace(/\//g, '!/').escapeURL();
-    }
-    Core.encodeMBean = encodeMBean;
     function escapeDots(text) {
         return text.replace(/\./g, '-');
     }
@@ -2714,6 +2712,7 @@ var Core;
             this.entity = null;
             this.version = null;
             this.mbean = null;
+            this.expand = false;
             this.addClass = Core.escapeTreeCssStyles(title);
         }
         Object.defineProperty(Folder.prototype, "key", {
@@ -2841,7 +2840,7 @@ var Core;
          * Removes this node from my parent if I have one
          * @method detach
          * @for Folder
-      \   */
+         */
         Folder.prototype.detach = function () {
             var _this = this;
             var oldParent = this.parent;
