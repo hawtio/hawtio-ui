@@ -28,6 +28,7 @@ var config = {
   templateModule: pkg.name + '-templates',
   testTemplateModule: pkg.name + '-test-templates',
   dist: argv.out || './dist/',
+  debug: argv.debug || false,
   js: pkg.name + '.js',
   testJs: pkg.name + '-test.js',
   css: pkg.name + '.css',
@@ -221,7 +222,9 @@ gulp.task('connect', ['watch'], function() {
             res.end();
             return;
           } else {
-            //console.log("allowing: ", path);
+            if (config.debug) {
+              console.log("allowing: ", path);
+            }
             next();
           }
         }];
@@ -239,7 +242,9 @@ gulp.task('embed-images', ['concat'], function() {
   var replacements = [];
 
   var files = glob.sync('img/**/*.{png,svg,gif,jpg}');
-  //console.log("files: ", files);
+  if (config.debug) {
+    console.log("files: ", files);
+  }
   function escapeRegExp(str) {
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
   }
@@ -269,12 +274,15 @@ gulp.task('embed-images', ['concat'], function() {
       replacement: getDataURI(file)
     });
   });
+  if (config.debug) {
+    console.log("replacements: ", replacements);
+  }
 
-  gulp.src(config.dist + config.js)
-  .pipe(plugins.replaceTask({
-    patterns: replacements
-  }))
-  .pipe(gulp.dest(config.dist));
+  gulp.src(config.dist + config.css)
+    .pipe(plugins.replaceTask({
+      patterns: replacements
+    }))
+    .pipe(gulp.dest(config.dist));
 });
 
 gulp.task('site', ['build', 'build-example'], function() {
