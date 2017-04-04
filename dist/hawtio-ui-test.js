@@ -23,21 +23,6 @@ var UIDocs;
     hawtioPluginLoader.addModule(pluginName);
 })(UIDocs || (UIDocs = {}));
 
-/// <reference path="../docs.ts"/>
-var UIDocs;
-(function (UIDocs) {
-    UIDocs._module.controller("WelcomePageController", ["$scope", "marked", "$http", "$timeout", function ($scope, marked, $http, $timeout) {
-            $timeout(function () {
-                $http.get('README.md').success(function (data) {
-                    UIDocs.log.debug("Fetched README.md, data: ", data);
-                    $scope.readme = marked(data);
-                }).error(function (data) {
-                    UIDocs.log.debug("Failed to fetch README.md: ", data);
-                });
-            }, 500);
-        }]);
-})(UIDocs || (UIDocs = {}));
-
 ///<reference path="../../includes.ts"/>
 var DatatableTest;
 (function (DatatableTest) {
@@ -250,6 +235,21 @@ var DatatableTest;
             $scope.scrollGrid = angular.extend({ maxBodyHeight: 77 }, $scope.mygrid);
         }]);
 })(DatatableTest || (DatatableTest = {}));
+
+/// <reference path="../docs.ts"/>
+var UIDocs;
+(function (UIDocs) {
+    UIDocs._module.controller("WelcomePageController", ["$scope", "marked", "$http", "$timeout", function ($scope, marked, $http, $timeout) {
+            $timeout(function () {
+                $http.get('README.md').success(function (data) {
+                    UIDocs.log.debug("Fetched README.md, data: ", data);
+                    $scope.readme = marked(data);
+                }).error(function (data) {
+                    UIDocs.log.debug("Failed to fetch README.md: ", data);
+                });
+            }, 500);
+        }]);
+})(UIDocs || (UIDocs = {}));
 
 /// <reference path="../../includes.ts"/>
 var UITest;

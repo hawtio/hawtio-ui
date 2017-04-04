@@ -43,6 +43,8 @@
     }
   },
   "resolutions": {
-    "jquery": "~2.1.0"
+    "jquery": "~2.1.0",
+    "angular-bootstrap": "2.2.x",
+    "lodash": "4.x"
   }
 }
