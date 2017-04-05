@@ -8,7 +8,7 @@ For more information please take a look at the [live demo website](http://ui.haw
 
 When developing this plugin in a dependent console you can change the output directory where the compiled .js and .css go.  Just use the 'out' flag to set a different output directory, for example:
 
-`gulp watch --out=../fabric8-console/libs/hawtio-kubernetes/dist/`
+`gulp watch --out=../fabric8-console/libs/hawtio-ui/dist/`
 
 Whenever the build completes the compiled .js file will be put into the target directory.  Don't forget to first do a `gulp build` without this flag before committing changes!
 
