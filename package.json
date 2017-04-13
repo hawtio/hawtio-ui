@@ -33,17 +33,18 @@
     "gulp-replace-task": "~0.11.0",
     "gulp-size": "^1.0.0",
     "gulp-sourcemaps": "^1.0.0",
-    "gulp-tslint": "^1.0.0",
+    "gulp-tslint": "^8.0.0",
     "gulp-typescript": "^2.0.0",
     "gulp-watch": "^3.0.0",
     "imagemin": "^3.0.0",
+    "run-sequence": "^1.0.0",
     "through2": "^2.0.0",
+    "tslint": "^5.1.0",
     "typescript": "^2.0.0",
     "underscore.string": "^3.0.0",
     "urijs": "^1.0.0",
     "which": "^1.0.0",
     "wiredep": "^4.0.0",
-    "yargs": "^6.0.0",
-    "run-sequence": "^1.0.0"
+    "yargs": "^6.0.0"
   }
 }
