@@ -520,19 +520,6 @@ table.table thead .sorting_desc:after {
 .container-group-header:not([style]) + div > .box {
   border-top: 1px solid transparent;
 }
-.selected,
-.selected > td,
-.box.selected {
-  color: normal !important;
-  background-color: #f0f0ff !important;
-  text-shadow: none;
-}
-.selected .ngCellText a:not(.badge) {
-  background: inherit !important;
-}
-.box.selected .box-right i {
-  text-shadow: none;
-}
 .section-header {
   background-color: #FAFAFA;
   background-image: linear-gradient(to bottom, #ffffff, #f2f2f2);
@@ -892,14 +879,6 @@ i.expandable-indicator.folder {
 .camel-canvas-endpoint svg circle {
   fill: #346789;
 }
-/*
-tr.selected,
-tr.selected .ngCell,
-tr.selected .ngCellText a,
-.table-striped tbody tr.selected:nth-child(odd) td {
-  background-color: #c9dde1;
-}
-*/
 .runnable {
   color: green;
 }
