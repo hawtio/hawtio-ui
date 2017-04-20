@@ -11,7 +11,7 @@ module UI {
       scope: {
         data: '=hawtioDrag'
       },
-      link: (scope, element:ng.IAugmentedJQuery, attrs) => {
+      link: (scope: any, element:ng.IAugmentedJQuery, attrs) => {
         element.attr({
           draggable: 'true'
         });
@@ -44,7 +44,7 @@ module UI {
         property: '@',
         prefix: '@'
       },
-      link: (scope, element, attrs) => {
+      link: (scope: any, element, attrs) => {
         //log.debug("hawtioDrop, onDrop: ", scope.onDrop);
         //log.debug("hawtioDrop, ngModel: ", scope.ngModel);
         //log.debug("hawtioDrop, property: ", scope.property);

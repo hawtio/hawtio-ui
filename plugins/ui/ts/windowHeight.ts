@@ -27,7 +27,7 @@ module UI {
         function layout() {
           viewportHeight = $window.innerHeight;
           element.parents().each((index, el) => {
-            el = $(el);
+            el = <any>$(el);
             processElement(el);
           });
           processElement(element);

@@ -6,7 +6,7 @@ module UI {
       scope: {
         httpSrcChanged: '='
       },
-      link : function ($scope, elem, attrs) {
+      link : function ($scope: any, elem, attrs) {
         function revokeObjectURL() {
           if ($scope.objectURL) {
             URL.revokeObjectURL($scope.objectURL);
@@ -24,7 +24,7 @@ module UI {
 
         $scope.$on('$destroy', revokeObjectURL);
 
-        attrs.$observe('httpSrc', function (url) {
+        attrs.$observe('httpSrc', function (url: any) {
           revokeObjectURL();
 
           if (url && url.indexOf('data:') === 0) {

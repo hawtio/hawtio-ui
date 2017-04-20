@@ -32,7 +32,7 @@ module UI {
         collectionProperty: '@',
         saveAs: '@'
       },
-      link: ($scope, $element, $attr) => {
+      link: ($scope: any, $element, $attr) => {
 
         SelectionHelpers.decorate($scope);
 

@@ -10,7 +10,7 @@ module DataTable {
       scope: {
         config: '=hawtioSimpleTable'
       },
-      link: ($scope, $element, $attrs) => {
+      link: ($scope: any, $element, $attrs) => {
 
         var defaultPrimaryKeyFn = (entity) => {
           // default function to use id/_id/_key/name as primary key, and fallback to use all property values

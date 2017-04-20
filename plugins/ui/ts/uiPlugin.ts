@@ -28,11 +28,11 @@ module UI {
   });
 
   _module.directive('compile', ['$compile', ($compile) => {
-    return (scope, element, attrs) => {
+    return (scope: any, element, attrs) => {
       scope.$watch(
         (scope) => {
           // watch the 'compile' expression for changes
-          return scope.$eval(attrs.compile);
+          return scope.$eval(attrs['compile']);
         },
         (value) => {
           // when the 'compile' expression changes

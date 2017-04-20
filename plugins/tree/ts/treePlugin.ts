@@ -17,7 +17,7 @@ module Tree {
   }
 
   function treeAction(el, expand) {
-    (<any>$(el).dynatree("getRoot")).visit(function(node){
+    (<any>$(el)).dynatree("getRoot").visit(function(node){
       node.expand(expand);
     });
   }
@@ -53,7 +53,7 @@ module Tree {
 
   _module.directive('hawtioTree', ["workspace", "$timeout", "$location", (workspace, $timeout, $location) => {
     // return the directive link function. (compile function not needed)
-    return function (scope, element, attrs) {
+    return function (scope: any, element, attrs) {
       var tree = null;
       var data = null;
       var widget = null;
@@ -76,7 +76,7 @@ module Tree {
       }
 
       // watch the expression, and update the UI on change.
-      var data = attrs.hawtioTree;
+      var data = attrs['hawtioTree'];
       var queryParam = data;
 
       scope.$watch(data, onWidgetDataChange);
@@ -110,7 +110,7 @@ module Tree {
         if (tree && !widget) {
           // lets find a child table element
           // or lets add one if there's not one already
-          var treeElement = $(element);
+          var treeElement: any = $(element);
           var children = Core.asArray(tree);
           var hideRoot = attrs["hideroot"];
           var imagePath = null;

@@ -13,7 +13,7 @@ module UI {
         "path": "=?",
         "row": "=?"
       },
-      link: ($scope, $element, $attr) => {
+      link: ($scope: any, $element, $attr) => {
 
         function interpolate(template, path, key, value) {
           var interpolateFunc = $interpolate(template);

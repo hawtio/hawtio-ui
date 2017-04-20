@@ -10,7 +10,7 @@ module UI {
         remove: '=?',
         selected: '=?'
       },
-      link: (scope, $element, attr) => {
+      link: (scope: any, $element, attr) => {
         SelectionHelpers.decorate(scope);
 
         var tagBase = $templateCache.get<string>('tagBase.html');
