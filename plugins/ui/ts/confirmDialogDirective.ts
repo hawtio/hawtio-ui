@@ -12,7 +12,7 @@ module UI {
    * Configuration object for the ConfirmDialog directive
    * @class ConfirmDialogConfig
    */
-  export interface ConfirmDialogConfig {
+  export interface ConfirmDialogConfig extends ng.IScope {
     /**
      * Model used to open/close the dialog
      *
@@ -98,7 +98,7 @@ module UI {
      * @property scope
      * @type ConfirmDialogConfig
      */
-    public scope:ConfirmDialogConfig = {
+    public scope = {
       show: '=hawtioConfirmDialog',
       title: '@',
       okButtonText: '@',
@@ -111,7 +111,7 @@ module UI {
       optionalSize: '@' // deprecated
     };
 
-    public controller = ["$scope", "$element", "$attrs", "$transclude", "$compile" ,($scope, $element, $attrs, $transclude, $compile) => {
+    public controller = ["$scope", "$element", "$attrs", "$transclude", "$compile" ,($scope, $element: JQuery, $attrs: ng.IAttributes, $transclude, $compile) => {
 
       $scope.clone = null;
 
