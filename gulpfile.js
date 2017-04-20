@@ -35,13 +35,13 @@ var config = {
   tsProject: plugins.typescript.createProject({
     target: 'ES5',
     outFile: 'compiled.js',
-    declarationFiles: true,
+    declaration: true,
     noResolve: false
   }),
   testTsProject: plugins.typescript.createProject({
     target: 'ES5',
     outFile: 'test-compiled.js',
-    declarationFiles: false,
+    declaration: false,
     noResolve: false
   }),
   vendorJs: 'plugins/vendor/*.js'
