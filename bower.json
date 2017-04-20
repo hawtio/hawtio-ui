@@ -32,7 +32,7 @@
     "hawtio-utilities": "~3.0.0"
   },
   "devDependencies": {
-    "hawtio-core-dts": "~2.0.0"
+    "hawtio-core-dts": "~3.0.0"
   },
   "overrides": {
     "bootstrap": {
