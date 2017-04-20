@@ -1229,7 +1229,7 @@ var Tree;
                     return answer;
                 }
                 // watch the expression, and update the UI on change.
-                var data = attrs.hawtioTree;
+                var data = attrs['hawtioTree'];
                 var queryParam = data;
                 scope.$watch(data, onWidgetDataChange);
                 // lets add a separate event so we can force updates
@@ -1455,7 +1455,7 @@ var UI;
             return function (scope, element, attrs) {
                 scope.$watch(function (scope) {
                     // watch the 'compile' expression for changes
-                    return scope.$eval(attrs.compile);
+                    return scope.$eval(attrs['compile']);
                 }, function (value) {
                     // when the 'compile' expression changes
                     // assign it into the current DOM
