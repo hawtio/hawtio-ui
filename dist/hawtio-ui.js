@@ -1,3729 +1,4 @@
 /// <reference path="../libs/hawtio-utilities/defs.d.ts"/>
-
-/// <reference path="../../includes.ts"/>
-/**
- * Module that contains several helper functions related to hawtio's code editor
- *
- * @module CodeEditor
- * @main CodeEditor
- */
-var CodeEditor;
-(function (CodeEditor) {
-    /**
-     * @property GlobalCodeMirrorOptions
-     * @for CodeEditor
-     * @type CodeMirrorOptions
-     */
-    CodeEditor.GlobalCodeMirrorOptions = {
-        theme: "default",
-        tabSize: 4,
-        lineNumbers: true,
-        indentWithTabs: true,
-        lineWrapping: true,
-        autoCloseTags: true
-    };
-    /**
-     * Tries to figure out what kind of text we're going to render in the editor, either
-     * text, javascript or XML.
-     *
-     * @method detectTextFormat
-     * @for CodeEditor
-     * @static
-     * @param value
-     * @returns {string}
-     */
-    function detectTextFormat(value) {
-        var answer = "text";
-        if (value) {
-            answer = "javascript";
-            var trimmed = _.trim(value);
-            if (trimmed && _.startsWith(trimmed, '<') && _.endsWith(trimmed, '>')) {
-                answer = "xml";
-            }
-        }
-        return answer;
-    }
-    CodeEditor.detectTextFormat = detectTextFormat;
-    /**
-     * Auto formats the CodeMirror editor content to pretty print
-     *
-     * @method autoFormatEditor
-     * @for CodeEditor
-     * @static
-     * @param {CodeMirrorEditor} editor
-     * @return {void}
-     */
-    function autoFormatEditor(editor) {
-        if (editor) {
-            var content = editor.getValue();
-            var mode = editor.getOption('mode');
-            switch (mode) {
-                case 'xml':
-                    content = window.html_beautify(content, { indent_size: 2 });
-                    break;
-                case 'javascript':
-                    content = window.js_beautify(content, { indent_size: 2 });
-                    break;
-            }
-            editor.setValue(content);
-        }
-    }
-    CodeEditor.autoFormatEditor = autoFormatEditor;
-    /**
-     * Used to configures the default editor settings (per Editor Instance)
-     *
-     * @method createEditorSettings
-     * @for CodeEditor
-     * @static
-     * @param {Object} options
-     * @return {Object}
-     */
-    function createEditorSettings(options) {
-        if (options === void 0) { options = {}; }
-        options.extraKeys = options.extraKeys || {};
-        // Handle Mode
-        (function (mode) {
-            mode = mode || { name: "text" };
-            if (typeof mode !== "object") {
-                mode = { name: mode };
-            }
-            var modeName = mode.name;
-            if (modeName === "javascript") {
-                angular.extend(mode, {
-                    "json": true
-                });
-            }
-        })(options.mode);
-        // Handle Code folding folding
-        (function (options) {
-            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
-            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
-            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
-            // So don't have to listen to the options model and deal with re-attaching events etc...
-            var foldFunction = function (codeMirror, line) {
-                var mode = codeMirror.getOption("mode");
-                var modeName = mode["name"];
-                if (!mode || !modeName)
-                    return;
-                if (modeName === 'javascript') {
-                    javascriptFolding(codeMirror, line);
-                }
-                else if (modeName === "xml" || _.startsWith(modeName, "html")) {
-                    xmlFolding(codeMirror, line);
-                }
-                ;
-            };
-            options.onGutterClick = foldFunction;
-            options.extraKeys = angular.extend(options.extraKeys, {
-                "Ctrl-Q": function (codeMirror) {
-                    foldFunction(codeMirror, codeMirror.getCursor().line);
-                }
-            });
-        })(options);
-        var readOnly = options.readOnly;
-        if (!readOnly) {
-            /*
-             options.extraKeys = angular.extend(options.extraKeys, {
-             "'>'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '>');
-             },
-             "'/'": function (codeMirror) {
-             codeMirror.closeTag(codeMirror, '/');
-             }
-             });
-             */
-            options.matchBrackets = true;
-        }
-        // Merge the global config in to this instance of CodeMirror
-        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
-        return options;
-    }
-    CodeEditor.createEditorSettings = createEditorSettings;
-})(CodeEditor || (CodeEditor = {}));
-
-/// <reference path="../../includes.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor.pluginName = "hawtio-editor";
-    HawtioEditor.templatePath = "plugins/editor/html";
-    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorGlobals.ts"/>
-/// <reference path="CodeEditor.ts"/>
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
-    HawtioEditor._module.run(function () {
-        HawtioEditor.log.debug("loaded");
-    });
-    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="editorPlugin.ts"/>
-/// <reference path="CodeEditor.ts"/>
-/**
- * @module HawtioEditor
- */
-var HawtioEditor;
-(function (HawtioEditor) {
-    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
-            return HawtioEditor.Editor($parse);
-        }]);
-    function Editor($parse) {
-        return {
-            restrict: 'A',
-            replace: true,
-            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
-            scope: {
-                text: '=hawtioEditor',
-                mode: '=',
-                readOnly: '=?',
-                outputEditor: '@',
-                name: '@'
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                    $scope.codeMirror = null;
-                    $scope.doc = null;
-                    $scope.options = [];
-                    UI.observe($scope, $attrs, 'name', 'editor');
-                    $scope.applyOptions = function () {
-                        if ($scope.codeMirror) {
-                            _.forEach($scope.options, function (option) {
-                                try {
-                                    $scope.codeMirror.setOption(option.key, option.value);
-                                }
-                                catch (err) {
-                                }
-                            });
-                        }
-                    };
-                    $scope.$watch(_.debounce(function () {
-                        if ($scope.codeMirror) {
-                            $scope.codeMirror.refresh();
-                        }
-                    }, 100, { trailing: true }));
-                    $scope.$watch('codeMirror', function () {
-                        if ($scope.codeMirror) {
-                            $scope.doc = $scope.codeMirror.getDoc();
-                            $scope.codeMirror.on('change', function (changeObj) {
-                                $scope.text = $scope.doc.getValue();
-                                $scope.dirty = !$scope.doc.isClean();
-                                Core.$apply($scope);
-                            });
-                        }
-                    });
-                }],
-            link: function ($scope, $element, $attrs) {
-                if ('dirty' in $attrs) {
-                    $scope.dirtyTarget = $attrs['dirty'];
-                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            $scope.dirty = newValue;
-                        }
-                    });
-                }
-                var config = _.cloneDeep($attrs);
-                delete config['$$observers'];
-                delete config['$$element'];
-                delete config['$attr'];
-                delete config['class'];
-                delete config['hawtioEditor'];
-                delete config['mode'];
-                delete config['dirty'];
-                delete config['outputEditor'];
-                if ('onChange' in $attrs) {
-                    var onChange = $attrs['onChange'];
-                    delete config['onChange'];
-                    $scope.options.push({
-                        onChange: function (codeMirror) {
-                            var func = $parse(onChange);
-                            if (func) {
-                                func($scope.$parent, { codeMirror: codeMirror });
-                            }
-                        }
-                    });
-                }
-                angular.forEach(config, function (value, key) {
-                    $scope.options.push({
-                        key: key,
-                        'value': value
-                    });
-                });
-                $scope.$watch('mode', function () {
-                    if ($scope.mode) {
-                        if (!$scope.codeMirror) {
-                            $scope.options.push({
-                                key: 'mode',
-                                'value': $scope.mode
-                            });
-                        }
-                        else {
-                            $scope.codeMirror.setOption('mode', $scope.mode);
-                        }
-                    }
-                });
-                $scope.$watch('readOnly', function (readOnly) {
-                    var val = Core.parseBooleanValue(readOnly, false);
-                    if ($scope.codeMirror) {
-                        $scope.codeMirror.setOption('readOnly', val);
-                    }
-                    else {
-                        $scope.options.push({
-                            key: 'readOnly',
-                            value: val
-                        });
-                    }
-                });
-                function getEventName(type) {
-                    var name = $scope.name || 'default';
-                    return "hawtioEditor_" + name + "_" + type;
-                }
-                $scope.$watch('dirty', function (dirty) {
-                    if ('dirtyTarget' in $scope) {
-                        $scope.$parent[$scope.dirtyTarget] = dirty;
-                    }
-                    $scope.$emit(getEventName('dirty'), dirty);
-                });
-                /*
-                $scope.$watch(() => { return $element.is(':visible'); }, (newValue, oldValue) => {
-                  if (newValue !== oldValue && $scope.codeMirror) {
-                      $scope.codeMirror.refresh();
-                  }
-                });
-                */
-                $scope.$watch('text', function (text) {
-                    if (!$scope.codeMirror) {
-                        var options = {
-                            value: text
-                        };
-                        options = CodeEditor.createEditorSettings(options);
-                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
-                        var outputEditor = $scope.outputEditor;
-                        if (outputEditor) {
-                            var outputScope = $scope.$parent || $scope;
-                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
-                        }
-                        $scope.applyOptions();
-                        $scope.$emit(getEventName('instance'), $scope.codeMirror);
-                    }
-                    else if ($scope.doc) {
-                        if (!$scope.codeMirror.hasFocus()) {
-                            var text = $scope.text || "";
-                            if (angular.isArray(text) || angular.isObject(text)) {
-                                text = JSON.stringify(text, null, "  ");
-                                $scope.mode = "javascript";
-                                $scope.codeMirror.setOption("mode", "javascript");
-                            }
-                            $scope.doc.setValue(text);
-                            $scope.doc.markClean();
-                            $scope.dirty = false;
-                        }
-                    }
-                });
-            }
-        };
-    }
-    HawtioEditor.Editor = Editor;
-})(HawtioEditor || (HawtioEditor = {}));
-
-/// <reference path="../../includes.ts"/>
-/// <reference path="forceGraphDirective.ts"/>
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-var ForceGraph;
-(function (ForceGraph) {
-    var pluginName = 'forceGraph';
-    ForceGraph._module = angular.module(pluginName, []);
-    ForceGraph._module.directive('hawtioForceGraph', function () {
-        return new ForceGraph.ForceGraphDirective();
-    });
-    hawtioPluginLoader.addModule(pluginName);
-})(ForceGraph || (ForceGraph = {}));
-
-///<reference path="forceGraphPlugin.ts"/>
-var ForceGraph;
-(function (ForceGraph) {
-    var log = Logger.get("ForceGraph");
-    var ForceGraphDirective = (function () {
-        function ForceGraphDirective() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.transclude = false;
-            this.scope = {
-                graph: '=graph',
-                nodesize: '@',
-                selectedModel: '@',
-                linkDistance: '@',
-                markerKind: '@',
-                charge: '@'
-            };
-            this.link = function ($scope, $element, $attrs) {
-                $scope.trans = [0, 0];
-                $scope.scale = 1;
-                $scope.$watch('graph', function (oldVal, newVal) {
-                    updateGraph();
-                });
-                $scope.redraw = function () {
-                    $scope.trans = d3.event.translate;
-                    $scope.scale = d3.event.scale;
-                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
-                };
-                // This is a callback for the animation
-                $scope.tick = function () {
-                    // provide curvy lines as curves are kind of hawt
-                    $scope.graphEdges.attr("d", function (d) {
-                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
-                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
-                    });
-                    // apply the translates coming from the layouter
-                    $scope.graphNodes.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    $scope.graphLabels.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    // Only run this in IE
-                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
-                        $scope.svg.selectAll(".link").each(function () { this.parentNode.insertBefore(this, this); });
-                    }
-                };
-                $scope.mover = function (d) {
-                    if (d.popup != null) {
-                        $("#pop-up").fadeOut(100, function () {
-                            // Popup content
-                            if (d.popup.title != null) {
-                                $("#pop-up-title").html(d.popup.title);
-                            }
-                            else {
-                                $("#pop-up-title").html("");
-                            }
-                            if (d.popup.content != null) {
-                                $("#pop-up-content").html(d.popup.content);
-                            }
-                            else {
-                                $("#pop-up-content").html("");
-                            }
-                            // Popup position
-                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
-                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
-                            $("#pop-up").css({ "left": popLeft, "top": popTop });
-                            $("#pop-up").fadeIn(100);
-                        });
-                    }
-                };
-                $scope.mout = function (d) {
-                    $("#pop-up").fadeOut(50);
-                    //d3.select(this).attr("fill","url(#ten1)");
-                };
-                var updateGraph = function () {
-                    var canvas = $($element);
-                    // TODO: determine the canvas size dynamically
-                    var h = $($element).parent().height();
-                    var w = $($element).parent().width();
-                    var i = 0;
-                    canvas.children("svg").remove();
-                    // First we create the top level SVG object
-                    // TODO maybe pass in the width/height
-                    $scope.svg = d3.select(canvas[0]).append("svg")
-                        .attr("width", w)
-                        .attr("height", h);
-                    // The we add the markers for the arrow tips
-                    var linkTypes = null;
-                    if ($scope.graph) {
-                        linkTypes = $scope.graph.linktypes;
-                    }
-                    if (!linkTypes) {
-                        return;
-                    }
-                    $scope.svg.append("svg:defs").selectAll("marker")
-                        .data(linkTypes)
-                        .enter().append("svg:marker")
-                        .attr("id", String)
-                        .attr("viewBox", "0 -5 10 10")
-                        .attr("refX", 15)
-                        .attr("refY", -1.5)
-                        .attr("markerWidth", 6)
-                        .attr("markerHeight", 6)
-                        .attr("orient", "auto")
-                        .append("svg:path")
-                        .attr("d", "M0,-5L10,0L0,5");
-                    // The bounding box can't be zoomed or scaled at all
-                    $scope.svg.append("svg:g")
-                        .append("svg:rect")
-                        .attr("class", "graphbox.frame")
-                        .attr('width', w)
-                        .attr('height', h);
-                    $scope.viewport = $scope.svg.append("svg:g")
-                        .call(d3.behavior.zoom().on("zoom", $scope.redraw))
-                        .append("svg:g");
-                    $scope.viewport.append("svg:rect")
-                        .attr("width", 1000000)
-                        .attr("height", 1000000)
-                        .attr("class", "graphbox")
-                        .attr("transform", "translate(-50000, -500000)");
-                    // Only do this if we have a graph object
-                    if ($scope.graph) {
-                        var ownerScope = $scope.$parent || $scope;
-                        var selectedModel = $scope.selectedModel || "selectedNode";
-                        // kick off the d3 forced graph layout
-                        $scope.force = d3.layout.force()
-                            .nodes($scope.graph.nodes)
-                            .links($scope.graph.links)
-                            .size([w, h])
-                            .on("tick", $scope.tick);
-                        if (angular.isDefined($scope.linkDistance)) {
-                            $scope.force.linkDistance($scope.linkDistance);
-                        }
-                        if (angular.isDefined($scope.charge)) {
-                            $scope.force.charge($scope.charge);
-                        }
-                        var markerTypeName = $scope.markerKind || "marker-end";
-                        // Add all edges to the viewport
-                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path")
-                            .data($scope.force.links())
-                            .enter().append("svg:path")
-                            .attr("class", function (d) {
-                            return "link " + d.type;
-                        })
-                            .attr(markerTypeName, function (d) {
-                            return "url(#" + d.type + ")";
-                        });
-                        // add all nodes to the viewport
-                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle")
-                            .data($scope.force.nodes())
-                            .enter()
-                            .append("a")
-                            .attr("xlink:href", function (d) {
-                            return d.navUrl;
-                        })
-                            .on("mouseover.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', true);
-                            ownerScope[selectedModel] = d;
-                            Core.pathSet(ownerScope, selectedModel, d);
-                            Core.$apply(ownerScope);
-                        })
-                            .on("mouseout.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', false);
-                        });
-                        var hasImage_1 = function (d) {
-                            return d.image && d.image.url;
-                        };
-                        // Add the images if they are set
-                        $scope.graphNodes.filter(function (d) {
-                            return d.image != null;
-                        })
-                            .append("image")
-                            .attr("xlink:href", function (d) {
-                            return d.image.url;
-                        })
-                            .attr("x", function (d) {
-                            return -(d.image.width / 2);
-                        })
-                            .attr("y", function (d) {
-                            return -(d.image.height / 2);
-                        })
-                            .attr("width", function (d) {
-                            return d.image.width;
-                        })
-                            .attr("height", function (d) {
-                            return d.image.height;
-                        });
-                        // if we don't have an image add a circle
-                        $scope.graphNodes.filter(function (d) { return !hasImage_1(d); })
-                            .append("circle")
-                            .attr("class", function (d) {
-                            return d.type;
-                        })
-                            .attr("r", function (d) {
-                            return d.size || $scope.nodesize;
-                        });
-                        // Add the labels to the viewport
-                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g")
-                            .data($scope.force.nodes())
-                            .enter().append("svg:g");
-                        // A copy of the text with a thick white stroke for legibility.
-                        $scope.graphLabels.append("svg:text")
-                            .attr("x", 8)
-                            .attr("y", ".31em")
-                            .attr("class", "shadow")
-                            .text(function (d) {
-                            return d.name;
-                        });
-                        $scope.graphLabels.append("svg:text")
-                            .attr("x", 8)
-                            .attr("y", ".31em")
-                            .text(function (d) {
-                            return d.name;
-                        });
-                        // animate, then stop
-                        $scope.force.start();
-                        $scope.graphNodes
-                            .call($scope.force.drag)
-                            .on("mouseover", $scope.mover)
-                            .on("mouseout", $scope.mout);
-                    }
-                };
-            };
-        }
-        return ForceGraphDirective;
-    }());
-    ForceGraph.ForceGraphDirective = ForceGraphDirective;
-})(ForceGraph || (ForceGraph = {}));
-
-/// <reference path="../../includes.ts"/>
-var ForceGraph;
-(function (ForceGraph) {
-    /**
-     * GraphBuilder
-     *
-     * @class GraphBuilder
-     */
-    var GraphBuilder = (function () {
-        function GraphBuilder() {
-            this.nodes = {};
-            this.links = [];
-            this.linkTypes = {};
-        }
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        GraphBuilder.prototype.addNode = function (node) {
-            if (!this.nodes[node.id]) {
-                this.nodes[node.id] = node;
-            }
-        };
-        GraphBuilder.prototype.getNode = function (id) {
-            return this.nodes[id];
-        };
-        GraphBuilder.prototype.hasLinks = function (id) {
-            var _this = this;
-            var result = false;
-            this.links.forEach(function (link) {
-                if (link.source.id == id || link.target.id == id) {
-                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
-                }
-            });
-            return result;
-        };
-        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
-            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
-                this.links.push({
-                    source: this.nodes[srcId],
-                    target: this.nodes[targetId],
-                    type: linkType
-                });
-                if (!this.linkTypes[linkType]) {
-                    this.linkTypes[linkType] = {
-                        used: true
-                    };
-                }
-                ;
-            }
-        };
-        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
-            var result = -1;
-            var index = 0;
-            for (index = 0; index < nodes.length; index++) {
-                var node = nodes[index];
-                if (node.id == id) {
-                    result = index;
-                    break;
-                }
-            }
-            return result;
-        };
-        GraphBuilder.prototype.filterNodes = function (filter) {
-            var filteredNodes = {};
-            var newLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (filter(node)) {
-                    filteredNodes[node.id] = node;
-                }
-            });
-            this.links.forEach(function (link) {
-                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
-                    newLinks.push(link);
-                }
-            });
-            this.nodes = filteredNodes;
-            this.links = newLinks;
-        };
-        GraphBuilder.prototype.buildGraph = function () {
-            var _this = this;
-            var graphNodes = [];
-            var linktypes = d3.keys(this.linkTypes);
-            var graphLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (node.includeInGraph == null || node.includeInGraph) {
-                    node.includeInGraph = true;
-                    graphNodes.push(node);
-                }
-            });
-            this.links.forEach(function (link) {
-                if (_this.nodes[link.source.id] != null
-                    && _this.nodes[link.target.id] != null
-                    && _this.nodes[link.source.id].includeInGraph
-                    && _this.nodes[link.target.id].includeInGraph) {
-                    graphLinks.push({
-                        source: _this.nodeIndex(link.source.id, graphNodes),
-                        target: _this.nodeIndex(link.target.id, graphNodes),
-                        type: link.type
-                    });
-                }
-            });
-            return {
-                nodes: graphNodes,
-                links: graphLinks,
-                linktypes: linktypes
-            };
-        };
-        return GraphBuilder;
-    }());
-    ForceGraph.GraphBuilder = GraphBuilder;
-})(ForceGraph || (ForceGraph = {}));
-
-/// <reference path="../../includes.ts"/>
-var Toastr;
-(function (Toastr) {
-    var pluginName = 'hawtio-toastr';
-    var _module = angular.module(pluginName, []);
-    hawtioPluginLoader.addModule(pluginName);
-})(Toastr || (Toastr = {}));
-var Core;
-(function (Core) {
-    /**
-     * Displays an alert message which is typically the result of some asynchronous operation
-     *
-     * @method notification
-     * @static
-     * @param type which is usually "success" or "error" and matches css alert-* css styles
-     * @param message the text to display
-     *
-     */
-    function notification(type, message, options) {
-        if (options === void 0) { options = null; }
-        if (options === null) {
-            options = {};
-        }
-        if (type === 'error' || type === 'warning') {
-            if (!angular.isDefined(options.onclick)) {
-                options.onclick = window['showLogPanel'];
-            }
-        }
-        toastr[type](message, '', options);
-    }
-    Core.notification = notification;
-    /**
-     * Clears all the pending notifications
-     * @method clearNotifications
-     * @static
-     */
-    function clearNotifications() {
-        toastr.clear();
-    }
-    Core.clearNotifications = clearNotifications;
-})(Core || (Core = {}));
-
-/// <reference path="../../includes.ts"/>
-/**
- * @module Tree
- * @main Tree
- */
-var Tree;
-(function (Tree) {
-    Tree.pluginName = 'tree';
-    Tree.log = Logger.get("Tree");
-    function expandAll(el) {
-        treeAction(el, true);
-    }
-    Tree.expandAll = expandAll;
-    function contractAll(el) {
-        treeAction(el, false);
-    }
-    Tree.contractAll = contractAll;
-    function treeAction(el, expand) {
-        $(el).dynatree("getRoot").visit(function (node) {
-            node.expand(expand);
-        });
-    }
-    /**
-     * @function sanitize
-     * @param tree
-     *
-     * Use to HTML escape all entries in a tree before passing it
-     * over to the dynatree plugin to avoid cross site scripting
-     * issues.
-     *
-     */
-    function sanitize(tree) {
-        if (!tree) {
-            return;
-        }
-        if (angular.isArray(tree)) {
-            tree.forEach(function (folder) {
-                Tree.sanitize(folder);
-            });
-        }
-        var title = tree['title'];
-        if (title) {
-            tree['title'] = _.escape(_.unescape(title));
-        }
-        if (tree.children) {
-            Tree.sanitize(tree.children);
-        }
-    }
-    Tree.sanitize = sanitize;
-    Tree._module = angular.module(Tree.pluginName, []);
-    Tree._module.directive('hawtioTree', ["workspace", "$timeout", "$location", function (workspace, $timeout, $location) {
-            // return the directive link function. (compile function not needed)
-            return function (scope, element, attrs) {
-                var tree = null;
-                var data = null;
-                var widget = null;
-                var timeoutId = null;
-                var onSelectFn = lookupFunction("onselect");
-                var onDragStartFn = lookupFunction("ondragstart");
-                var onDragEnterFn = lookupFunction("ondragenter");
-                var onDropFn = lookupFunction("ondrop");
-                function lookupFunction(attrName) {
-                    var answer = null;
-                    var fnName = attrs[attrName];
-                    if (fnName) {
-                        answer = Core.pathGet(scope, fnName);
-                        if (!angular.isFunction(answer)) {
-                            answer = null;
-                        }
-                    }
-                    return answer;
-                }
-                // watch the expression, and update the UI on change.
-                var data = attrs.hawtioTree;
-                var queryParam = data;
-                scope.$watch(data, onWidgetDataChange);
-                // lets add a separate event so we can force updates
-                // if we find cases where the delta logic doesn't work
-                scope.$on("hawtio.tree." + data, function (args) {
-                    var value = Core.pathGet(scope, data);
-                    onWidgetDataChange(value);
-                });
-                // listen on DOM destroy (removal) event, and cancel the next UI update
-                // to prevent updating ofter the DOM element was removed.
-                element.bind('$destroy', function () {
-                    $timeout.cancel(timeoutId);
-                });
-                updateLater(); // kick off the UI update process.
-                // used to update the UI
-                function updateWidget() {
-                    // console.log("updating the grid!!");
-                    Core.$applyNowOrLater(scope);
-                }
-                function onWidgetDataChange(value) {
-                    tree = value;
-                    if (tree) {
-                        Tree.sanitize(tree);
-                    }
-                    if (tree && !widget) {
-                        // lets find a child table element
-                        // or lets add one if there's not one already
-                        var treeElement = $(element);
-                        var children = Core.asArray(tree);
-                        var hideRoot = attrs["hideroot"];
-                        var imagePath = null;
-                        if (attrs['relativeiconpaths']) {
-                            // yay, hack to allow relative path locations
-                            imagePath = [];
-                        }
-                        if ("true" === hideRoot) {
-                            children = tree['children'];
-                        }
-                        var config = {
-                            imagePath: imagePath,
-                            clickFolderMode: 3,
-                            /*
-                              * The event handler called when a different node in the tree is selected
-                              */
-                            onActivate: function (node) {
-                                var data = node.data;
-                                if (onSelectFn) {
-                                    onSelectFn(data, node);
-                                }
-                                else {
-                                    workspace.updateSelectionNode(data);
-                                }
-                                Core.$apply(scope);
-                            },
-                            /*
-                              onLazyRead: function(treeNode) {
-                              var folder = treeNode.data;
-                              var plugin = null;
-                              if (folder) {
-                              plugin = Jmx.findLazyLoadingFunction(workspace, folder);
-                              }
-                              if (plugin) {
-                              console.log("Lazy loading folder " + folder.title);
-                              var oldChildren = folder.childen;
-                              plugin(workspace, folder, () => {
-                              treeNode.setLazyNodeStatus(DTNodeStatus_Ok);
-                              var newChildren = folder.children;
-                              if (newChildren !== oldChildren) {
-                              treeNode.removeChildren();
-                              angular.forEach(newChildren, newChild => {
-                              treeNode.addChild(newChild);
-                              });
-                              }
-                              });
-                              } else {
-                              treeNode.setLazyNodeStatus(DTNodeStatus_Ok);
-                              }
-                              },
-                              */
-                            onClick: function (node, event) {
-                                if (event["metaKey"]) {
-                                    event.preventDefault();
-                                    var url = $location.absUrl();
-                                    if (node && node.data) {
-                                        var key = node.data["key"];
-                                        if (key) {
-                                            var hash = $location.search();
-                                            hash[queryParam] = key;
-                                            // TODO this could maybe be a generic helper function?
-                                            // lets trim after the ?
-                                            var idx = url.indexOf('?');
-                                            if (idx <= 0) {
-                                                url += "?";
-                                            }
-                                            else {
-                                                url = url.substring(0, idx + 1);
-                                            }
-                                            url += $.param(hash);
-                                        }
-                                    }
-                                    window.open(url, '_blank');
-                                    window.focus();
-                                    return false;
-                                }
-                                return true;
-                            },
-                            persist: false,
-                            debugLevel: 0,
-                            children: children,
-                            dnd: {
-                                onDragStart: onDragStartFn ? onDragStartFn : function (node) {
-                                    /* This function MUST be defined to enable dragging for the tree.
-                                      *  Return false to cancel dragging of node.
-                                      */
-                                    console.log("onDragStart!");
-                                    return true;
-                                },
-                                onDragEnter: onDragEnterFn ? onDragEnterFn : function (node, sourceNode) {
-                                    console.log("onDragEnter!");
-                                    return true;
-                                },
-                                onDrop: onDropFn ? onDropFn : function (node, sourceNode, hitMode) {
-                                    console.log("onDrop!");
-                                    /* This function MUST be defined to enable dropping of items on
-                                      *  the tree.
-                                      */
-                                    sourceNode.move(node, hitMode);
-                                    return true;
-                                }
-                            }
-                        };
-                        if (!onDropFn && !onDragEnterFn && !onDragStartFn) {
-                            delete config["dnd"];
-                        }
-                        widget = treeElement.dynatree(config);
-                        var activatedNode = false;
-                        var activateNodeName = attrs["activatenodes"];
-                        if (activateNodeName) {
-                            var values = scope[activateNodeName];
-                            var tree = treeElement.dynatree("getTree");
-                            if (values && tree) {
-                                angular.forEach(Core.asArray(values), function (value) {
-                                    //tree.selectKey(value, true);
-                                    tree.activateKey(value);
-                                    activatedNode = true;
-                                });
-                            }
-                        }
-                        var root = treeElement.dynatree("getRoot");
-                        if (root) {
-                            var onRootName = attrs["onroot"];
-                            if (onRootName) {
-                                var fn = scope[onRootName];
-                                if (fn) {
-                                    fn(root);
-                                }
-                            }
-                            // select and activate first child if we have not activated any others
-                            if (!activatedNode) {
-                                var children = root['getChildren']();
-                                if (children && children.length) {
-                                    var child = children[0];
-                                    child.expand(true);
-                                    child.activate(true);
-                                }
-                            }
-                        }
-                    }
-                    updateWidget();
-                }
-                // schedule update in one second
-                function updateLater() {
-                    // save the timeoutId for canceling
-                    timeoutId = $timeout(function () {
-                        updateWidget(); // update DOM
-                    }, 300);
-                }
-            };
-        }]);
-    Tree._module.run(["helpRegistry", function (helpRegistry) {
-            helpRegistry.addDevDoc(Tree.pluginName, 'app/tree/doc/developer.md');
-        }]);
-    hawtioPluginLoader.addModule(Tree.pluginName);
-})(Tree || (Tree = {}));
-
-/// <reference path="../../includes.ts"/>
-var UIBootstrap;
-(function (UIBootstrap) {
-    var pluginName = "hawtio-ui-bootstrap";
-    angular.module(pluginName, ["ui.bootstrap"]);
-    hawtioPluginLoader.addModule(pluginName);
-    hawtioPluginLoader.addModule("hawtio-compat.transition");
-    hawtioPluginLoader.addModule("hawtio-compat.dialog");
-    hawtioPluginLoader.addModule("hawtio-compat.modal");
-})(UIBootstrap || (UIBootstrap = {}));
-
-/**
- * @module UI
- */
-/// <reference path="../../includes.ts"/>
-var UI;
-(function (UI) {
-    UI.log = Logger.get("UI");
-    UI.scrollBarWidth = null;
-    UI.pluginName = 'hawtio-ui';
-    UI.templatePath = 'plugins/ui/html/';
-})(UI || (UI = {}));
-
-/// <reference path="../../includes.ts"/>
-/// <reference path="uiHelpers.ts"/>
-/**
- * Module that contains a bunch of re-usable directives to assemble into pages in hawtio
- *
- * @module UI
- * @main UI
- */
-var UI;
-(function (UI) {
-    UI._module = angular.module(UI.pluginName, []);
-    UI._module.factory('UI', function () {
-        return UI;
-    });
-    UI._module.factory('marked', function () {
-        marked.setOptions({
-            gfm: true,
-            tables: true,
-            breaks: false,
-            pedantic: true,
-            sanitize: false,
-            smartLists: true,
-            langPrefix: 'language-'
-        });
-        return marked;
-    });
-    UI._module.directive('compile', ['$compile', function ($compile) {
-            return function (scope, element, attrs) {
-                scope.$watch(function (scope) {
-                    // watch the 'compile' expression for changes
-                    return scope.$eval(attrs.compile);
-                }, function (value) {
-                    // when the 'compile' expression changes
-                    // assign it into the current DOM
-                    element.html(value);
-                    // compile the new DOM and link it to the current
-                    // scope.
-                    // NOTE: we only compile .childNodes so that
-                    // we don't get into infinite loop compiling ourselves
-                    $compile(element.contents())(scope);
-                });
-            };
-        }]);
-    /*
-    UI._module.controller("CodeEditor.PreferencesController", ["$scope", "localStorage", "$templateCache", ($scope, localStorage, $templateCache) => {
-      $scope.exampleText = $templateCache.get("exampleText");
-      $scope.codeMirrorEx = $templateCache.get("codeMirrorExTemplate");
-      $scope.javascript = "javascript";
-  
-      $scope.preferences = CodeEditor.GlobalCodeMirrorOptions;
-  
-      // If any of the preferences change, make sure to save them automatically
-      $scope.$watch("preferences", function(newValue, oldValue) {
-        if (newValue !== oldValue) {
-          // such a cheap and easy way to update the example view :-)
-          $scope.codeMirrorEx += " ";
-          localStorage['CodeMirrorOptions'] = angular.toJson(angular.extend(CodeEditor.GlobalCodeMirrorOptions, $scope.preferences));
-        }
-      }, true);
-  
-    }]);
-    */
-    UI._module.run([function () {
-            UI.log.debug("loaded");
-            /*
-            var opts = localStorage['CodeMirrorOptions'];
-            if (opts) {
-              opts = angular.fromJson(opts);
-              CodeEditor.GlobalCodeMirrorOptions = angular.extend(CodeEditor.GlobalCodeMirrorOptions, opts);
-            }
-            */
-        }]);
-    hawtioPluginLoader.addModule(UI.pluginName);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioAutoDropdown', function () {
-        return UI.AutoDropDown;
-    });
-    /**
-     * TODO turn this into a normal directive function
-     *
-     * @property AutoDropDown
-     * @type IAutoDropDown
-     */
-    UI.AutoDropDown = {
-        restrict: 'A',
-        link: function ($scope, $element, $attrs) {
-            function locateElements(event) {
-                var el = $element.get(0);
-                if (event && event.relatedNode !== el && event.type) {
-                    if (event && event.type !== 'resize') {
-                        return;
-                    }
-                }
-                var overflowEl = $($element.find('.dropdown.overflow'));
-                var overflowMenu = $(overflowEl.find('ul.dropdown-menu'));
-                /*
-                Logger.info("element inner width: ", $element.innerWidth());
-                Logger.info("element position: ", $element.position());
-                Logger.info("element offset: ", $element.offset());
-                Logger.info("overflowEl offset: ", overflowEl.offset());
-                Logger.info("overflowEl position: ", overflowEl.position());
-                */
-                var margin = 0;
-                var availableWidth = 0;
-                try {
-                    overflowEl.addClass('pull-right');
-                    margin = overflowEl.outerWidth() - overflowEl.innerWidth();
-                    availableWidth = overflowEl.position().left - $element.position().left - 50;
-                    overflowEl.removeClass('pull-right');
-                }
-                catch (e) {
-                    UI.log.debug("caught " + e);
-                }
-                overflowMenu.children().insertBefore(overflowEl);
-                var overflowItems = [];
-                $element.children(':not(.overflow):not(:hidden)').each(function () {
-                    var self = $(this);
-                    availableWidth = availableWidth - self.outerWidth(true);
-                    if (availableWidth < 0) {
-                        overflowItems.push(self);
-                    }
-                });
-                for (var i = overflowItems.length - 1; i > -1; i--) {
-                    overflowItems[i].prependTo(overflowMenu);
-                }
-                if (overflowMenu.children().length > 0) {
-                    overflowEl.css('visibility', 'visible');
-                }
-                if (availableWidth > 130) {
-                    var noSpace = false;
-                    overflowMenu.children(':not(.overflow)').filter(function () {
-                        return $(this).css('display') !== 'none';
-                    }).each(function () {
-                        if (noSpace) {
-                            return;
-                        }
-                        var self = $(this);
-                        if (availableWidth > self.outerWidth()) {
-                            availableWidth = availableWidth - self.outerWidth();
-                            self.insertBefore(overflowEl);
-                        }
-                        else {
-                            noSpace = true;
-                        }
-                    });
-                }
-                if (overflowMenu.children().length === 0) {
-                    overflowEl.css('visibility', 'hidden');
-                }
-            }
-            $(window).resize(_.throttle(locateElements, 100));
-            $scope.$root.$on('jmxTreeClicked', function () { return setTimeout(locateElements, 0); });
-            $scope.$watch(setTimeout(locateElements, 500));
-        }
-    };
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function hawtioBreadcrumbs() {
-        return {
-            restrict: 'E',
-            replace: true,
-            templateUrl: UI.templatePath + 'breadcrumbs.html',
-            require: 'hawtioDropDown',
-            scope: {
-                config: '='
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                    $scope.action = "itemClicked(config, $event)";
-                    $scope.levels = {};
-                    function resetAction(list) {
-                        _.forEach(list, function (item) { return item.action = $scope.action; });
-                    }
-                    function lastLevel() {
-                        var last = _.last(_.sortBy(_.keys($scope.levels), ""));
-                        return last;
-                    }
-                    $scope.isLastLevel = function (level) {
-                        return level === lastLevel();
-                    };
-                    $scope.itemClicked = function (config, $event) {
-                        if (angular.isDefined(config.level)) {
-                            $scope.levels[config.level] = config;
-                            var keys = _.sortBy(_.keys($scope.levels), "");
-                            var toRemove = keys.slice(config.level + 1);
-                            _.forEach(toRemove, function (i) { return delete $scope.levels[i]; });
-                            var keys = _.sortBy(_.keys($scope.levels), "");
-                            var path = [];
-                            _.forEach(keys, function (key) {
-                                path.push($scope.levels[key]['title']);
-                            });
-                            var pathString = '/' + path.join("/");
-                            $scope.config.path = pathString;
-                        }
-                    };
-                    function addAction(config, level) {
-                        config.level = level;
-                        config.action = $scope.action;
-                        if (config.items) {
-                            _.forEach(config.items, function (item) {
-                                addAction(item, level + 1);
-                            });
-                        }
-                    }
-                    function setLevels(config, pathParts, level) {
-                        if (pathParts.length === 0) {
-                            return;
-                        }
-                        var part = pathParts.shift();
-                        if (config && config.items) {
-                            var matched = false;
-                            _.forEach(config.items, function (item) {
-                                if (!matched && item['title'] === part) {
-                                    matched = true;
-                                    $scope.levels[level] = item;
-                                    setLevels(item, pathParts, level + 1);
-                                }
-                            });
-                        }
-                        var last = lastLevel();
-                        _.forOwn($scope.levels, function (config, level) {
-                            config.open = level === last;
-                            delete config.action;
-                            resetAction(config.items);
-                        });
-                    }
-                    // watch to see if the parent scope changes the path
-                    $scope.$watch('config.path', function (path) {
-                        if (!Core.isBlank(path)) {
-                            var pathParts = _.filter(path.split('/'), function (p) { return !Core.isBlank(p); });
-                            // adjust $scope.levels to match the path
-                            _.forEach(_.keys($scope.levels), function (key) {
-                                if (key > 0) {
-                                    delete $scope.levels[key];
-                                }
-                            });
-                            setLevels($scope.config, _.tail(pathParts), 1);
-                        }
-                    });
-                    $scope.$watch('config', function (newValue, oldValue) {
-                        addAction($scope.config, 0);
-                        delete $scope.config.action;
-                        $scope.levels[0] = $scope.config;
-                    });
-                }]
-        };
-    }
-    UI.hawtioBreadcrumbs = hawtioBreadcrumbs;
-    UI._module.directive('hawtioBreadcrumbs', UI.hawtioBreadcrumbs);
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    // simple directive that adds the patternfly card BG color to the content area of a hawtio app
-    UI._module.directive('hawtioCardBg', ['$timeout', function ($timeout) {
-            return {
-                restrict: 'AC',
-                link: function (scope, element, attr) {
-                    $timeout(function () {
-                        var parent = $('body');
-                        //console.log("Parent: ", parent);
-                        parent.addClass('cards-pf');
-                        element.on('$destroy', function () {
-                            parent.removeClass('cards-pf');
-                        });
-                    }, 10);
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-var UI;
-(function (UI) {
-    setTimeout(function () {
-        var clipboard = new window.Clipboard('.btn-clipboard');
-        clipboard.on('success', function (e) {
-            var button = $(e.trigger);
-            var title = null;
-            if (button.attr('title')) {
-                title = button.attr('title');
-                button.removeAttr('title');
-            }
-            button.tooltip({ placement: 'bottom', title: 'Copied!', trigger: 'click' });
-            button.tooltip('show');
-            button.mouseleave(function () {
-                button.tooltip('hide');
-                if (title) {
-                    button.attr('title', title);
-                }
-            });
-        });
-    }, 1000);
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    /**
-     * Pre defined colors used in the color picker
-     * @property colors
-     * @for UI
-     * @type Array
-     */
-    UI.colors = ["#5484ED", "#A4BDFC", "#46D6DB", "#7AE7BF",
-        "#51B749", "#FBD75B", "#FFB878", "#FF887C", "#DC2127",
-        "#DBADFF", "#E1E1E1"];
-    UI._module.constant('UIColors', UI.colors);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./colors.ts"/>
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioColorPicker', function () {
-        return new UI.ColorPicker();
-    });
-    UI.selected = "selected";
-    UI.unselected = "unselected";
-    /**
-  Directive that allows the user to pick a color from a pre-defined pallete of colors.
-  
-  Use it like:
-  
-  ```html
-  <div hawtio-color-picker="myModel"></div>
-  ```
-  
-  'myModel' will be bound to the color the user clicks on
-  
-  @class ColorPicker
-     */
-    var ColorPicker = (function () {
-        function ColorPicker() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.scope = {
-                property: '=hawtioColorPicker'
-            };
-            this.templateUrl = UI.templatePath + "colorPicker.html";
-            this.compile = function (tElement, tAttrs, transclude) {
-                return {
-                    post: function postLink(scope, iElement, iAttrs, controller) {
-                        scope.colorList = [];
-                        angular.forEach(UI.colors, function (color) {
-                            var select = UI.unselected;
-                            if (scope.property === color) {
-                                select = UI.selected;
-                            }
-                            scope.colorList.push({
-                                color: color,
-                                select: select
-                            });
-                        });
-                    }
-                };
-            };
-            this.controller = ["$scope", "$element", "$timeout", function ($scope, $element, $timeout) {
-                    $scope.popout = false;
-                    $scope.$watch('popout', function () {
-                        $element.find('.color-picker-popout').toggleClass('popout-open', $scope.popout);
-                    });
-                    $scope.selectColor = function (color) {
-                        for (var i = 0; i < $scope.colorList.length; i++) {
-                            $scope.colorList[i].select = UI.unselected;
-                            if ($scope.colorList[i] === color) {
-                                $scope.property = color.color;
-                                $scope.colorList[i].select = UI.selected;
-                            }
-                        }
-                    };
-                }];
-        }
-        return ColorPicker;
-    }());
-    UI.ColorPicker = ColorPicker;
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioConfirmDialog', function () {
-        return new UI.ConfirmDialog();
-    });
-    /**
-     * Directive that opens a simple standard confirmation dialog.  See ConfigDialogConfig
-     * for configuration properties
-     *
-     * @class ConfirmDialog
-     */
-    var ConfirmDialog = (function () {
-        function ConfirmDialog() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.transclude = true;
-            this.templateUrl = UI.templatePath + 'confirmDialog.html';
-            /**
-             * @property scope
-             * @type ConfirmDialogConfig
-             */
-            this.scope = {
-                show: '=hawtioConfirmDialog',
-                title: '@',
-                okButtonText: '@',
-                showOkButton: '@',
-                cancelButtonText: '@',
-                onCancel: '&?',
-                onOk: '&?',
-                onClose: '&?',
-                size: '@',
-                optionalSize: '@' // deprecated
-            };
-            this.controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", function ($scope, $element, $attrs, $transclude, $compile) {
-                    $scope.clone = null;
-                    // Set optional size modifier class
-                    $scope.size = $scope.size || $scope.optionalSize;
-                    if ($scope.size === 'sm' || $scope.size === 'lg') {
-                        $scope.sizeClass = 'modal-' + $scope.size;
-                    }
-                    $transclude(function (clone) {
-                        $scope.clone = $(clone).filter('.dialog-body');
-                    });
-                    $scope.$watch('show', function () {
-                        if ($scope.show) {
-                            setTimeout(function () {
-                                $scope.body = $('.modal-body');
-                                $scope.body.html($compile($scope.clone.html())($scope.$parent));
-                                Core.$apply($scope);
-                            }, 50);
-                        }
-                    });
-                    $attrs.$observe('okButtonText', function (value) {
-                        if (!angular.isDefined(value)) {
-                            $scope.okButtonText = "OK";
-                        }
-                    });
-                    $attrs.$observe('cancelButtonText', function (value) {
-                        if (!angular.isDefined(value)) {
-                            $scope.cancelButtonText = "Cancel";
-                        }
-                    });
-                    $attrs.$observe('title', function (value) {
-                        if (!angular.isDefined(value)) {
-                            $scope.title = "Are you sure?";
-                        }
-                    });
-                    function checkClosed() {
-                        setTimeout(function () {
-                            // lets make sure we don't have a modal-backdrop hanging around!
-                            var backdrop = $("div.modal-backdrop");
-                            if (backdrop && backdrop.length) {
-                                Logger.get("ConfirmDialog").debug("Removing the backdrop div! " + backdrop);
-                                backdrop.remove();
-                            }
-                        }, 200);
-                    }
-                    $scope.cancel = function () {
-                        $scope.show = false;
-                        $scope.$parent.$eval($scope.onCancel);
-                        checkClosed();
-                    };
-                    $scope.submit = function () {
-                        $scope.show = false;
-                        $scope.$parent.$eval($scope.onOk);
-                        checkClosed();
-                    };
-                    $scope.close = function () {
-                        $scope.$parent.$eval($scope.onClose);
-                        checkClosed();
-                    };
-                }];
-        }
-        return ConfirmDialog;
-    }());
-    UI.ConfirmDialog = ConfirmDialog;
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-/**
- * @module UI
- */
-var UI;
-(function (UI) {
-    UI._module.controller("UI.DeveloperPageController", ["$scope", "$http", function ($scope, $http) {
-            $scope.getContents = function (filename, cb) {
-                var fullUrl = UrlHelpers.join(UI.templatePath, "test", filename);
-                $http({ method: 'GET', url: fullUrl })
-                    .success(function (data, status, headers, config) {
-                    cb(data);
-                })
-                    .error(function (data, status, headers, config) {
-                    cb("Failed to fetch " + filename + ": " + data);
-                });
-            };
-        }]);
-})(UI || (UI = {}));
-
-/// <reference path="../../includes.ts"/>
-/// <reference path="uiHelpers.ts"/>
-/**
- * @module UI
- */
-var UI;
-(function (UI) {
-    /**
-     * Simple helper class for creating <a href="http://angular-ui.github.io/bootstrap/#/modal">angular ui bootstrap modal dialogs</a>
-     * @class Dialog
-     */
-    var Dialog = (function () {
-        function Dialog() {
-            this.show = false;
-            this.options = {
-                backdropFade: true,
-                dialogFade: true
-            };
-        }
-        /**
-         * Opens the dialog
-         * @method open
-         */
-        Dialog.prototype.open = function () {
-            this.show = true;
-        };
-        /**
-         * Closes the dialog
-         * @method close
-         */
-        Dialog.prototype.close = function () {
-            this.show = false;
-            // lets make sure and remove any backgroup fades
-            this.removeBackdropFadeDiv();
-            setTimeout(this.removeBackdropFadeDiv, 100);
-        };
-        Dialog.prototype.removeBackdropFadeDiv = function () {
-            $("div.modal-backdrop").remove();
-        };
-        return Dialog;
-    }());
-    UI.Dialog = Dialog;
-    function multiItemConfirmActionDialog(options) {
-        var $dialog = HawtioCore.injector.get("$dialog");
-        return $dialog.dialog({
-            resolve: {
-                options: function () { return options; }
-            },
-            templateUrl: UrlHelpers.join(UI.templatePath, 'multiItemConfirmActionDialog.html'),
-            controller: ["$scope", "dialog", "options", function ($scope, dialog, options) {
-                    $scope.options = options;
-                    $scope.close = function (result) {
-                        dialog.close();
-                        options.onClose(result);
-                    };
-                    $scope.getName = function (item) {
-                        return Core.pathGet(item, options.index.split('.'));
-                    };
-                }]
-        });
-    }
-    UI.multiItemConfirmActionDialog = multiItemConfirmActionDialog;
-})(UI || (UI = {}));
-
-///<reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI.hawtioDrag = UI._module.directive("hawtioDrag", [function () {
-            return {
-                replace: false,
-                transclude: true,
-                restrict: 'A',
-                template: '<span ng-transclude></span>',
-                scope: {
-                    data: '=hawtioDrag'
-                },
-                link: function (scope, element, attrs) {
-                    element.attr({
-                        draggable: 'true'
-                    });
-                    //log.debug("hawtioDrag, data: ", scope.data);
-                    var el = element[0];
-                    el.draggable = true;
-                    el.addEventListener('dragstart', function (event) {
-                        event.dataTransfer.effectAllowed = 'move';
-                        event.dataTransfer.setData('data', scope.data);
-                        element.addClass('drag-started');
-                        return false;
-                    }, false);
-                    el.addEventListener('dragend', function (event) {
-                        element.removeClass('drag-started');
-                    }, false);
-                }
-            };
-        }]);
-    UI.hawtioDrop = UI._module.directive("hawtioDrop", [function () {
-            return {
-                replace: false,
-                transclude: true,
-                restrict: 'A',
-                template: '<span ng-transclude></span>',
-                scope: {
-                    onDrop: '&?hawtioDrop',
-                    ngModel: '=',
-                    property: '@',
-                    prefix: '@'
-                },
-                link: function (scope, element, attrs) {
-                    //log.debug("hawtioDrop, onDrop: ", scope.onDrop);
-                    //log.debug("hawtioDrop, ngModel: ", scope.ngModel);
-                    //log.debug("hawtioDrop, property: ", scope.property);
-                    var dragEnter = function (event) {
-                        if (event.preventDefault) {
-                            event.preventDefault();
-                        }
-                        element.addClass('drag-over');
-                        return false;
-                    };
-                    var el = element[0];
-                    el.addEventListener('dragenter', dragEnter, false);
-                    el.addEventListener('dragover', dragEnter, false);
-                    el.addEventListener('dragleave', function (event) {
-                        element.removeClass('drag-over');
-                        return false;
-                    }, false);
-                    el.addEventListener('drop', function (event) {
-                        if (event.stopPropagation) {
-                            event.stopPropagation();
-                        }
-                        element.removeClass('drag-over');
-                        var data = event.dataTransfer.getData('data');
-                        if (scope.onDrop) {
-                            scope.$eval(scope.onDrop, {
-                                data: data,
-                                model: scope.ngModel,
-                                property: scope.property
-                            });
-                        }
-                        var eventName = 'hawtio-drop';
-                        if (!Core.isBlank(scope.prefix)) {
-                            eventName = scope.prefix + '-' + eventName;
-                        }
-                        // let's emit this too so parent scopes can watch for the data
-                        scope.$emit(eventName, {
-                            data: data,
-                            model: scope.ngModel,
-                            property: scope.property
-                        });
-                        Core.$apply(scope);
-                        return false;
-                    }, false);
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function hawtioDropDown($templateCache) {
-        return {
-            restrict: 'A',
-            replace: true,
-            templateUrl: UI.templatePath + 'dropDown.html',
-            scope: {
-                config: '=hawtioDropDown'
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                    if (!$scope.config) {
-                        $scope.config = {};
-                    }
-                    if (!('open' in $scope.config)) {
-                        $scope.config['open'] = false;
-                    }
-                    $scope.action = function (config, $event) {
-                        //log.debug("doAction on : ", config, "event: ", $event);
-                        if ('items' in config && !('action' in config)) {
-                            config.open = !config.open;
-                            $event.preventDefault();
-                            $event.stopPropagation();
-                        }
-                        else if ('action' in config) {
-                            //log.debug("executing action: ", config.action);
-                            var action = config['action'];
-                            if (angular.isFunction(action)) {
-                                action();
-                            }
-                            else if (angular.isString(action)) {
-                                $scope.$parent.$eval(action, {
-                                    config: config,
-                                    '$event': $event
-                                });
-                            }
-                        }
-                    };
-                    $scope.$watch('config.items', function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            // just add some space to force a redraw
-                            $scope.menuStyle = $scope.menuStyle + " ";
-                        }
-                    }, true);
-                    $scope.submenu = function (config) {
-                        if (config && config.submenu) {
-                            return "sub-menu";
-                        }
-                        return "";
-                    };
-                    $scope.icon = function (config) {
-                        if (config && !Core.isBlank(config.icon)) {
-                            return config.icon;
-                        }
-                        else {
-                            return 'fa fa-spacer';
-                        }
-                    };
-                    $scope.open = function (config) {
-                        if (config && !config.open) {
-                            return '';
-                        }
-                        return 'open';
-                    };
-                }],
-            link: function ($scope, $element, $attrs) {
-                $scope.menuStyle = $templateCache.get("withsubmenus.html");
-                if ('processSubmenus' in $attrs) {
-                    if (!Core.parseBooleanValue($attrs['processSubmenus'])) {
-                        $scope.menuStyle = $templateCache.get("withoutsubmenus.html");
-                    }
-                }
-            }
-        };
-    }
-    UI.hawtioDropDown = hawtioDropDown;
-    UI._module.directive('hawtioDropDown', ["$templateCache", UI.hawtioDropDown]);
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-/**
- * @module UI
- */
-var UI;
-(function (UI) {
-    UI._module.directive('editableProperty', ["$parse", function ($parse) {
-            return new UI.EditableProperty($parse);
-        }]);
-    var EditableProperty = (function () {
-        function EditableProperty($parse) {
-            this.$parse = $parse;
-            this.restrict = 'E';
-            this.scope = true;
-            this.templateUrl = UI.templatePath + 'editableProperty.html';
-            this.require = 'ngModel';
-            this.link = null;
-            this.link = function (scope, element, attrs, ngModel) {
-                scope.inputType = attrs['type'] || 'text';
-                scope.min = attrs['min'];
-                scope.max = attrs['max'];
-                scope.getText = function () {
-                    if (!scope.text) {
-                        return '';
-                    }
-                    if (scope.inputType === 'password') {
-                        return StringHelpers.obfusicate(scope.text);
-                    }
-                    else {
-                        return scope.text;
-                    }
-                };
-                scope.editing = false;
-                $(element.find(".fa fa-pencil")[0]).hide();
-                scope.getPropertyName = function () {
-                    var propertyName = $parse(attrs['property'])(scope);
-                    if (!propertyName && propertyName !== 0) {
-                        propertyName = attrs['property'];
-                    }
-                    return propertyName;
-                };
-                ngModel.$render = function () {
-                    if (!ngModel.$viewValue) {
-                        return;
-                    }
-                    scope.text = ngModel.$viewValue[scope.getPropertyName()];
-                };
-                scope.getInputStyle = function () {
-                    if (!scope.text) {
-                        return {};
-                    }
-                    var calculatedWidth = (scope.text + "").length / 1.2;
-                    if (calculatedWidth < 5) {
-                        calculatedWidth = 5;
-                    }
-                    return {
-                        width: calculatedWidth + 'em'
-                    };
-                };
-                scope.showEdit = function () {
-                    $(element.find(".fa fa-pencil")[0]).show();
-                };
-                scope.hideEdit = function () {
-                    $(element.find(".fa fa-pencil")[0]).hide();
-                };
-                function inputSelector() {
-                    return 'input[type=' + scope.inputType + ']';
-                }
-                scope.$watch('editing', function (newValue, oldValue) {
-                    if (newValue !== oldValue) {
-                        if (newValue) {
-                            setTimeout(function () {
-                                $(element.find(inputSelector())).focus().select();
-                            }, 50);
-                        }
-                    }
-                });
-                scope.doEdit = function () {
-                    scope.editing = true;
-                };
-                scope.stopEdit = function () {
-                    $(element.find(inputSelector())[0]).val(ngModel.$viewValue[scope.getPropertyName()]);
-                    scope.editing = false;
-                };
-                scope.saveEdit = function () {
-                    var value = $(element.find(inputSelector())[0]).val();
-                    var obj = ngModel.$viewValue;
-                    obj[scope.getPropertyName()] = value;
-                    ngModel.$setViewValue(obj);
-                    ngModel.$render();
-                    scope.editing = false;
-                    scope.$parent.$eval(attrs['onSave']);
-                };
-            };
-        }
-        return EditableProperty;
-    }());
-    UI.EditableProperty = EditableProperty;
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('expandable', function () {
-        return new UI.Expandable();
-    });
-    var Expandable = (function () {
-        function Expandable() {
-            var _this = this;
-            this.log = Logger.get("Expandable");
-            this.restrict = 'C';
-            this.replace = false;
-            this.link = null;
-            this.link = function (scope, element, attrs) {
-                var self = _this;
-                var expandable = element;
-                var modelName = null;
-                var model = null;
-                if (angular.isDefined(attrs['model'])) {
-                    modelName = attrs['model'];
-                    model = scope[modelName];
-                    if (!angular.isDefined(scope[modelName]['expanded'])) {
-                        model['expanded'] = expandable.hasClass('opened');
-                    }
-                    else {
-                        if (model['expanded']) {
-                            self.forceOpen(model, expandable, scope);
-                        }
-                        else {
-                            self.forceClose(model, expandable, scope);
-                        }
-                    }
-                    if (modelName) {
-                        scope.$watch(modelName + '.expanded', function (newValue, oldValue) {
-                            if (asBoolean(newValue) !== asBoolean(oldValue)) {
-                                if (newValue) {
-                                    self.open(model, expandable, scope);
-                                }
-                                else {
-                                    self.close(model, expandable, scope);
-                                }
-                            }
-                        });
-                    }
-                }
-                var title = expandable.find('.title');
-                var button = expandable.find('.cancel');
-                button.bind('click', function () {
-                    model = scope[modelName];
-                    self.forceClose(model, expandable, scope);
-                    return false;
-                });
-                title.bind('click', function () {
-                    model = scope[modelName];
-                    if (isOpen(expandable)) {
-                        self.close(model, expandable, scope);
-                    }
-                    else {
-                        self.open(model, expandable, scope);
-                    }
-                    return false;
-                });
-            };
-        }
-        Expandable.prototype.open = function (model, expandable, scope) {
-            expandable.find('.expandable-body').slideDown(400, function () {
-                if (!expandable.hasClass('opened')) {
-                    expandable.addClass('opened');
-                }
-                expandable.removeClass('closed');
-                if (model) {
-                    model['expanded'] = true;
-                }
-                Core.$apply(scope);
-            });
-        };
-        Expandable.prototype.close = function (model, expandable, scope) {
-            expandable.find('.expandable-body').slideUp(400, function () {
-                expandable.removeClass('opened');
-                if (!expandable.hasClass('closed')) {
-                    expandable.addClass('closed');
-                }
-                if (model) {
-                    model['expanded'] = false;
-                }
-                Core.$apply(scope);
-            });
-        };
-        Expandable.prototype.forceClose = function (model, expandable, scope) {
-            expandable.find('.expandable-body').slideUp(0, function () {
-                if (!expandable.hasClass('closed')) {
-                    expandable.addClass('closed');
-                }
-                expandable.removeClass('opened');
-                if (model) {
-                    model['expanded'] = false;
-                }
-                Core.$apply(scope);
-            });
-        };
-        Expandable.prototype.forceOpen = function (model, expandable, scope) {
-            expandable.find('.expandable-body').slideDown(0, function () {
-                if (!expandable.hasClass('opened')) {
-                    expandable.addClass('opened');
-                }
-                expandable.removeClass('closed');
-                if (model) {
-                    model['expanded'] = true;
-                }
-                Core.$apply(scope);
-            });
-        };
-        return Expandable;
-    }());
-    UI.Expandable = Expandable;
-    function isOpen(expandable) {
-        return expandable.hasClass('opened') || !expandable.hasClass("closed");
-    }
-    function asBoolean(value) {
-        return value ? true : false;
-    }
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    var hawtioFileDrop = UI._module.directive("hawtioFileDrop", [function () {
-            return {
-                restrict: 'A',
-                replace: false,
-                link: function (scope, element, attr) {
-                    var fileName = attr['hawtioFileDrop'];
-                    var downloadURL = attr['downloadUrl'];
-                    var mimeType = attr['mimeType'] || 'application/octet-stream';
-                    if (Core.isBlank(fileName) || Core.isBlank(downloadURL)) {
-                        return;
-                    }
-                    // DownloadURL needs an absolute URL
-                    if (!_.startsWith(downloadURL, "http")) {
-                        var uri = new URI();
-                        downloadURL = uri.path(downloadURL).toString();
-                    }
-                    var fileDetails = mimeType + ":" + fileName + ":" + downloadURL;
-                    element.attr({
-                        draggable: true
-                    });
-                    element[0].addEventListener("dragstart", function (event) {
-                        if (event.dataTransfer) {
-                            UI.log.debug("Drag started, event: ", event, "File details: ", fileDetails);
-                            event.dataTransfer.setData("DownloadURL", fileDetails);
-                        }
-                        else {
-                            UI.log.debug("Drag event object doesn't contain data transfer: ", event);
-                        }
-                    });
-                    attr.$observe('downloadUrl', function (url) {
-                        fileDetails = mimeType + ":" + fileName + ":" + url;
-                    });
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI.hawtioFilter = UI._module.directive("hawtioFilter", [function () {
-            return {
-                restrict: 'E',
-                replace: true,
-                transclude: true,
-                templateUrl: UI.templatePath + 'filter.html',
-                scope: {
-                    placeholder: '@',
-                    cssClass: '@',
-                    saveAs: '@?',
-                    ngModel: '='
-                },
-                controller: ["$scope", "localStorage", "$location", "$element", function ($scope, localStorage, $location, $element) {
-                        $scope.getClass = function () {
-                            var answer = [];
-                            if (!Core.isBlank($scope.cssClass)) {
-                                answer.push($scope.cssClass);
-                            }
-                            if (!Core.isBlank($scope.ngModel)) {
-                                answer.push("has-text");
-                            }
-                            return answer.join(' ');
-                        };
-                        // sync with local storage and the location bar, maybe could refactor this into a helper function
-                        if (!Core.isBlank($scope.saveAs)) {
-                            if ($scope.saveAs in localStorage) {
-                                var val = localStorage[$scope.saveAs];
-                                if (!Core.isBlank(val)) {
-                                    $scope.ngModel = val;
-                                }
-                                else {
-                                    $scope.ngModel = '';
-                                }
-                            }
-                            else {
-                                $scope.ngModel = '';
-                            }
-                            /*
-                             // input loses focus when we muck with the search, at least on firefox
-                            var search = $location.search();
-                            if ($scope.saveAs in search) {
-                              $scope.ngModel = search[$scope.saveAs];
-                            }
-                            */
-                            var updateFunc = function () {
-                                localStorage[$scope.saveAs] = $scope.ngModel;
-                                // input loses focus when we do this
-                                //$location.search($scope.saveAs, $scope.ngModel);
-                            };
-                            $scope.$watch('ngModel', updateFunc);
-                        }
-                    }]
-            };
-        }]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('gridster', function () {
-        return new UI.GridsterDirective();
-    });
-    var GridsterDirective = (function () {
-        function GridsterDirective() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.controller = ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                }];
-            this.link = function ($scope, $element, $attrs) {
-                var widgetMargins = [6, 6];
-                var widgetBaseDimensions = [150, 150];
-                var gridSize = [150, 150];
-                var extraRows = 10;
-                var extraCols = 6;
-                if (angular.isDefined($attrs['extraRows'])) {
-                    extraRows = $attrs['extraRows'].toNumber();
-                }
-                if (angular.isDefined($attrs['extraCols'])) {
-                    extraCols = $attrs['extraCols'].toNumber();
-                }
-                var grid = $('<ul style="margin: 0"></ul>');
-                var styleStr = '<style type="text/css">';
-                var styleStr = styleStr + '</style>';
-                $element.append($(styleStr));
-                $element.append(grid);
-                $scope.gridster = grid.gridster({
-                    widget_margins: widgetMargins,
-                    grid_size: gridSize,
-                    extra_rows: extraRows,
-                    extra_cols: extraCols
-                }).data('gridster');
-            };
-        }
-        return GridsterDirective;
-    }());
-    UI.GridsterDirective = GridsterDirective;
-})(UI || (UI = {}));
-
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function groupBy() {
-        return function (list, group) {
-            if (!list || list.length === 0) {
-                return list;
-            }
-            if (Core.isBlank(group)) {
-                return list;
-            }
-            var newGroup = 'newGroup';
-            var endGroup = 'endGroup';
-            var currentGroup = undefined;
-            function createNewGroup(list, item, index) {
-                item[newGroup] = true;
-                item[endGroup] = false;
-                currentGroup = item[group];
-                if (index > 0) {
-                    list[index - 1][endGroup] = true;
-                }
-            }
-            function addItemToExistingGroup(item) {
-                item[newGroup] = false;
-                item[endGroup] = false;
-            }
-            list.forEach(function (item, index) {
-                var createGroup = item[group] !== currentGroup;
-                if (angular.isArray(item[group])) {
-                    if (currentGroup === undefined) {
-                        createGroup = true;
-                    }
-                    else {
-                        var targetGroup = item[group];
-                        if (targetGroup.length !== currentGroup.length) {
-                            createGroup = true;
-                        }
-                        else {
-                            createGroup = false;
-                            targetGroup.forEach(function (item) {
-                                if (!createGroup && !_.some(currentGroup, function (i) { return i === item; })) {
-                                    createGroup = true;
-                                }
-                            });
-                        }
-                    }
-                }
-                if (createGroup) {
-                    createNewGroup(list, item, index);
-                }
-                else {
-                    addItemToExistingGroup(item);
-                }
-            });
-            return list;
-        };
-    }
-    UI.groupBy = groupBy;
-    UI._module.filter('hawtioGroupBy', UI.groupBy);
-})(UI || (UI = {}));
-
-var UI;
-(function (UI) {
-    UI._module.directive('httpSrc', ['$http', function ($http) {
-            return {
-                // do not share scope with sibling img tags and parent
-                // (prevent show same images on img tag)
-                scope: {
-                    httpSrcChanged: '='
-                },
-                link: function ($scope, elem, attrs) {
-                    function revokeObjectURL() {
-                        if ($scope.objectURL) {
-                            URL.revokeObjectURL($scope.objectURL);
-                        }
-                    }
-                    $scope.$watch('objectURL', function (objectURL, oldURL) {
-                        if (objectURL !== oldURL) {
-                            elem.attr('src', objectURL);
-                            if (typeof $scope.httpSrcChanged !== 'undefined') {
-                                $scope.httpSrcChanged = objectURL;
-                            }
-                        }
-                    });
-                    $scope.$on('$destroy', revokeObjectURL);
-                    attrs.$observe('httpSrc', function (url) {
-                        revokeObjectURL();
-                        if (url && url.indexOf('data:') === 0) {
-                            $scope.objectURL = url;
-                        }
-                        else if (url) {
-                            $http.get(url, { responseType: 'arraybuffer' })
-                                .then(function (response) {
-                                var blob = new Blob([response.data], { type: attrs['mediaType'] ? attrs['mediaType'] : 'application/octet-stream' });
-                                $scope.objectURL = URL.createObjectURL(blob);
-                            });
-                        }
-                    });
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    /**
-     * Test controller for the icon help page
-     * @param $scope
-     * @param $templateCache
-     * @constructor
-     */
-    UI.IconTestController = UI._module.controller("UI.IconTestController", ["$scope", "$templateCache", function ($scope, $templateCache) {
-            $scope.exampleHtml = $templateCache.get('example-html');
-            $scope.exampleConfigJson = $templateCache.get('example-config-json');
-            $scope.$watch('exampleConfigJson', function (newValue, oldValue) {
-                $scope.icons = angular.fromJson($scope.exampleConfigJson);
-                //log.debug("Icons: ", $scope.icons);
-            });
-        }]);
-    /**
-     * The hawtio-icon directive
-     * @returns {{}}
-     */
-    function hawtioIcon() {
-        return {
-            restrict: 'E',
-            replace: true,
-            templateUrl: UI.templatePath + 'icon.html',
-            scope: {
-                icon: '=config'
-            },
-            link: function ($scope, $element, $attrs) {
-                if (!$scope.icon) {
-                    return;
-                }
-                if (!('type' in $scope.icon) && !Core.isBlank($scope.icon.src)) {
-                    if (_.startsWith($scope.icon.src, "fa fa-")) {
-                        $scope.icon.type = "icon";
-                    }
-                    else {
-                        $scope.icon.type = "img";
-                    }
-                }
-                //log.debug("Created icon: ", $scope.icon);
-            }
-        };
-    }
-    UI.hawtioIcon = hawtioIcon;
-    UI._module.directive('hawtioIcon', UI.hawtioIcon);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function hawtioList($templateCache, $compile) {
-        return {
-            restrict: '',
-            replace: true,
-            templateUrl: UI.templatePath + 'list.html',
-            scope: {
-                'config': '=hawtioList'
-            },
-            link: function ($scope, $element, $attr) {
-                $scope.rows = [];
-                $scope.name = "hawtioListScope";
-                if (!$scope.config.selectedItems) {
-                    $scope.config.selectedItems = [];
-                }
-                $scope.$watch('rows', function (newValue, oldValue) {
-                    if (newValue !== oldValue) {
-                        $scope.config.selectedItems.length = 0;
-                        var selected = _.filter($scope.rows, function (row) { return row.selected; });
-                        selected.forEach(function (row) {
-                            $scope.config.selectedItems.push(row.entity);
-                        });
-                    }
-                }, true);
-                $scope.cellTemplate = $templateCache.get('cellTemplate.html');
-                $scope.rowTemplate = $templateCache.get('rowTemplate.html');
-                var columnDefs = $scope.config['columnDefs'];
-                var fieldName = 'name';
-                var displayName = 'Name';
-                if (columnDefs && columnDefs.length > 0) {
-                    var def = _.first(columnDefs);
-                    fieldName = def['field'] || fieldName;
-                    displayName = def['displayName'] || displayName;
-                    if (def['cellTemplate']) {
-                        $scope.cellTemplate = def['cellTemplate'];
-                    }
-                }
-                var configName = $attr['hawtioList'];
-                var dataName = $scope.config['data'];
-                if (Core.isBlank(configName) || Core.isBlank(dataName)) {
-                    return;
-                }
-                $scope.listRoot = function () {
-                    return $element.find('.hawtio-list-root');
-                };
-                $scope.getContents = function (row) {
-                    //first make our row
-                    var innerScope = $scope.$new();
-                    innerScope.row = row;
-                    var rowEl = $compile($scope.rowTemplate)(innerScope);
-                    //now compile the cell but use the parent scope
-                    var innerParentScope = $scope.parentScope.$new();
-                    innerParentScope.row = row;
-                    innerParentScope.col = {
-                        field: fieldName
-                    };
-                    var cellEl = $compile($scope.cellTemplate)(innerParentScope);
-                    $(rowEl).find('.hawtio-list-row-contents').append(cellEl);
-                    return rowEl;
-                };
-                $scope.setRows = function (data) {
-                    $scope.rows = [];
-                    var list = $scope.listRoot();
-                    list.empty();
-                    if (data) {
-                        data.forEach(function (row) {
-                            var newRow = {
-                                entity: row,
-                                getProperty: function (name) {
-                                    if (!angular.isDefined(name)) {
-                                        return null;
-                                    }
-                                    return row[name];
-                                }
-                            };
-                            list.append($scope.getContents(newRow));
-                            $scope.rows.push(newRow);
-                        });
-                    }
-                };
-                // find the parent scope that has our configuration
-                var parentScope = UI.findParentWith($scope, configName);
-                if (parentScope) {
-                    $scope.parentScope = parentScope;
-                    parentScope.$watch(dataName, $scope.setRows, true);
-                }
-            }
-        };
-    }
-    UI.hawtioList = hawtioList;
-    UI._module.directive('hawtioList', ["$templateCache", "$compile", UI.hawtioList]);
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    var objectView = UI._module.directive("hawtioObject", ["$templateCache", "$interpolate", "$compile", function ($templateCache, $interpolate, $compile) {
-            return {
-                restrict: "A",
-                replace: true,
-                templateUrl: UI.templatePath + "object.html",
-                scope: {
-                    "entity": "=?hawtioObject",
-                    "config": "=?",
-                    "path": "=?",
-                    "row": "=?"
-                },
-                link: function ($scope, $element, $attr) {
-                    function interpolate(template, path, key, value) {
-                        var interpolateFunc = $interpolate(template);
-                        if (!key) {
-                            return interpolateFunc({
-                                data: value,
-                                path: path
-                            });
-                        }
-                        else {
-                            return interpolateFunc({
-                                key: _.startCase(key),
-                                data: value,
-                                path: path
-                            });
-                        }
-                    }
-                    function getEntityConfig(path, config) {
-                        var answer = undefined;
-                        var properties = Core.pathGet(config, ['properties']);
-                        if (!answer && properties) {
-                            angular.forEach(properties, function (config, propertySelector) {
-                                var regex = new RegExp(propertySelector);
-                                if (regex.test(path)) {
-                                    // log.debug("Matched selector: ", propertySelector, " for path: ", path);
-                                    if (answer && !answer.override && !config.override) {
-                                        // log.debug("Merged config");
-                                        answer = _.merge(answer, config);
-                                    }
-                                    else {
-                                        // log.debug("Set config");
-                                        answer = _.clone(config, true);
-                                    }
-                                }
-                            });
-                        }
-                        // log.debug("Answer for path: ", path, " : ", answer);
-                        return answer;
-                    }
-                    function getTemplate(path, config, def) {
-                        var answer = def;
-                        var config = getEntityConfig(path, config);
-                        if (config && config.template) {
-                            answer = config.template;
-                        }
-                        return answer;
-                    }
-                    function compile(template, path, key, value, config) {
-                        var config = getEntityConfig(path, config);
-                        if (config && config.hidden) {
-                            return;
-                        }
-                        var interpolated = null;
-                        // avoid interpolating custom templates
-                        if (config && config.template) {
-                            interpolated = config.template;
-                        }
-                        else {
-                            interpolated = interpolate(template, path, key, value);
-                        }
-                        var scope = $scope.$new();
-                        scope.row = $scope.row;
-                        scope.entityConfig = config;
-                        scope.data = value;
-                        scope.path = path;
-                        return $compile(interpolated)(scope);
-                    }
-                    function renderPrimitiveValue(path, entity, config) {
-                        var template = getTemplate(path, config, $templateCache.get('primitiveValueTemplate.html'));
-                        return compile(template, path, undefined, entity, config);
-                    }
-                    function renderDateValue(path, entity, config) {
-                        var template = getTemplate(path, config, $templateCache.get('dateValueTemplate.html'));
-                        return compile(template, path, undefined, entity, config);
-                    }
-                    function renderObjectValue(path, entity, config) {
-                        var isArray = false;
-                        var el = undefined;
-                        angular.forEach(entity, function (value, key) {
-                            if (angular.isNumber(key) && "length" in entity) {
-                                isArray = true;
-                            }
-                            if (isArray) {
-                                return;
-                            }
-                            if (_.startsWith(key, "$")) {
-                                return;
-                            }
-                            if (!el) {
-                                el = angular.element('<span></span>');
-                            }
-                            if (angular.isArray(value)) {
-                                el.append(renderArrayAttribute(path + '/' + key, key, value, config));
-                            }
-                            else if (angular.isObject(value)) {
-                                if (_.size(value) === 0) {
-                                    el.append(renderPrimitiveAttribute(path + '/' + key, key, 'empty', config));
-                                }
-                                else {
-                                    el.append(renderObjectAttribute(path + '/' + key, key, value, config));
-                                }
-                            }
-                            else if (StringHelpers.isDate(value)) {
-                                el.append(renderDateAttribute(path + '/' + key, key, new Date(value), config));
-                            }
-                            else {
-                                el.append(renderPrimitiveAttribute(path + '/' + key, key, value, config));
-                            }
-                        });
-                        if (el) {
-                            return el.children();
-                        }
-                        else {
-                            return el;
-                        }
-                    }
-                    function getColumnHeaders(path, entity, config) {
-                        var answer = undefined;
-                        if (!entity) {
-                            return answer;
-                        }
-                        var hasPrimitive = false;
-                        entity.forEach(function (item) {
-                            if (!hasPrimitive && angular.isObject(item)) {
-                                if (!answer) {
-                                    answer = [];
-                                }
-                                var keys = _.keys(item);
-                                var notFunctions = _.filter(keys, function (key) { return !angular.isFunction(item[key]); });
-                                var notHidden = _.filter(notFunctions, function (key) {
-                                    var conf = getEntityConfig(path + '/' + key, config);
-                                    if (conf && conf.hidden) {
-                                        return false;
-                                    }
-                                    return true;
-                                });
-                                return _.union(answer, notHidden);
-                            }
-                            else {
-                                answer = undefined;
-                                hasPrimitive = true;
-                            }
-                        });
-                        if (answer) {
-                            answer = _.reject(answer, function (item) { return _.startsWith("" + item, '$'); });
-                        }
-                        //log.debug("Column headers: ", answer);
-                        return answer;
-                    }
-                    function renderTable(template, path, key, value, headers, config) {
-                        var el = angular.element(interpolate(template, path, key, value));
-                        var thead = el.find('thead');
-                        var tbody = el.find('tbody');
-                        var headerTemplate = $templateCache.get('headerTemplate.html');
-                        var cellTemplate = $templateCache.get('cellTemplate.html');
-                        var rowTemplate = $templateCache.get('rowTemplate.html');
-                        var headerRow = angular.element(interpolate(rowTemplate, path, undefined, undefined));
-                        headers.forEach(function (header) {
-                            headerRow.append(interpolate(headerTemplate, path + '/' + header, header, undefined));
-                        });
-                        thead.append(headerRow);
-                        value.forEach(function (item, index) {
-                            var tr = angular.element(interpolate(rowTemplate, path + '/' + index, undefined, undefined));
-                            headers.forEach(function (header) {
-                                var td = angular.element(interpolate(cellTemplate, path + '/' + index + '/' + header, undefined, undefined));
-                                td.append(renderThing(path + '/' + index + '/' + header, item[header], config));
-                                tr.append(td);
-                            });
-                            tbody.append(tr);
-                        });
-                        return el;
-                    }
-                    function renderArrayValue(path, entity, config) {
-                        var headers = getColumnHeaders(path, entity, config);
-                        if (!headers) {
-                            var template = getTemplate(path, config, $templateCache.get('arrayValueListTemplate.html'));
-                            return compile(template, path, undefined, entity, config);
-                        }
-                        else {
-                            var template = getTemplate(path, config, $templateCache.get('arrayValueTableTemplate.html'));
-                            return renderTable(template, path, undefined, entity, headers, config);
-                        }
-                    }
-                    function renderPrimitiveAttribute(path, key, value, config) {
-                        var template = getTemplate(path, config, $templateCache.get('primitiveAttributeTemplate.html'));
-                        return compile(template, path, key, value, config);
-                    }
-                    function renderDateAttribute(path, key, value, config) {
-                        var template = getTemplate(path, config, $templateCache.get('dateAttributeTemplate.html'));
-                        return compile(template, path, key, value, config);
-                    }
-                    function renderObjectAttribute(path, key, value, config) {
-                        var template = getTemplate(path, config, $templateCache.get('objectAttributeTemplate.html'));
-                        return compile(template, path, key, value, config);
-                    }
-                    function renderArrayAttribute(path, key, value, config) {
-                        var headers = getColumnHeaders(path, value, config);
-                        if (!headers) {
-                            var template = getTemplate(path, config, $templateCache.get('arrayAttributeListTemplate.html'));
-                            return compile(template, path, key, value, config);
-                        }
-                        else {
-                            var template = getTemplate(path, config, $templateCache.get('arrayAttributeTableTemplate.html'));
-                            return renderTable(template, path, key, value, headers, config);
-                        }
-                    }
-                    function renderThing(path, entity, config) {
-                        if (angular.isArray(entity)) {
-                            return renderArrayValue(path, entity, config);
-                        }
-                        else if (angular.isObject(entity)) {
-                            return renderObjectValue(path, entity, config);
-                        }
-                        else if (StringHelpers.isDate(entity)) {
-                            return renderDateValue(path, Date.create(entity), config);
-                        }
-                        else {
-                            return renderPrimitiveValue(path, entity, config);
-                        }
-                    }
-                    $scope.$watch('entity', function (entity) {
-                        if (!entity) {
-                            $element.empty();
-                            return;
-                        }
-                        if (!$scope.path) {
-                            // log.debug("Setting entity: ", $scope.entity, " as the root element");
-                            $scope.path = "";
-                        }
-                        /*
-                        if (angular.isDefined($scope.$index)) {
-                          log.debug("$scope.$index: ", $scope.$index);
-                        }
-                        */
-                        if (!angular.isDefined($scope.row)) {
-                            // log.debug("Setting entity: ", entity);
-                            $scope.row = {
-                                entity: entity
-                            };
-                        }
-                        $element.html(renderThing($scope.path, entity, $scope.config));
-                    }, true);
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function hawtioPane() {
-        return {
-            restrict: 'E',
-            replace: true,
-            transclude: true,
-            templateUrl: UI.templatePath + 'pane.html',
-            scope: {
-                position: '@',
-                width: '@',
-                header: '@'
-            },
-            controller: ["$scope", "$element", "$attrs", "$transclude", "$document", "$timeout", "$compile", "$templateCache", "$window", function ($scope, $element, $attrs, $transclude, $document, $timeout, $compile, $templateCache, $window) {
-                    $scope.moving = false;
-                    $transclude(function (clone) {
-                        $element.find(".pane-content").append(clone);
-                        if (Core.isBlank($scope.header)) {
-                            return;
-                        }
-                        var headerTemplate = $templateCache.get($scope.header);
-                        var wrapper = $element.find(".pane-header-wrapper");
-                        wrapper.html($compile(headerTemplate)($scope));
-                        $timeout(function () {
-                            $element.find(".pane-viewport").css("top", wrapper.height());
-                        }, 500);
-                    });
-                    $scope.setViewportTop = function () {
-                        var wrapper = $element.find(".pane-header-wrapper");
-                        $timeout(function () {
-                            $element.find(".pane-viewport").css("top", wrapper.height());
-                        }, 10);
-                    };
-                    $scope.setWidth = function (width) {
-                        if (width < 6) {
-                            return;
-                        }
-                        $element.width(width);
-                        $element.parent().css($scope.padding, $element.width() + "px");
-                        $scope.setViewportTop();
-                    };
-                    $scope.open = function () {
-                        $scope.setWidth($scope.width);
-                    };
-                    $scope.close = function () {
-                        $scope.width = $element.width();
-                        $scope.setWidth(6);
-                    };
-                    $scope.$on('pane.close', $scope.close);
-                    $scope.$on('pane.open', $scope.open);
-                    $scope.toggle = function () {
-                        if ($scope.moving) {
-                            return;
-                        }
-                        if ($element.width() > 6) {
-                            $scope.close();
-                        }
-                        else {
-                            $scope.open();
-                        }
-                    };
-                    $scope.startMoving = function ($event) {
-                        $event.stopPropagation();
-                        $event.preventDefault();
-                        $event.stopImmediatePropagation();
-                        $document.on("mouseup.hawtio-pane", function ($event) {
-                            $timeout(function () {
-                                $scope.moving = false;
-                            }, 250);
-                            $event.stopPropagation();
-                            $event.preventDefault();
-                            $event.stopImmediatePropagation();
-                            $document.off(".hawtio-pane");
-                            Core.$apply($scope);
-                        });
-                        $document.on("mousemove.hawtio-pane", function ($event) {
-                            $scope.moving = true;
-                            $event.stopPropagation();
-                            $event.preventDefault();
-                            $event.stopImmediatePropagation();
-                            if ($scope.position === 'left') {
-                                $scope.setWidth($event.pageX + 2);
-                            }
-                            else {
-                                $scope.setWidth($window.innerWidth - $event.pageX + 2);
-                            }
-                            Core.$apply($scope);
-                        });
-                    };
-                }],
-            link: function ($scope, $element, $attr) {
-                var parent = $element.parent();
-                var position = "left";
-                if ($scope.position) {
-                    position = $scope.position;
-                }
-                $element.addClass(position);
-                var width = $element.width();
-                var padding = "padding-" + position;
-                $scope.padding = padding;
-                var original = parent.css(padding);
-                parent.css(padding, width + "px");
-                $scope.$on('$destroy', function () {
-                    parent.css(padding, original);
-                });
-            }
-        };
-    }
-    UI.hawtioPane = hawtioPane;
-    UI._module.directive('hawtioPane', UI.hawtioPane);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioMessagePanel', function () {
-        return new UI.MessagePanel();
-    });
-    var MessagePanel = (function () {
-        function MessagePanel() {
-            this.restrict = 'A';
-            this.link = function ($scope, $element, $attrs) {
-                var height = "100%";
-                if ('hawtioMessagePanel' in $attrs) {
-                    var wantedHeight = $attrs['hawtioMessagePanel'];
-                    if (!Core.isBlank(wantedHeight)) {
-                        height = wantedHeight;
-                    }
-                }
-                var speed = "1s";
-                if ('speed' in $attrs) {
-                    var wantedSpeed = $attrs['speed'];
-                    if (!Core.isBlank(wantedSpeed)) {
-                        speed = wantedSpeed;
-                    }
-                }
-                $element.css({
-                    position: 'absolute',
-                    bottom: 0,
-                    height: 0,
-                    'min-height': 0,
-                    transition: 'all ' + speed + ' ease-in-out'
-                });
-                $element.parent().mouseover(function () {
-                    $element.css({
-                        height: height,
-                        'min-height': 'auto'
-                    });
-                });
-                $element.parent().mouseout(function () {
-                    $element.css({
-                        height: 0,
-                        'min-height': 0
-                    });
-                });
-            };
-        }
-        return MessagePanel;
-    }());
-    UI.MessagePanel = MessagePanel;
-    UI._module.directive('hawtioInfoPanel', function () {
-        return new UI.InfoPanel();
-    });
-    var InfoPanel = (function () {
-        function InfoPanel() {
-            this.restrict = 'A';
-            this.link = function ($scope, $element, $attrs) {
-                var validDirections = {
-                    'left': {
-                        side: 'right',
-                        out: 'width'
-                    },
-                    'right': {
-                        side: 'left',
-                        out: 'width'
-                    },
-                    'up': {
-                        side: 'bottom',
-                        out: 'height'
-                    },
-                    'down': {
-                        side: 'top',
-                        out: 'height'
-                    }
-                };
-                var direction = "right";
-                if ('hawtioInfoPanel' in $attrs) {
-                    var wantedDirection = $attrs['hawtioInfoPanel'];
-                    if (!Core.isBlank(wantedDirection)) {
-                        if (_.some(_.keys(validDirections), wantedDirection)) {
-                            direction = wantedDirection;
-                        }
-                    }
-                }
-                var speed = "1s";
-                if ('speed' in $attrs) {
-                    var wantedSpeed = $attrs['speed'];
-                    if (!Core.isBlank(wantedSpeed)) {
-                        speed = wantedSpeed;
-                    }
-                }
-                var toggle = "open";
-                if ('toggle' in $attrs) {
-                    var wantedToggle = $attrs['toggle'];
-                    if (!Core.isBlank(wantedSpeed)) {
-                        toggle = wantedToggle;
-                    }
-                }
-                var initialCss = {
-                    position: 'absolute',
-                    transition: 'all ' + speed + ' ease-in-out'
-                };
-                var openCss = {};
-                openCss[validDirections[direction]['out']] = '100%';
-                var closedCss = {};
-                closedCss[validDirections[direction]['out']] = 0;
-                initialCss[validDirections[direction]['side']] = 0;
-                initialCss[validDirections[direction]['out']] = 0;
-                $element.css(initialCss);
-                $scope.$watch(toggle, function (newValue, oldValue) {
-                    if (Core.parseBooleanValue(newValue)) {
-                        $element.css(openCss);
-                    }
-                    else {
-                        $element.css(closedCss);
-                    }
-                });
-                $element.click(function () {
-                    $scope[toggle] = false;
-                    Core.$apply($scope);
-                });
-            };
-        }
-        return InfoPanel;
-    }());
-    UI.InfoPanel = InfoPanel;
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioRow', function () {
-        return new UI.DivRow();
-    });
-    // expand the element to accomodate a group of elements to prevent them from wrapping
-    var DivRow = (function () {
-        function DivRow() {
-            this.restrict = 'A';
-            this.link = function ($scope, $element, $attrs) {
-                $element.get(0).addEventListener("DOMNodeInserted", function () {
-                    var targets = $element.children();
-                    var width = 0;
-                    angular.forEach(targets, function (target) {
-                        var el = angular.element(target);
-                        switch (el.css('display')) {
-                            case 'none':
-                                break;
-                            default:
-                                width = width + el.outerWidth(true) + 5;
-                        }
-                    });
-                    $element.width(width);
-                });
-            };
-        }
-        return DivRow;
-    }());
-    UI.DivRow = DivRow;
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioSlideout', function () {
-        return new UI.SlideOut();
-    });
-    var SlideOut = (function () {
-        function SlideOut() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.transclude = true;
-            this.templateUrl = UI.templatePath + 'slideout.html';
-            this.scope = {
-                show: '=hawtioSlideout',
-                direction: '@',
-                top: '@',
-                height: '@',
-                title: '@',
-                close: '@'
-            };
-            this.controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", function ($scope, $element, $attrs, $transclude, $compile) {
-                    $scope.clone = null;
-                    $transclude(function (clone) {
-                        $scope.clone = $(clone).filter('.dialog-body');
-                    });
-                    UI.observe($scope, $attrs, 'direction', 'right');
-                    UI.observe($scope, $attrs, 'top', '10%', function (value) {
-                        $element.css('top', value);
-                    });
-                    UI.observe($scope, $attrs, 'height', '80%', function (value) {
-                        $element.css('height', value);
-                    });
-                    UI.observe($scope, $attrs, 'title', '');
-                    UI.observe($scope, $attrs, 'close', 'true');
-                    $scope.$watch('show', function () {
-                        if ($scope.show) {
-                            $scope.body = $element.find('.slideout-body');
-                            $scope.body.html($compile($scope.clone.html())($scope.$parent));
-                        }
-                    });
-                    $scope.hidePanel = function ($event) {
-                        UI.log.debug("Event: ", $event);
-                        $scope.show = false;
-                    };
-                }];
-            this.link = function ($scope, $element, $attrs) {
-                $scope.$watch('show', function () {
-                    if ($scope.show) {
-                        $element.addClass('out');
-                        $element.focus();
-                    }
-                    else {
-                        $element.removeClass('out');
-                    }
-                });
-            };
-        }
-        return SlideOut;
-    }());
-    UI.SlideOut = SlideOut;
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioPager', function () {
-        return new UI.TablePager();
-    });
-    var TablePager = (function () {
-        function TablePager() {
-            var _this = this;
-            this.restrict = 'A';
-            this.scope = true;
-            this.templateUrl = UI.templatePath + 'tablePager.html';
-            this.$scope = null;
-            this.element = null;
-            this.attrs = null;
-            this.tableName = null;
-            this.setRowIndexName = null;
-            this.rowIndexName = null;
-            // necessary to ensure 'this' is this object <sigh>
-            this.link = function (scope, element, attrs) {
-                return _this.doLink(scope, element, attrs);
-            };
-        }
-        TablePager.prototype.doLink = function (scope, element, attrs) {
-            var _this = this;
-            this.$scope = scope;
-            this.element = element;
-            this.attrs = attrs;
-            this.tableName = attrs["hawtioPager"] || attrs["array"] || "data";
-            this.setRowIndexName = attrs["onIndexChange"] || "onIndexChange";
-            this.rowIndexName = attrs["rowIndex"] || "rowIndex";
-            scope.first = function () {
-                _this.goToIndex(0);
-            };
-            scope.last = function () {
-                _this.goToIndex(scope.tableLength() - 1);
-            };
-            scope.previous = function () {
-                if (scope.rowIndex() > 0) {
-                    _this.goToIndex(scope.rowIndex() - 1);
-                }
-            };
-            scope.next = function () {
-                if (scope.rowIndex() < scope.tableLength() - 1) {
-                    _this.goToIndex(scope.rowIndex() + 1);
-                }
-            };
-            scope.isEmptyOrFirst = function () {
-                var idx = scope.rowIndex();
-                var length = scope.tableLength();
-                return length <= 0 || idx <= 0;
-            };
-            scope.isEmptyOrLast = function () {
-                var idx = scope.rowIndex();
-                var length = scope.tableLength();
-                return length < 1 || idx + 1 >= length;
-            };
-            scope.rowIndex = function () {
-                return Core.pathGet(scope.$parent, _this.rowIndexName.split('.'));
-            };
-            scope.tableLength = function () {
-                var data = _this.tableData();
-                return data ? data.length : 0;
-            };
-        };
-        TablePager.prototype.tableData = function () {
-            return Core.pathGet(this.$scope.$parent, this.tableName.split('.')) || [];
-        };
-        TablePager.prototype.goToIndex = function (idx) {
-            var name = this.setRowIndexName;
-            var fn = this.$scope[name];
-            if (angular.isFunction(fn)) {
-                fn(idx);
-            }
-            else {
-                console.log("No function defined in scope for " + name + " but was " + fn);
-                this.$scope[this.rowIndexName] = idx;
-            }
-        };
-        return TablePager;
-    }());
-    UI.TablePager = TablePager;
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI.selectedTags = UI._module.filter('selectedTags', ['$rootScope', function ($rootScope) {
-            return function (items, property, selected) {
-                if (selected.length === 0) {
-                    return items;
-                }
-                var answer = [];
-                _.forEach(items, function (item) {
-                    var itemTags = $rootScope.$eval(property, item);
-                    if (_.intersection(itemTags, selected).length === selected.length) {
-                        answer.push(item);
-                    }
-                });
-                return answer;
-            };
-        }]);
-    UI.hawtioTagFilter = UI._module.directive("hawtioTagFilter", ['localStorage', '$location', function (localStorage, $location) {
-            return {
-                restrict: 'E',
-                replace: true,
-                templateUrl: UI.templatePath + 'tagFilter.html',
-                scope: {
-                    selected: '=',
-                    tags: '=?',
-                    collection: '=',
-                    collectionProperty: '@',
-                    saveAs: '@'
-                },
-                link: function ($scope, $element, $attr) {
-                    SelectionHelpers.decorate($scope);
-                    // TODO
-                    /*
-                    if (!Core.isBlank($scope.saveAs)) {
-                      var search = $location.search();
-                      if ($scope.saveAs in search) {
-                        $scope.selected.add(angular.fromJson(search[$scope.saveAs]));
-                      } else if ($scope.saveAs in localStorage) {
-                        var val = localStorage[$scope.saveAs];
-                        if (val === 'undefined') {
-                          delete localStorage[$scope.saveAs];
-                        } else {
-                          $scope.selected.add(angular.fromJson(val));
-                        }
-                      }
-                    }
-                    */
-                    function maybeFilterVisibleTags() {
-                        if ($scope.collection && $scope.collectionProperty) {
-                            if (!$scope.selected.length) {
-                                $scope.visibleTags = $scope.tags;
-                                $scope.filteredCollection = $scope.collection;
-                            }
-                            else {
-                                filterVisibleTags();
-                            }
-                            $scope.visibleTags = $scope.visibleTags.map(function (t) {
-                                return {
-                                    id: t,
-                                    count: $scope.filteredCollection.map(function (c) {
-                                        return c[$scope.collectionProperty];
-                                    }).reduce(function (count, c) {
-                                        if (_.includes(c, t)) {
-                                            return count + 1;
-                                        }
-                                        return count;
-                                    }, 0)
-                                };
-                            });
-                        }
-                        else {
-                            $scope.visibleTags = $scope.tags;
-                        }
-                    }
-                    function filterVisibleTags() {
-                        $scope.filteredCollection = $scope.collection.filter(function (c) {
-                            return SelectionHelpers.filterByGroup($scope.selected, c[$scope.collectionProperty]);
-                        });
-                        $scope.visibleTags = [];
-                        $scope.filteredCollection.forEach(function (c) {
-                            $scope.visibleTags = _.union($scope.visibleTags, c[$scope.collectionProperty]);
-                        });
-                    }
-                    $scope.$watchCollection('collection', function (collection) {
-                        var tagValues = _.union(_.map(collection, function (item) { return $scope.$eval($scope.collectionProperty, item); }));
-                        var tags = [];
-                        _.forEach(tagValues, function (values) {
-                            tags = _.union(tags, values);
-                        });
-                        //log.debug("tags: ", tags);
-                        $scope.tags = tags;
-                    });
-                    $scope.$watchCollection('tags', function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            SelectionHelpers.syncGroupSelection($scope.selected, $scope.tags);
-                            maybeFilterVisibleTags();
-                        }
-                    });
-                    $scope.$watchCollection('selected', function (selected) {
-                        var unique = _.uniq(selected);
-                        $scope.selected.length = 0;
-                        (_a = $scope.selected).push.apply(_a, unique);
-                        //log.debug("newValue: ", $scope.selected);
-                        //TODO
-                        /*
-                        if (!Core.isBlank($scope.saveAs)) {
-                          var saveAs = angular.toJson($scope.selected);
-                          localStorage[$scope.saveAs] = saveAs;
-                          $location.replace().search($scope.saveAs, saveAs);
-                        }
-                        */
-                        maybeFilterVisibleTags();
-                        var _a;
-                    });
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI.hawtioTagList = UI._module.directive("hawtioTagList", ['$interpolate', '$compile', '$templateCache', function ($interpolate, $compile, $templateCache) {
-            return {
-                restrict: 'E',
-                replace: true,
-                templateUrl: UrlHelpers.join(UI.templatePath, 'tagList.html'),
-                scope: {
-                    tags: '=',
-                    remove: '=?',
-                    selected: '=?'
-                },
-                link: function (scope, $element, attr) {
-                    SelectionHelpers.decorate(scope);
-                    var tagBase = $templateCache.get('tagBase.html');
-                    var tagRemove = $templateCache.get('tagRemove.html');
-                    scope.addSelected = function (tag) {
-                        if (scope.selected) {
-                            scope.selected.push(tag);
-                        }
-                    };
-                    scope.isSelected = function (tag) { return !scope.selected || _.includes(scope.selected, tag); };
-                    scope.removeTag = function (tag) { return scope.tags.remove(tag); };
-                    scope.$watchCollection('tags', function (tags) {
-                        //log.debug("Collection changed: ", tags);
-                        var tmp = angular.element("<div></div>");
-                        tags.forEach(function (tag) {
-                            var func = $interpolate(tagBase);
-                            var el = angular.element(func({ tag: tag }));
-                            if (scope.remove) {
-                                el.append($interpolate(tagRemove)({ tag: tag }));
-                            }
-                            if (scope.selected) {
-                                el.attr('ng-click', 'toggleSelectionFromGroup(selected, \'' + tag + '\')');
-                            }
-                            tmp.append(el);
-                        });
-                        $element.html($compile(tmp.children())(scope));
-                    });
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function TemplatePopover($templateCache, $compile, $document) {
-        return {
-            restrict: 'A',
-            link: function ($scope, $element, $attr) {
-                var title = UI.getIfSet('title', $attr, undefined);
-                var trigger = UI.getIfSet('trigger', $attr, 'hover');
-                var html = true;
-                var contentTemplate = UI.getIfSet('content', $attr, 'popoverTemplate');
-                var placement = UI.getIfSet('placement', $attr, 'auto');
-                var delay = UI.getIfSet('delay', $attr, '100');
-                var container = UI.getIfSet('container', $attr, 'body');
-                var selector = UI.getIfSet('selector', $attr, 'false');
-                if (container === 'false') {
-                    container = false;
-                }
-                if (selector === 'false') {
-                    selector = false;
-                }
-                var template = $templateCache.get(contentTemplate);
-                if (!template) {
-                    return;
-                }
-                $element.on('$destroy', function () {
-                    $element.popover('destroy');
-                });
-                $element.popover({
-                    title: title,
-                    trigger: trigger,
-                    html: html,
-                    content: function () {
-                        var res = $compile(template)($scope);
-                        Core.$digest($scope);
-                        return res;
-                    },
-                    delay: delay,
-                    container: container,
-                    selector: selector,
-                    placement: function (tip, element) {
-                        if (placement !== 'auto') {
-                            return placement;
-                        }
-                        var el = $element;
-                        var offset = el.offset();
-                        /* not sure on auto bottom/top
-            
-                        var elVerticalCenter = offset['top'] + (el.outerHeight() / 2);
-                        if (elVerticalCenter < 300) {
-                          return 'bottom';
-                        }
-            
-                        var height = window.innerHeight;
-                        if (elVerticalCenter > window.innerHeight - 300) {
-                          return 'top';
-                        }
-                        */
-                        var width = $document.innerWidth();
-                        var elHorizontalCenter = offset['left'] + (el.outerWidth() / 2);
-                        var midpoint = width / 2;
-                        if (elHorizontalCenter < midpoint) {
-                            return 'right';
-                        }
-                        else {
-                            return 'left';
-                        }
-                    }
-                });
-            }
-        };
-    }
-    UI.TemplatePopover = TemplatePopover;
-    UI._module.directive('hawtioTemplatePopover', ["$templateCache", "$compile", "$document", UI.TemplatePopover]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function HawtioTocDisplay(marked, $location, $anchorScroll, $compile) {
-        var log = Logger.get("UI");
-        return {
-            restrict: 'A',
-            scope: {
-                getContents: '&'
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                    $scope.remaining = -1;
-                    $scope.render = false;
-                    $scope.chapters = [];
-                    $scope.addChapter = function (item) {
-                        console.log("Adding: ", item);
-                        $scope.chapters.push(item);
-                        if (!angular.isDefined(item['text'])) {
-                            $scope.fetchItemContent(item);
-                        }
-                    };
-                    $scope.getTarget = function (id) {
-                        if (!id) {
-                            return '';
-                        }
-                        return id.replace(".", "_");
-                    };
-                    $scope.getFilename = function (href, ext) {
-                        var filename = href.split('/').last();
-                        if (ext && !filename.endsWith(ext)) {
-                            filename = filename + '.' + ext;
-                        }
-                        return filename;
-                    };
-                    $scope.$watch('remaining', function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            var renderIfPageLoadFails = false;
-                            if (newValue === 0 || renderIfPageLoadFails) {
-                                $scope.render = true;
-                            }
-                        }
-                    });
-                    $scope.fetchItemContent = function (item) {
-                        var me = $scope;
-                        $scope.$eval(function (parent) {
-                            parent.getContents({
-                                filename: item['filename'],
-                                cb: function (data) {
-                                    if (data) {
-                                        if (item['filename'].endsWith(".md")) {
-                                            item['text'] = marked(data);
-                                        }
-                                        else {
-                                            item['text'] = data;
-                                        }
-                                        $scope.remaining--;
-                                        Core.$apply(me);
-                                    }
-                                }
-                            });
-                        });
-                    };
-                }],
-            link: function ($scope, $element, $attrs) {
-                var offsetTop = 0;
-                var logbar = $('.logbar');
-                var contentDiv = $("#toc-content");
-                if (logbar.length) {
-                    offsetTop = logbar.height() + logbar.offset().top;
-                }
-                else if (contentDiv.length) {
-                    var offsetContentDiv = contentDiv.offset();
-                    if (offsetContentDiv) {
-                        offsetTop = offsetContentDiv.top;
-                    }
-                }
-                if (!offsetTop) {
-                    // set to a decent guestimate
-                    offsetTop = 90;
-                }
-                var previousHtml = null;
-                var html = $element;
-                if (!contentDiv || !contentDiv.length) {
-                    contentDiv = $element;
-                }
-                var ownerScope = $scope.$parent || $scope;
-                var scrollDuration = 1000;
-                var linkFilter = $attrs["linkFilter"];
-                var htmlName = $attrs["html"];
-                if (htmlName) {
-                    ownerScope.$watch(htmlName, function () {
-                        var htmlText = ownerScope[htmlName];
-                        if (htmlText && htmlText !== previousHtml) {
-                            previousHtml = htmlText;
-                            var markup = $compile(htmlText)(ownerScope);
-                            $element.children().remove();
-                            $element.append(markup);
-                            loadChapters();
-                        }
-                    });
-                }
-                else {
-                    loadChapters();
-                }
-                // make the link active for the first panel on the view
-                $(window).scroll(setFirstChapterActive);
-                function setFirstChapterActive() {
-                    // lets find the first panel which is visible...
-                    var cutoff = $(window).scrollTop();
-                    $element.find("li a").removeClass("active");
-                    $('.panel-body').each(function () {
-                        var offset = $(this).offset();
-                        if (offset && offset.top >= cutoff) {
-                            // lets make the related TOC link active
-                            var id = $(this).attr("id");
-                            if (id) {
-                                var link = html.find("a[chapter-id='" + id + "']");
-                                link.addClass("active");
-                                // stop iterating and just make first one active
-                                return false;
-                            }
-                        }
-                    });
-                }
-                function findLinks() {
-                    var answer = html.find('a');
-                    if (linkFilter) {
-                        answer = answer.filter(linkFilter);
-                    }
-                    return answer;
-                }
-                function loadChapters() {
-                    if (!html.get(0).id) {
-                        html.get(0).id = 'toc';
-                    }
-                    $scope.tocId = '#' + html.get(0).id;
-                    $scope.remaining = findLinks().length;
-                    findLinks().each(function (index, a) {
-                        log.debug("Found: ", a);
-                        var filename = $scope.getFilename(a.href, a.getAttribute('file-extension'));
-                        var item = {
-                            filename: filename,
-                            title: a.textContent,
-                            link: a
-                        };
-                        $scope.addChapter(item);
-                    });
-                    // TODO this doesn't seem to have any effect ;)
-                    setTimeout(function () {
-                        setFirstChapterActive();
-                    }, 100);
-                }
-                $scope.$watch('render', function (newValue, oldValue) {
-                    if (newValue !== oldValue) {
-                        if (newValue) {
-                            if (!contentDiv.next('.hawtio-toc').length) {
-                                var div = $('<div class="hawtio-toc"></div>');
-                                div.appendTo(contentDiv);
-                                var selectedChapter = $location.search()["chapter"];
-                                // lets load the chapter panels
-                                $scope.chapters.forEach(function (chapter, index) {
-                                    log.debug("index:", index);
-                                    var panel = $('<div></div>');
-                                    var panelHeader = null;
-                                    var chapterId = $scope.getTarget(chapter['filename']);
-                                    var link = chapter["link"];
-                                    if (link) {
-                                        link.setAttribute("chapter-id", chapterId);
-                                    }
-                                    if (index > 0) {
-                                        panelHeader = $('<div class="panel-title"><a class="toc-back" href="">Back to Top</a></div>');
-                                    }
-                                    var panelBody = $('<div class="panel-body" id="' + chapterId + '">' + chapter['text'] + '</div>');
-                                    if (panelHeader) {
-                                        panel.append(panelHeader).append($compile(panelBody)($scope));
-                                    }
-                                    else {
-                                        panel.append($compile(panelBody)($scope));
-                                    }
-                                    panel.hide().appendTo(div).fadeIn(1000);
-                                    if (chapterId === selectedChapter) {
-                                        // lets scroll on startup to allow for bookmarking
-                                        scrollToChapter(chapterId);
-                                    }
-                                });
-                                var pageTop = contentDiv.offset().top - offsetTop;
-                                div.find('a.toc-back').each(function (index, a) {
-                                    $(a).click(function (e) {
-                                        e.preventDefault();
-                                        $('body,html').animate({
-                                            scrollTop: pageTop
-                                        }, 2000);
-                                    });
-                                });
-                                // handle clicking links in the TOC
-                                findLinks().each(function (index, a) {
-                                    var href = a.href;
-                                    var filename = $scope.getFilename(href, a.getAttribute('file-extension'));
-                                    $(a).click(function (e) {
-                                        log.debug("Clicked: ", e);
-                                        e.preventDefault();
-                                        var chapterId = $scope.getTarget(filename);
-                                        $location.search("chapter", chapterId);
-                                        Core.$apply(ownerScope);
-                                        scrollToChapter(chapterId);
-                                        return true;
-                                    });
-                                });
-                            }
-                        }
-                    }
-                });
-                // watch for back / forward / url changes
-                ownerScope.$on("$locationChangeSuccess", function (event, current, previous) {
-                    // lets do this asynchronously to avoid Error: $digest already in progress
-                    setTimeout(function () {
-                        // lets check if the chapter selection has changed
-                        var currentChapter = $location.search()["chapter"];
-                        scrollToChapter(currentChapter);
-                    }, 50);
-                });
-                /**
-                 * Lets scroll to the given chapter ID
-                 *
-                 * @param chapterId
-                 */
-                function scrollToChapter(chapterId) {
-                    log.debug("selected chapter changed: " + chapterId);
-                    if (chapterId) {
-                        var target = '#' + chapterId;
-                        var top = 0;
-                        var targetElements = $(target);
-                        if (targetElements.length) {
-                            var offset = targetElements.offset();
-                            if (offset) {
-                                top = offset.top - offsetTop;
-                            }
-                            $('body,html').animate({
-                                scrollTop: top
-                            }, scrollDuration);
-                        }
-                    }
-                }
-            }
-        };
-    }
-    UI.HawtioTocDisplay = HawtioTocDisplay;
-    UI._module.directive('hawtioTocDisplay', ["marked", "$location", "$anchorScroll", "$compile", UI.HawtioTocDisplay]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioViewport', function () {
-        return new UI.ViewportHeight();
-    });
-    var ViewportHeight = (function () {
-        function ViewportHeight() {
-            this.restrict = 'A';
-            this.link = function ($scope, $element, $attrs) {
-                var lastHeight = 0;
-                var resizeFunc = function () {
-                    var neighbor = angular.element($attrs['hawtioViewport']);
-                    var container = angular.element($attrs['containingDiv']);
-                    var start = neighbor.position().top + neighbor.height();
-                    var myHeight = container.height() - start;
-                    if (angular.isDefined($attrs['heightAdjust'])) {
-                        var heightAdjust = Core.parseIntValue($attrs['heightAdjust']);
-                    }
-                    myHeight = myHeight + heightAdjust;
-                    $element.css({
-                        height: myHeight,
-                        'min-height': myHeight
-                    });
-                    if (lastHeight !== myHeight) {
-                        lastHeight = myHeight;
-                        $element.trigger('resize');
-                    }
-                };
-                resizeFunc();
-                $scope.$watch(resizeFunc);
-                $().resize(function () {
-                    resizeFunc();
-                    Core.$apply($scope);
-                    return false;
-                });
-            };
-        }
-        return ViewportHeight;
-    }());
-    UI.ViewportHeight = ViewportHeight;
-    UI._module.directive('hawtioHorizontalViewport', function () {
-        return new UI.HorizontalViewport();
-    });
-    var HorizontalViewport = (function () {
-        function HorizontalViewport() {
-            this.restrict = 'A';
-            this.link = function ($scope, $element, $attrs) {
-                var adjustParent = angular.isDefined($attrs['adjustParent']) && Core.parseBooleanValue($attrs['adjustParent']);
-                $element.get(0).addEventListener("DOMNodeInserted", function () {
-                    var canvas = $element.children();
-                    $element.height(canvas.outerHeight(true));
-                    if (adjustParent) {
-                        $element.parent().height($element.outerHeight(true) + UI.getScrollbarWidth());
-                    }
-                });
-            };
-        }
-        return HorizontalViewport;
-    }());
-    UI.HorizontalViewport = HorizontalViewport;
-})(UI || (UI = {}));
-
-/// <reference path="uiPlugin.ts"/>
-//
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioWindowHeight', ['$window', function ($window) {
-            return {
-                restrict: 'A',
-                replace: false,
-                link: function (scope, element, attrs) {
-                    var viewportHeight = $window.innerHeight;
-                    function processElement(el) {
-                        var offset = el.offset();
-                        if (!offset) {
-                            return;
-                        }
-                        var top = offset.top;
-                        var height = viewportHeight - top;
-                        if (height > 0) {
-                            el.attr({
-                                'style': 'height: ' + height + 'px;'
-                            });
-                        }
-                    }
-                    function layout() {
-                        viewportHeight = $window.innerHeight;
-                        element.parents().each(function (index, el) {
-                            el = $(el);
-                            processElement(el);
-                        });
-                        processElement(element);
-                    }
-                    scope.$watch(_.debounce(layout, 1000, { trailing: true }));
-                }
-            };
-        }]);
-})(UI || (UI = {}));
-
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('zeroClipboard', ["$parse", function ($parse) {
-            return UI.ZeroClipboardDirective($parse);
-        }]);
-    function ZeroClipboardDirective($parse) {
-        return {
-            restrict: 'A',
-            link: function ($scope, $element, $attr) {
-                var clip = new ZeroClipboard($element.get(0), {
-                    moviePath: "img/ZeroClipboard.swf"
-                });
-                clip.on('complete', function (client, args) {
-                    if (args.text && angular.isString(args.text)) {
-                        Core.notification('info', "Copied text to clipboard: " + args.text.truncate(20));
-                    }
-                    Core.$apply($scope);
-                });
-                if ('useCallback' in $attr) {
-                    var func = $parse($attr['useCallback']);
-                    if (func) {
-                        func($scope, { clip: clip });
-                    }
-                }
-            }
-        };
-    }
-    UI.ZeroClipboardDirective = ZeroClipboardDirective;
-})(UI || (UI = {}));
-
 /// <reference path="../../includes.ts"/>
 /**
  * @module DataTable
@@ -3736,7 +11,6 @@ var DataTable;
     DataTable._module = angular.module(DataTable.pluginName, []);
     hawtioPluginLoader.addModule(DataTable.pluginName);
 })(DataTable || (DataTable = {}));
-
 /// <reference path="datatablePlugin.ts"/>
 /**
  * @module DataTable
@@ -4156,6 +430,3427 @@ var DataTable;
         }
     }
 })(DataTable || (DataTable = {}));
+/// <reference path="../../includes.ts"/>
+/**
+ * Module that contains several helper functions related to hawtio's code editor
+ *
+ * @module CodeEditor
+ * @main CodeEditor
+ */
+var CodeEditor;
+(function (CodeEditor) {
+    /**
+     * @property GlobalCodeMirrorOptions
+     * @for CodeEditor
+     * @type CodeMirrorOptions
+     */
+    CodeEditor.GlobalCodeMirrorOptions = {
+        theme: "default",
+        tabSize: 4,
+        lineNumbers: true,
+        indentWithTabs: true,
+        lineWrapping: true,
+        autoCloseTags: true
+    };
+    /**
+     * Tries to figure out what kind of text we're going to render in the editor, either
+     * text, javascript or XML.
+     *
+     * @method detectTextFormat
+     * @for CodeEditor
+     * @static
+     * @param value
+     * @returns {string}
+     */
+    function detectTextFormat(value) {
+        var answer = "text";
+        if (value) {
+            answer = "javascript";
+            var trimmed = _.trim(value);
+            if (trimmed && _.startsWith(trimmed, '<') && _.endsWith(trimmed, '>')) {
+                answer = "xml";
+            }
+        }
+        return answer;
+    }
+    CodeEditor.detectTextFormat = detectTextFormat;
+    /**
+     * Auto formats the CodeMirror editor content to pretty print
+     *
+     * @method autoFormatEditor
+     * @for CodeEditor
+     * @static
+     * @param {CodeMirrorEditor} editor
+     * @return {void}
+     */
+    function autoFormatEditor(editor) {
+        if (editor) {
+            var content = editor.getValue();
+            var mode = editor.getOption('mode');
+            switch (mode) {
+                case 'xml':
+                    content = window.html_beautify(content, { indent_size: 2 });
+                    break;
+                case 'javascript':
+                    content = window.js_beautify(content, { indent_size: 2 });
+                    break;
+            }
+            editor.setValue(content);
+        }
+    }
+    CodeEditor.autoFormatEditor = autoFormatEditor;
+    /**
+     * Used to configures the default editor settings (per Editor Instance)
+     *
+     * @method createEditorSettings
+     * @for CodeEditor
+     * @static
+     * @param {Object} options
+     * @return {Object}
+     */
+    function createEditorSettings(options) {
+        if (options === void 0) { options = {}; }
+        options.extraKeys = options.extraKeys || {};
+        // Handle Mode
+        (function (mode) {
+            mode = mode || { name: "text" };
+            if (typeof mode !== "object") {
+                mode = { name: mode };
+            }
+            var modeName = mode.name;
+            if (modeName === "javascript") {
+                angular.extend(mode, {
+                    "json": true
+                });
+            }
+        })(options.mode);
+        // Handle Code folding folding
+        (function (options) {
+            var javascriptFolding = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
+            var xmlFolding = CodeMirror.newFoldFunction(CodeMirror.tagRangeFinder);
+            // Mode logic inside foldFunction to allow for dynamic changing of the mode.
+            // So don't have to listen to the options model and deal with re-attaching events etc...
+            var foldFunction = function (codeMirror, line) {
+                var mode = codeMirror.getOption("mode");
+                var modeName = mode["name"];
+                if (!mode || !modeName)
+                    return;
+                if (modeName === 'javascript') {
+                    javascriptFolding(codeMirror, line);
+                }
+                else if (modeName === "xml" || _.startsWith(modeName, "html")) {
+                    xmlFolding(codeMirror, line);
+                }
+                ;
+            };
+            options.onGutterClick = foldFunction;
+            options.extraKeys = angular.extend(options.extraKeys, {
+                "Ctrl-Q": function (codeMirror) {
+                    foldFunction(codeMirror, codeMirror.getCursor().line);
+                }
+            });
+        })(options);
+        var readOnly = options.readOnly;
+        if (!readOnly) {
+            /*
+             options.extraKeys = angular.extend(options.extraKeys, {
+             "'>'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '>');
+             },
+             "'/'": function (codeMirror) {
+             codeMirror.closeTag(codeMirror, '/');
+             }
+             });
+             */
+            options.matchBrackets = true;
+        }
+        // Merge the global config in to this instance of CodeMirror
+        angular.extend(options, CodeEditor.GlobalCodeMirrorOptions);
+        return options;
+    }
+    CodeEditor.createEditorSettings = createEditorSettings;
+})(CodeEditor || (CodeEditor = {}));
+/// <reference path="../../includes.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor.pluginName = "hawtio-editor";
+    HawtioEditor.templatePath = "plugins/editor/html";
+    HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+/// <reference path="editorGlobals.ts"/>
+/// <reference path="CodeEditor.ts"/>
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module = angular.module(HawtioEditor.pluginName, []);
+    HawtioEditor._module.run(function () {
+        HawtioEditor.log.debug("loaded");
+    });
+    hawtioPluginLoader.addModule(HawtioEditor.pluginName);
+})(HawtioEditor || (HawtioEditor = {}));
+/// <reference path="editorPlugin.ts"/>
+/// <reference path="CodeEditor.ts"/>
+/**
+ * @module HawtioEditor
+ */
+var HawtioEditor;
+(function (HawtioEditor) {
+    HawtioEditor._module.directive('hawtioEditor', ["$parse", function ($parse) {
+            return HawtioEditor.Editor($parse);
+        }]);
+    function Editor($parse) {
+        return {
+            restrict: 'A',
+            replace: true,
+            templateUrl: UrlHelpers.join(HawtioEditor.templatePath, "editor.html"),
+            scope: {
+                text: '=hawtioEditor',
+                mode: '=',
+                readOnly: '=?',
+                outputEditor: '@',
+                name: '@'
+            },
+            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                    $scope.codeMirror = null;
+                    $scope.doc = null;
+                    $scope.options = [];
+                    UI.observe($scope, $attrs, 'name', 'editor');
+                    $scope.applyOptions = function () {
+                        if ($scope.codeMirror) {
+                            _.forEach($scope.options, function (option) {
+                                try {
+                                    $scope.codeMirror.setOption(option.key, option.value);
+                                }
+                                catch (err) {
+                                }
+                            });
+                        }
+                    };
+                    $scope.$watch(_.debounce(function () {
+                        if ($scope.codeMirror) {
+                            $scope.codeMirror.refresh();
+                        }
+                    }, 100, { trailing: true }));
+                    $scope.$watch('codeMirror', function () {
+                        if ($scope.codeMirror) {
+                            $scope.doc = $scope.codeMirror.getDoc();
+                            $scope.codeMirror.on('change', function (changeObj) {
+                                $scope.text = $scope.doc.getValue();
+                                $scope.dirty = !$scope.doc.isClean();
+                                Core.$apply($scope);
+                            });
+                        }
+                    });
+                }],
+            link: function ($scope, $element, $attrs) {
+                if ('dirty' in $attrs) {
+                    $scope.dirtyTarget = $attrs['dirty'];
+                    $scope.$watch("$parent['" + $scope.dirtyTarget + "']", function (newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            $scope.dirty = newValue;
+                        }
+                    });
+                }
+                var config = _.cloneDeep($attrs);
+                delete config['$$observers'];
+                delete config['$$element'];
+                delete config['$attr'];
+                delete config['class'];
+                delete config['hawtioEditor'];
+                delete config['mode'];
+                delete config['dirty'];
+                delete config['outputEditor'];
+                if ('onChange' in $attrs) {
+                    var onChange = $attrs['onChange'];
+                    delete config['onChange'];
+                    $scope.options.push({
+                        onChange: function (codeMirror) {
+                            var func = $parse(onChange);
+                            if (func) {
+                                func($scope.$parent, { codeMirror: codeMirror });
+                            }
+                        }
+                    });
+                }
+                angular.forEach(config, function (value, key) {
+                    $scope.options.push({
+                        key: key,
+                        'value': value
+                    });
+                });
+                $scope.$watch('mode', function () {
+                    if ($scope.mode) {
+                        if (!$scope.codeMirror) {
+                            $scope.options.push({
+                                key: 'mode',
+                                'value': $scope.mode
+                            });
+                        }
+                        else {
+                            $scope.codeMirror.setOption('mode', $scope.mode);
+                        }
+                    }
+                });
+                $scope.$watch('readOnly', function (readOnly) {
+                    var val = Core.parseBooleanValue(readOnly, false);
+                    if ($scope.codeMirror) {
+                        $scope.codeMirror.setOption('readOnly', val);
+                    }
+                    else {
+                        $scope.options.push({
+                            key: 'readOnly',
+                            value: val
+                        });
+                    }
+                });
+                function getEventName(type) {
+                    var name = $scope.name || 'default';
+                    return "hawtioEditor_" + name + "_" + type;
+                }
+                $scope.$watch('dirty', function (dirty) {
+                    if ('dirtyTarget' in $scope) {
+                        $scope.$parent[$scope.dirtyTarget] = dirty;
+                    }
+                    $scope.$emit(getEventName('dirty'), dirty);
+                });
+                /*
+                $scope.$watch(() => { return $element.is(':visible'); }, (newValue, oldValue) => {
+                  if (newValue !== oldValue && $scope.codeMirror) {
+                      $scope.codeMirror.refresh();
+                  }
+                });
+                */
+                $scope.$watch('text', function (text) {
+                    if (!$scope.codeMirror) {
+                        var options = {
+                            value: text
+                        };
+                        options = CodeEditor.createEditorSettings(options);
+                        $scope.codeMirror = CodeMirror.fromTextArea($element.find('textarea').get(0), options);
+                        var outputEditor = $scope.outputEditor;
+                        if (outputEditor) {
+                            var outputScope = $scope.$parent || $scope;
+                            Core.pathSet(outputScope, outputEditor, $scope.codeMirror);
+                        }
+                        $scope.applyOptions();
+                        $scope.$emit(getEventName('instance'), $scope.codeMirror);
+                    }
+                    else if ($scope.doc) {
+                        if (!$scope.codeMirror.hasFocus()) {
+                            var text = $scope.text || "";
+                            if (angular.isArray(text) || angular.isObject(text)) {
+                                text = JSON.stringify(text, null, "  ");
+                                $scope.mode = "javascript";
+                                $scope.codeMirror.setOption("mode", "javascript");
+                            }
+                            $scope.doc.setValue(text);
+                            $scope.doc.markClean();
+                            $scope.dirty = false;
+                        }
+                    }
+                });
+            }
+        };
+    }
+    HawtioEditor.Editor = Editor;
+})(HawtioEditor || (HawtioEditor = {}));
+/// <reference path="../../includes.ts"/>
+/// <reference path="forceGraphDirective.ts"/>
+/**
+ * Force Graph plugin & directive
+ *
+ * @module ForceGraph
+ */
+var ForceGraph;
+(function (ForceGraph) {
+    var pluginName = 'forceGraph';
+    ForceGraph._module = angular.module(pluginName, []);
+    ForceGraph._module.directive('hawtioForceGraph', function () {
+        return new ForceGraph.ForceGraphDirective();
+    });
+    hawtioPluginLoader.addModule(pluginName);
+})(ForceGraph || (ForceGraph = {}));
+///<reference path="forceGraphPlugin.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    var log = Logger.get("ForceGraph");
+    var ForceGraphDirective = (function () {
+        function ForceGraphDirective() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.transclude = false;
+            this.scope = {
+                graph: '=graph',
+                nodesize: '@',
+                selectedModel: '@',
+                linkDistance: '@',
+                markerKind: '@',
+                charge: '@'
+            };
+            this.link = function ($scope, $element, $attrs) {
+                $scope.trans = [0, 0];
+                $scope.scale = 1;
+                $scope.$watch('graph', function (oldVal, newVal) {
+                    updateGraph();
+                });
+                $scope.redraw = function () {
+                    $scope.trans = d3.event.translate;
+                    $scope.scale = d3.event.scale;
+                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
+                };
+                // This is a callback for the animation
+                $scope.tick = function () {
+                    // provide curvy lines as curves are kind of hawt
+                    $scope.graphEdges.attr("d", function (d) {
+                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
+                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                    });
+                    // apply the translates coming from the layouter
+                    $scope.graphNodes.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    $scope.graphLabels.attr("transform", function (d) {
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                    // Only run this in IE
+                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
+                        $scope.svg.selectAll(".link").each(function () { this.parentNode.insertBefore(this, this); });
+                    }
+                };
+                $scope.mover = function (d) {
+                    if (d.popup != null) {
+                        $("#pop-up").fadeOut(100, function () {
+                            // Popup content
+                            if (d.popup.title != null) {
+                                $("#pop-up-title").html(d.popup.title);
+                            }
+                            else {
+                                $("#pop-up-title").html("");
+                            }
+                            if (d.popup.content != null) {
+                                $("#pop-up-content").html(d.popup.content);
+                            }
+                            else {
+                                $("#pop-up-content").html("");
+                            }
+                            // Popup position
+                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
+                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
+                            $("#pop-up").css({ "left": popLeft, "top": popTop });
+                            $("#pop-up").fadeIn(100);
+                        });
+                    }
+                };
+                $scope.mout = function (d) {
+                    $("#pop-up").fadeOut(50);
+                    //d3.select(this).attr("fill","url(#ten1)");
+                };
+                var updateGraph = function () {
+                    var canvas = $($element);
+                    // TODO: determine the canvas size dynamically
+                    var h = $($element).parent().height();
+                    var w = $($element).parent().width();
+                    var i = 0;
+                    canvas.children("svg").remove();
+                    // First we create the top level SVG object
+                    // TODO maybe pass in the width/height
+                    $scope.svg = d3.select(canvas[0]).append("svg")
+                        .attr("width", w)
+                        .attr("height", h);
+                    // The we add the markers for the arrow tips
+                    var linkTypes = null;
+                    if ($scope.graph) {
+                        linkTypes = $scope.graph.linktypes;
+                    }
+                    if (!linkTypes) {
+                        return;
+                    }
+                    $scope.svg.append("svg:defs").selectAll("marker")
+                        .data(linkTypes)
+                        .enter().append("svg:marker")
+                        .attr("id", String)
+                        .attr("viewBox", "0 -5 10 10")
+                        .attr("refX", 15)
+                        .attr("refY", -1.5)
+                        .attr("markerWidth", 6)
+                        .attr("markerHeight", 6)
+                        .attr("orient", "auto")
+                        .append("svg:path")
+                        .attr("d", "M0,-5L10,0L0,5");
+                    // The bounding box can't be zoomed or scaled at all
+                    $scope.svg.append("svg:g")
+                        .append("svg:rect")
+                        .attr("class", "graphbox.frame")
+                        .attr('width', w)
+                        .attr('height', h);
+                    $scope.viewport = $scope.svg.append("svg:g")
+                        .call(d3.behavior.zoom().on("zoom", $scope.redraw))
+                        .append("svg:g");
+                    $scope.viewport.append("svg:rect")
+                        .attr("width", 1000000)
+                        .attr("height", 1000000)
+                        .attr("class", "graphbox")
+                        .attr("transform", "translate(-50000, -500000)");
+                    // Only do this if we have a graph object
+                    if ($scope.graph) {
+                        var ownerScope = $scope.$parent || $scope;
+                        var selectedModel = $scope.selectedModel || "selectedNode";
+                        // kick off the d3 forced graph layout
+                        $scope.force = d3.layout.force()
+                            .nodes($scope.graph.nodes)
+                            .links($scope.graph.links)
+                            .size([w, h])
+                            .on("tick", $scope.tick);
+                        if (angular.isDefined($scope.linkDistance)) {
+                            $scope.force.linkDistance($scope.linkDistance);
+                        }
+                        if (angular.isDefined($scope.charge)) {
+                            $scope.force.charge($scope.charge);
+                        }
+                        var markerTypeName = $scope.markerKind || "marker-end";
+                        // Add all edges to the viewport
+                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path")
+                            .data($scope.force.links())
+                            .enter().append("svg:path")
+                            .attr("class", function (d) {
+                            return "link " + d.type;
+                        })
+                            .attr(markerTypeName, function (d) {
+                            return "url(#" + d.type + ")";
+                        });
+                        // add all nodes to the viewport
+                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle")
+                            .data($scope.force.nodes())
+                            .enter()
+                            .append("a")
+                            .attr("xlink:href", function (d) {
+                            return d.navUrl;
+                        })
+                            .on("mouseover.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', true);
+                            ownerScope[selectedModel] = d;
+                            Core.pathSet(ownerScope, selectedModel, d);
+                            Core.$apply(ownerScope);
+                        })
+                            .on("mouseout.onLink", function (d, i) {
+                            var sel = d3.select(d3.event.target);
+                            sel.classed('selected', false);
+                        });
+                        var hasImage_1 = function (d) {
+                            return d.image && d.image.url;
+                        };
+                        // Add the images if they are set
+                        $scope.graphNodes.filter(function (d) {
+                            return d.image != null;
+                        })
+                            .append("image")
+                            .attr("xlink:href", function (d) {
+                            return d.image.url;
+                        })
+                            .attr("x", function (d) {
+                            return -(d.image.width / 2);
+                        })
+                            .attr("y", function (d) {
+                            return -(d.image.height / 2);
+                        })
+                            .attr("width", function (d) {
+                            return d.image.width;
+                        })
+                            .attr("height", function (d) {
+                            return d.image.height;
+                        });
+                        // if we don't have an image add a circle
+                        $scope.graphNodes.filter(function (d) { return !hasImage_1(d); })
+                            .append("circle")
+                            .attr("class", function (d) {
+                            return d.type;
+                        })
+                            .attr("r", function (d) {
+                            return d.size || $scope.nodesize;
+                        });
+                        // Add the labels to the viewport
+                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g")
+                            .data($scope.force.nodes())
+                            .enter().append("svg:g");
+                        // A copy of the text with a thick white stroke for legibility.
+                        $scope.graphLabels.append("svg:text")
+                            .attr("x", 8)
+                            .attr("y", ".31em")
+                            .attr("class", "shadow")
+                            .text(function (d) {
+                            return d.name;
+                        });
+                        $scope.graphLabels.append("svg:text")
+                            .attr("x", 8)
+                            .attr("y", ".31em")
+                            .text(function (d) {
+                            return d.name;
+                        });
+                        // animate, then stop
+                        $scope.force.start();
+                        $scope.graphNodes
+                            .call($scope.force.drag)
+                            .on("mouseover", $scope.mover)
+                            .on("mouseout", $scope.mout);
+                    }
+                };
+            };
+        }
+        return ForceGraphDirective;
+    }());
+    ForceGraph.ForceGraphDirective = ForceGraphDirective;
+})(ForceGraph || (ForceGraph = {}));
+/// <reference path="../../includes.ts"/>
+var ForceGraph;
+(function (ForceGraph) {
+    /**
+     * GraphBuilder
+     *
+     * @class GraphBuilder
+     */
+    var GraphBuilder = (function () {
+        function GraphBuilder() {
+            this.nodes = {};
+            this.links = [];
+            this.linkTypes = {};
+        }
+        /**
+         * Adds a node to this graph
+         * @method addNode
+         * @param {Object} node
+         */
+        GraphBuilder.prototype.addNode = function (node) {
+            if (!this.nodes[node.id]) {
+                this.nodes[node.id] = node;
+            }
+        };
+        GraphBuilder.prototype.getNode = function (id) {
+            return this.nodes[id];
+        };
+        GraphBuilder.prototype.hasLinks = function (id) {
+            var _this = this;
+            var result = false;
+            this.links.forEach(function (link) {
+                if (link.source.id == id || link.target.id == id) {
+                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
+                }
+            });
+            return result;
+        };
+        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
+            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
+                this.links.push({
+                    source: this.nodes[srcId],
+                    target: this.nodes[targetId],
+                    type: linkType
+                });
+                if (!this.linkTypes[linkType]) {
+                    this.linkTypes[linkType] = {
+                        used: true
+                    };
+                }
+                ;
+            }
+        };
+        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
+            var result = -1;
+            var index = 0;
+            for (index = 0; index < nodes.length; index++) {
+                var node = nodes[index];
+                if (node.id == id) {
+                    result = index;
+                    break;
+                }
+            }
+            return result;
+        };
+        GraphBuilder.prototype.filterNodes = function (filter) {
+            var filteredNodes = {};
+            var newLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (filter(node)) {
+                    filteredNodes[node.id] = node;
+                }
+            });
+            this.links.forEach(function (link) {
+                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
+                    newLinks.push(link);
+                }
+            });
+            this.nodes = filteredNodes;
+            this.links = newLinks;
+        };
+        GraphBuilder.prototype.buildGraph = function () {
+            var _this = this;
+            var graphNodes = [];
+            var linktypes = d3.keys(this.linkTypes);
+            var graphLinks = [];
+            d3.values(this.nodes).forEach(function (node) {
+                if (node.includeInGraph == null || node.includeInGraph) {
+                    node.includeInGraph = true;
+                    graphNodes.push(node);
+                }
+            });
+            this.links.forEach(function (link) {
+                if (_this.nodes[link.source.id] != null
+                    && _this.nodes[link.target.id] != null
+                    && _this.nodes[link.source.id].includeInGraph
+                    && _this.nodes[link.target.id].includeInGraph) {
+                    graphLinks.push({
+                        source: _this.nodeIndex(link.source.id, graphNodes),
+                        target: _this.nodeIndex(link.target.id, graphNodes),
+                        type: link.type
+                    });
+                }
+            });
+            return {
+                nodes: graphNodes,
+                links: graphLinks,
+                linktypes: linktypes
+            };
+        };
+        return GraphBuilder;
+    }());
+    ForceGraph.GraphBuilder = GraphBuilder;
+})(ForceGraph || (ForceGraph = {}));
+/// <reference path="../../includes.ts"/>
+var Toastr;
+(function (Toastr) {
+    var pluginName = 'hawtio-toastr';
+    var _module = angular.module(pluginName, []);
+    hawtioPluginLoader.addModule(pluginName);
+})(Toastr || (Toastr = {}));
+var Core;
+(function (Core) {
+    /**
+     * Displays an alert message which is typically the result of some asynchronous operation
+     *
+     * @method notification
+     * @static
+     * @param type which is usually "success" or "error" and matches css alert-* css styles
+     * @param message the text to display
+     *
+     */
+    function notification(type, message, options) {
+        if (options === void 0) { options = null; }
+        if (options === null) {
+            options = {};
+        }
+        if (type === 'error' || type === 'warning') {
+            if (!angular.isDefined(options.onclick)) {
+                options.onclick = window['showLogPanel'];
+            }
+        }
+        toastr[type](message, '', options);
+    }
+    Core.notification = notification;
+    /**
+     * Clears all the pending notifications
+     * @method clearNotifications
+     * @static
+     */
+    function clearNotifications() {
+        toastr.clear();
+    }
+    Core.clearNotifications = clearNotifications;
+})(Core || (Core = {}));
+/**
+ * @module UI
+ */
+/// <reference path="../../includes.ts"/>
+var UI;
+(function (UI) {
+    UI.log = Logger.get("UI");
+    UI.scrollBarWidth = null;
+    UI.pluginName = 'hawtio-ui';
+    UI.templatePath = 'plugins/ui/html/';
+})(UI || (UI = {}));
+/// <reference path="../../includes.ts"/>
+/// <reference path="uiHelpers.ts"/>
+/**
+ * Module that contains a bunch of re-usable directives to assemble into pages in hawtio
+ *
+ * @module UI
+ * @main UI
+ */
+var UI;
+(function (UI) {
+    UI._module = angular.module(UI.pluginName, []);
+    UI._module.factory('UI', function () {
+        return UI;
+    });
+    UI._module.factory('marked', function () {
+        marked.setOptions({
+            gfm: true,
+            tables: true,
+            breaks: false,
+            pedantic: true,
+            sanitize: false,
+            smartLists: true,
+            langPrefix: 'language-'
+        });
+        return marked;
+    });
+    UI._module.directive('compile', ['$compile', function ($compile) {
+            return function (scope, element, attrs) {
+                scope.$watch(function (scope) {
+                    // watch the 'compile' expression for changes
+                    return scope.$eval(attrs['compile']);
+                }, function (value) {
+                    // when the 'compile' expression changes
+                    // assign it into the current DOM
+                    element.html(value);
+                    // compile the new DOM and link it to the current
+                    // scope.
+                    // NOTE: we only compile .childNodes so that
+                    // we don't get into infinite loop compiling ourselves
+                    $compile(element.contents())(scope);
+                });
+            };
+        }]);
+    /*
+    UI._module.controller("CodeEditor.PreferencesController", ["$scope", "localStorage", "$templateCache", ($scope, localStorage, $templateCache) => {
+      $scope.exampleText = $templateCache.get("exampleText");
+      $scope.codeMirrorEx = $templateCache.get("codeMirrorExTemplate");
+      $scope.javascript = "javascript";
+  
+      $scope.preferences = CodeEditor.GlobalCodeMirrorOptions;
+  
+      // If any of the preferences change, make sure to save them automatically
+      $scope.$watch("preferences", function(newValue, oldValue) {
+        if (newValue !== oldValue) {
+          // such a cheap and easy way to update the example view :-)
+          $scope.codeMirrorEx += " ";
+          localStorage['CodeMirrorOptions'] = angular.toJson(angular.extend(CodeEditor.GlobalCodeMirrorOptions, $scope.preferences));
+        }
+      }, true);
+  
+    }]);
+    */
+    UI._module.run([function () {
+            UI.log.debug("loaded");
+            /*
+            var opts = localStorage['CodeMirrorOptions'];
+            if (opts) {
+              opts = angular.fromJson(opts);
+              CodeEditor.GlobalCodeMirrorOptions = angular.extend(CodeEditor.GlobalCodeMirrorOptions, opts);
+            }
+            */
+        }]);
+    hawtioPluginLoader.addModule(UI.pluginName);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioAutoDropdown', function () {
+        return UI.AutoDropDown;
+    });
+    /**
+     * TODO turn this into a normal directive function
+     *
+     * @property AutoDropDown
+     * @type IAutoDropDown
+     */
+    UI.AutoDropDown = {
+        restrict: 'A',
+        link: function ($scope, $element, $attrs) {
+            function locateElements(event) {
+                var el = $element.get(0);
+                if (event && event.relatedNode !== el && event.type) {
+                    if (event && event.type !== 'resize') {
+                        return;
+                    }
+                }
+                var overflowEl = $($element.find('.dropdown.overflow'));
+                var overflowMenu = $(overflowEl.find('ul.dropdown-menu'));
+                /*
+                Logger.info("element inner width: ", $element.innerWidth());
+                Logger.info("element position: ", $element.position());
+                Logger.info("element offset: ", $element.offset());
+                Logger.info("overflowEl offset: ", overflowEl.offset());
+                Logger.info("overflowEl position: ", overflowEl.position());
+                */
+                var margin = 0;
+                var availableWidth = 0;
+                try {
+                    overflowEl.addClass('pull-right');
+                    margin = overflowEl.outerWidth() - overflowEl.innerWidth();
+                    availableWidth = overflowEl.position().left - $element.position().left - 50;
+                    overflowEl.removeClass('pull-right');
+                }
+                catch (e) {
+                    UI.log.debug("caught " + e);
+                }
+                overflowMenu.children().insertBefore(overflowEl);
+                var overflowItems = [];
+                $element.children(':not(.overflow):not(:hidden)').each(function () {
+                    var self = $(this);
+                    availableWidth = availableWidth - self.outerWidth(true);
+                    if (availableWidth < 0) {
+                        overflowItems.push(self);
+                    }
+                });
+                for (var i = overflowItems.length - 1; i > -1; i--) {
+                    overflowItems[i].prependTo(overflowMenu);
+                }
+                if (overflowMenu.children().length > 0) {
+                    overflowEl.css('visibility', 'visible');
+                }
+                if (availableWidth > 130) {
+                    var noSpace = false;
+                    overflowMenu.children(':not(.overflow)').filter(function () {
+                        return $(this).css('display') !== 'none';
+                    }).each(function () {
+                        if (noSpace) {
+                            return;
+                        }
+                        var self = $(this);
+                        if (availableWidth > self.outerWidth()) {
+                            availableWidth = availableWidth - self.outerWidth();
+                            self.insertBefore(overflowEl);
+                        }
+                        else {
+                            noSpace = true;
+                        }
+                    });
+                }
+                if (overflowMenu.children().length === 0) {
+                    overflowEl.css('visibility', 'hidden');
+                }
+            }
+            $(window).resize(_.throttle(locateElements, 100));
+            $scope.$root.$on('jmxTreeClicked', function () { return setTimeout(locateElements, 0); });
+            $scope.$watch(setTimeout(locateElements, 500));
+        }
+    };
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    function hawtioBreadcrumbs() {
+        return {
+            restrict: 'E',
+            replace: true,
+            templateUrl: UI.templatePath + 'breadcrumbs.html',
+            require: 'hawtioDropDown',
+            scope: {
+                config: '='
+            },
+            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                    $scope.action = "itemClicked(config, $event)";
+                    $scope.levels = {};
+                    function resetAction(list) {
+                        _.forEach(list, function (item) { return item.action = $scope.action; });
+                    }
+                    function lastLevel() {
+                        var last = _.last(_.sortBy(_.keys($scope.levels), ""));
+                        return last;
+                    }
+                    $scope.isLastLevel = function (level) {
+                        return level === lastLevel();
+                    };
+                    $scope.itemClicked = function (config, $event) {
+                        if (angular.isDefined(config.level)) {
+                            $scope.levels[config.level] = config;
+                            var keys = _.sortBy(_.keys($scope.levels), "");
+                            var toRemove = keys.slice(config.level + 1);
+                            _.forEach(toRemove, function (i) { return delete $scope.levels[i]; });
+                            var keys = _.sortBy(_.keys($scope.levels), "");
+                            var path = [];
+                            _.forEach(keys, function (key) {
+                                path.push($scope.levels[key]['title']);
+                            });
+                            var pathString = '/' + path.join("/");
+                            $scope.config.path = pathString;
+                        }
+                    };
+                    function addAction(config, level) {
+                        config.level = level;
+                        config.action = $scope.action;
+                        if (config.items) {
+                            _.forEach(config.items, function (item) {
+                                addAction(item, level + 1);
+                            });
+                        }
+                    }
+                    function setLevels(config, pathParts, level) {
+                        if (pathParts.length === 0) {
+                            return;
+                        }
+                        var part = pathParts.shift();
+                        if (config && config.items) {
+                            var matched = false;
+                            _.forEach(config.items, function (item) {
+                                if (!matched && item['title'] === part) {
+                                    matched = true;
+                                    $scope.levels[level] = item;
+                                    setLevels(item, pathParts, level + 1);
+                                }
+                            });
+                        }
+                        var last = lastLevel();
+                        _.forOwn($scope.levels, function (config, level) {
+                            config.open = level === last;
+                            delete config.action;
+                            resetAction(config.items);
+                        });
+                    }
+                    // watch to see if the parent scope changes the path
+                    $scope.$watch('config.path', function (path) {
+                        if (!Core.isBlank(path)) {
+                            var pathParts = _.filter(path.split('/'), function (p) { return !Core.isBlank(p); });
+                            // adjust $scope.levels to match the path
+                            _.forEach(_.keys($scope.levels), function (key) {
+                                if (key > 0) {
+                                    delete $scope.levels[key];
+                                }
+                            });
+                            setLevels($scope.config, _.tail(pathParts), 1);
+                        }
+                    });
+                    $scope.$watch('config', function (newValue, oldValue) {
+                        addAction($scope.config, 0);
+                        delete $scope.config.action;
+                        $scope.levels[0] = $scope.config;
+                    });
+                }]
+        };
+    }
+    UI.hawtioBreadcrumbs = hawtioBreadcrumbs;
+    UI._module.directive('hawtioBreadcrumbs', UI.hawtioBreadcrumbs);
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    // simple directive that adds the patternfly card BG color to the content area of a hawtio app
+    UI._module.directive('hawtioCardBg', ['$timeout', function ($timeout) {
+            return {
+                restrict: 'AC',
+                link: function (scope, element, attr) {
+                    $timeout(function () {
+                        var parent = $('body');
+                        //console.log("Parent: ", parent);
+                        parent.addClass('cards-pf');
+                        element.on('$destroy', function () {
+                            parent.removeClass('cards-pf');
+                        });
+                    }, 10);
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    setTimeout(function () {
+        var clipboard = new window.Clipboard('.btn-clipboard');
+        clipboard.on('success', function (e) {
+            var button = $(e.trigger);
+            var title = null;
+            if (button.attr('title')) {
+                title = button.attr('title');
+                button.removeAttr('title');
+            }
+            button.tooltip({ placement: 'bottom', title: 'Copied!', trigger: 'click' });
+            button.tooltip('show');
+            button.mouseleave(function () {
+                button.tooltip('hide');
+                if (title) {
+                    button.attr('title', title);
+                }
+            });
+        });
+    }, 1000);
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    /**
+     * Pre defined colors used in the color picker
+     * @property colors
+     * @for UI
+     * @type Array
+     */
+    UI.colors = ["#5484ED", "#A4BDFC", "#46D6DB", "#7AE7BF",
+        "#51B749", "#FBD75B", "#FFB878", "#FF887C", "#DC2127",
+        "#DBADFF", "#E1E1E1"];
+    UI._module.constant('UIColors', UI.colors);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./colors.ts"/>
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioColorPicker', function () {
+        return new UI.ColorPicker();
+    });
+    UI.selected = "selected";
+    UI.unselected = "unselected";
+    /**
+  Directive that allows the user to pick a color from a pre-defined pallete of colors.
+  
+  Use it like:
+  
+  ```html
+  <div hawtio-color-picker="myModel"></div>
+  ```
+  
+  'myModel' will be bound to the color the user clicks on
+  
+  @class ColorPicker
+     */
+    var ColorPicker = (function () {
+        function ColorPicker() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.scope = {
+                property: '=hawtioColorPicker'
+            };
+            this.templateUrl = UI.templatePath + "colorPicker.html";
+            this.compile = function (tElement, tAttrs, transclude) {
+                return {
+                    post: function postLink(scope, iElement, iAttrs, controller) {
+                        scope.colorList = [];
+                        angular.forEach(UI.colors, function (color) {
+                            var select = UI.unselected;
+                            if (scope.property === color) {
+                                select = UI.selected;
+                            }
+                            scope.colorList.push({
+                                color: color,
+                                select: select
+                            });
+                        });
+                    }
+                };
+            };
+            this.controller = ["$scope", "$element", "$timeout", function ($scope, $element, $timeout) {
+                    $scope.popout = false;
+                    $scope.$watch('popout', function () {
+                        $element.find('.color-picker-popout').toggleClass('popout-open', $scope.popout);
+                    });
+                    $scope.selectColor = function (color) {
+                        for (var i = 0; i < $scope.colorList.length; i++) {
+                            $scope.colorList[i].select = UI.unselected;
+                            if ($scope.colorList[i] === color) {
+                                $scope.property = color.color;
+                                $scope.colorList[i].select = UI.selected;
+                            }
+                        }
+                    };
+                }];
+        }
+        return ColorPicker;
+    }());
+    UI.ColorPicker = ColorPicker;
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioConfirmDialog', function () {
+        return new UI.ConfirmDialog();
+    });
+    /**
+     * Directive that opens a simple standard confirmation dialog.  See ConfigDialogConfig
+     * for configuration properties
+     *
+     * @class ConfirmDialog
+     */
+    var ConfirmDialog = (function () {
+        function ConfirmDialog() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.transclude = true;
+            this.templateUrl = UI.templatePath + 'confirmDialog.html';
+            /**
+             * @property scope
+             * @type ConfirmDialogConfig
+             */
+            this.scope = {
+                show: '=hawtioConfirmDialog',
+                title: '@',
+                okButtonText: '@',
+                showOkButton: '@',
+                cancelButtonText: '@',
+                onCancel: '&?',
+                onOk: '&?',
+                onClose: '&?',
+                size: '@',
+                optionalSize: '@' // deprecated
+            };
+            this.controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", function ($scope, $element, $attrs, $transclude, $compile) {
+                    $scope.clone = null;
+                    // Set optional size modifier class
+                    $scope.size = $scope.size || $scope.optionalSize;
+                    if ($scope.size === 'sm' || $scope.size === 'lg') {
+                        $scope.sizeClass = 'modal-' + $scope.size;
+                    }
+                    $transclude(function (clone) {
+                        $scope.clone = $(clone).filter('.dialog-body');
+                    });
+                    $scope.$watch('show', function () {
+                        if ($scope.show) {
+                            setTimeout(function () {
+                                $scope.body = $('.modal-body');
+                                $scope.body.html($compile($scope.clone.html())($scope.$parent));
+                                Core.$apply($scope);
+                            }, 50);
+                        }
+                    });
+                    $attrs.$observe('okButtonText', function (value) {
+                        if (!angular.isDefined(value)) {
+                            $scope.okButtonText = "OK";
+                        }
+                    });
+                    $attrs.$observe('cancelButtonText', function (value) {
+                        if (!angular.isDefined(value)) {
+                            $scope.cancelButtonText = "Cancel";
+                        }
+                    });
+                    $attrs.$observe('title', function (value) {
+                        if (!angular.isDefined(value)) {
+                            $scope.title = "Are you sure?";
+                        }
+                    });
+                    function checkClosed() {
+                        setTimeout(function () {
+                            // lets make sure we don't have a modal-backdrop hanging around!
+                            var backdrop = $("div.modal-backdrop");
+                            if (backdrop && backdrop.length) {
+                                Logger.get("ConfirmDialog").debug("Removing the backdrop div! " + backdrop);
+                                backdrop.remove();
+                            }
+                        }, 200);
+                    }
+                    $scope.cancel = function () {
+                        $scope.show = false;
+                        $scope.$parent.$eval($scope.onCancel);
+                        checkClosed();
+                    };
+                    $scope.submit = function () {
+                        $scope.show = false;
+                        $scope.$parent.$eval($scope.onOk);
+                        checkClosed();
+                    };
+                    $scope.close = function () {
+                        $scope.$parent.$eval($scope.onClose);
+                        checkClosed();
+                    };
+                }];
+        }
+        return ConfirmDialog;
+    }());
+    UI.ConfirmDialog = ConfirmDialog;
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+/**
+ * @module UI
+ */
+var UI;
+(function (UI) {
+    UI._module.controller("UI.DeveloperPageController", ["$scope", "$http", function ($scope, $http) {
+            $scope.getContents = function (filename, cb) {
+                var fullUrl = UrlHelpers.join(UI.templatePath, "test", filename);
+                $http({ method: 'GET', url: fullUrl })
+                    .success(function (data, status, headers, config) {
+                    cb(data);
+                })
+                    .error(function (data, status, headers, config) {
+                    cb("Failed to fetch " + filename + ": " + data);
+                });
+            };
+        }]);
+})(UI || (UI = {}));
+/// <reference path="../../includes.ts"/>
+/// <reference path="uiHelpers.ts"/>
+/**
+ * @module UI
+ */
+var UI;
+(function (UI) {
+    /**
+     * Simple helper class for creating <a href="http://angular-ui.github.io/bootstrap/#/modal">angular ui bootstrap modal dialogs</a>
+     * @class Dialog
+     */
+    var Dialog = (function () {
+        function Dialog() {
+            this.show = false;
+            this.options = {
+                backdropFade: true,
+                dialogFade: true
+            };
+        }
+        /**
+         * Opens the dialog
+         * @method open
+         */
+        Dialog.prototype.open = function () {
+            this.show = true;
+        };
+        /**
+         * Closes the dialog
+         * @method close
+         */
+        Dialog.prototype.close = function () {
+            this.show = false;
+            // lets make sure and remove any backgroup fades
+            this.removeBackdropFadeDiv();
+            setTimeout(this.removeBackdropFadeDiv, 100);
+        };
+        Dialog.prototype.removeBackdropFadeDiv = function () {
+            $("div.modal-backdrop").remove();
+        };
+        return Dialog;
+    }());
+    UI.Dialog = Dialog;
+    function multiItemConfirmActionDialog(options) {
+        var $dialog = HawtioCore.injector.get("$dialog");
+        return $dialog.dialog({
+            resolve: {
+                options: function () { return options; }
+            },
+            templateUrl: UrlHelpers.join(UI.templatePath, 'multiItemConfirmActionDialog.html'),
+            controller: ["$scope", "dialog", "options", function ($scope, dialog, options) {
+                    $scope.options = options;
+                    $scope.close = function (result) {
+                        dialog.close();
+                        options.onClose(result);
+                    };
+                    $scope.getName = function (item) {
+                        return Core.pathGet(item, options.index.split('.'));
+                    };
+                }]
+        });
+    }
+    UI.multiItemConfirmActionDialog = multiItemConfirmActionDialog;
+})(UI || (UI = {}));
+///<reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI.hawtioDrag = UI._module.directive("hawtioDrag", [function () {
+            return {
+                replace: false,
+                transclude: true,
+                restrict: 'A',
+                template: '<span ng-transclude></span>',
+                scope: {
+                    data: '=hawtioDrag'
+                },
+                link: function (scope, element, attrs) {
+                    element.attr({
+                        draggable: 'true'
+                    });
+                    //log.debug("hawtioDrag, data: ", scope.data);
+                    var el = element[0];
+                    el.draggable = true;
+                    el.addEventListener('dragstart', function (event) {
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData('data', scope.data);
+                        element.addClass('drag-started');
+                        return false;
+                    }, false);
+                    el.addEventListener('dragend', function (event) {
+                        element.removeClass('drag-started');
+                    }, false);
+                }
+            };
+        }]);
+    UI.hawtioDrop = UI._module.directive("hawtioDrop", [function () {
+            return {
+                replace: false,
+                transclude: true,
+                restrict: 'A',
+                template: '<span ng-transclude></span>',
+                scope: {
+                    onDrop: '&?hawtioDrop',
+                    ngModel: '=',
+                    property: '@',
+                    prefix: '@'
+                },
+                link: function (scope, element, attrs) {
+                    //log.debug("hawtioDrop, onDrop: ", scope.onDrop);
+                    //log.debug("hawtioDrop, ngModel: ", scope.ngModel);
+                    //log.debug("hawtioDrop, property: ", scope.property);
+                    var dragEnter = function (event) {
+                        if (event.preventDefault) {
+                            event.preventDefault();
+                        }
+                        element.addClass('drag-over');
+                        return false;
+                    };
+                    var el = element[0];
+                    el.addEventListener('dragenter', dragEnter, false);
+                    el.addEventListener('dragover', dragEnter, false);
+                    el.addEventListener('dragleave', function (event) {
+                        element.removeClass('drag-over');
+                        return false;
+                    }, false);
+                    el.addEventListener('drop', function (event) {
+                        if (event.stopPropagation) {
+                            event.stopPropagation();
+                        }
+                        element.removeClass('drag-over');
+                        var data = event.dataTransfer.getData('data');
+                        if (scope.onDrop) {
+                            scope.$eval(scope.onDrop, {
+                                data: data,
+                                model: scope.ngModel,
+                                property: scope.property
+                            });
+                        }
+                        var eventName = 'hawtio-drop';
+                        if (!Core.isBlank(scope.prefix)) {
+                            eventName = scope.prefix + '-' + eventName;
+                        }
+                        // let's emit this too so parent scopes can watch for the data
+                        scope.$emit(eventName, {
+                            data: data,
+                            model: scope.ngModel,
+                            property: scope.property
+                        });
+                        Core.$apply(scope);
+                        return false;
+                    }, false);
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    function hawtioDropDown($templateCache) {
+        return {
+            restrict: 'A',
+            replace: true,
+            templateUrl: UI.templatePath + 'dropDown.html',
+            scope: {
+                config: '=hawtioDropDown'
+            },
+            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                    if (!$scope.config) {
+                        $scope.config = {};
+                    }
+                    if (!('open' in $scope.config)) {
+                        $scope.config['open'] = false;
+                    }
+                    $scope.action = function (config, $event) {
+                        //log.debug("doAction on : ", config, "event: ", $event);
+                        if ('items' in config && !('action' in config)) {
+                            config.open = !config.open;
+                            $event.preventDefault();
+                            $event.stopPropagation();
+                        }
+                        else if ('action' in config) {
+                            //log.debug("executing action: ", config.action);
+                            var action = config['action'];
+                            if (angular.isFunction(action)) {
+                                action();
+                            }
+                            else if (angular.isString(action)) {
+                                $scope.$parent.$eval(action, {
+                                    config: config,
+                                    '$event': $event
+                                });
+                            }
+                        }
+                    };
+                    $scope.$watch('config.items', function (newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            // just add some space to force a redraw
+                            $scope.menuStyle = $scope.menuStyle + " ";
+                        }
+                    }, true);
+                    $scope.submenu = function (config) {
+                        if (config && config.submenu) {
+                            return "sub-menu";
+                        }
+                        return "";
+                    };
+                    $scope.icon = function (config) {
+                        if (config && !Core.isBlank(config.icon)) {
+                            return config.icon;
+                        }
+                        else {
+                            return 'fa fa-spacer';
+                        }
+                    };
+                    $scope.open = function (config) {
+                        if (config && !config.open) {
+                            return '';
+                        }
+                        return 'open';
+                    };
+                }],
+            link: function ($scope, $element, $attrs) {
+                $scope.menuStyle = $templateCache.get("withsubmenus.html");
+                if ('processSubmenus' in $attrs) {
+                    if (!Core.parseBooleanValue($attrs['processSubmenus'])) {
+                        $scope.menuStyle = $templateCache.get("withoutsubmenus.html");
+                    }
+                }
+            }
+        };
+    }
+    UI.hawtioDropDown = hawtioDropDown;
+    UI._module.directive('hawtioDropDown', ["$templateCache", UI.hawtioDropDown]);
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+/**
+ * @module UI
+ */
+var UI;
+(function (UI) {
+    UI._module.directive('editableProperty', ["$parse", function ($parse) {
+            return new UI.EditableProperty($parse);
+        }]);
+    var EditableProperty = (function () {
+        function EditableProperty($parse) {
+            this.$parse = $parse;
+            this.restrict = 'E';
+            this.scope = true;
+            this.templateUrl = UI.templatePath + 'editableProperty.html';
+            this.require = 'ngModel';
+            this.link = null;
+            this.link = function (scope, element, attrs, ngModel) {
+                scope.inputType = attrs['type'] || 'text';
+                scope.min = attrs['min'];
+                scope.max = attrs['max'];
+                scope.getText = function () {
+                    if (!scope.text) {
+                        return '';
+                    }
+                    if (scope.inputType === 'password') {
+                        return StringHelpers.obfusicate(scope.text);
+                    }
+                    else {
+                        return scope.text;
+                    }
+                };
+                scope.editing = false;
+                $(element.find(".fa fa-pencil")[0]).hide();
+                scope.getPropertyName = function () {
+                    var propertyName = $parse(attrs['property'])(scope);
+                    if (!propertyName && propertyName !== 0) {
+                        propertyName = attrs['property'];
+                    }
+                    return propertyName;
+                };
+                ngModel.$render = function () {
+                    if (!ngModel.$viewValue) {
+                        return;
+                    }
+                    scope.text = ngModel.$viewValue[scope.getPropertyName()];
+                };
+                scope.getInputStyle = function () {
+                    if (!scope.text) {
+                        return {};
+                    }
+                    var calculatedWidth = (scope.text + "").length / 1.2;
+                    if (calculatedWidth < 5) {
+                        calculatedWidth = 5;
+                    }
+                    return {
+                        width: calculatedWidth + 'em'
+                    };
+                };
+                scope.showEdit = function () {
+                    $(element.find(".fa fa-pencil")[0]).show();
+                };
+                scope.hideEdit = function () {
+                    $(element.find(".fa fa-pencil")[0]).hide();
+                };
+                function inputSelector() {
+                    return 'input[type=' + scope.inputType + ']';
+                }
+                scope.$watch('editing', function (newValue, oldValue) {
+                    if (newValue !== oldValue) {
+                        if (newValue) {
+                            setTimeout(function () {
+                                $(element.find(inputSelector())).focus().select();
+                            }, 50);
+                        }
+                    }
+                });
+                scope.doEdit = function () {
+                    scope.editing = true;
+                };
+                scope.stopEdit = function () {
+                    $(element.find(inputSelector())[0]).val(ngModel.$viewValue[scope.getPropertyName()]);
+                    scope.editing = false;
+                };
+                scope.saveEdit = function () {
+                    var value = $(element.find(inputSelector())[0]).val();
+                    var obj = ngModel.$viewValue;
+                    obj[scope.getPropertyName()] = value;
+                    ngModel.$setViewValue(obj);
+                    ngModel.$render();
+                    scope.editing = false;
+                    scope.$parent.$eval(attrs['onSave']);
+                };
+            };
+        }
+        return EditableProperty;
+    }());
+    UI.EditableProperty = EditableProperty;
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('expandable', function () {
+        return new UI.Expandable();
+    });
+    var Expandable = (function () {
+        function Expandable() {
+            var _this = this;
+            this.log = Logger.get("Expandable");
+            this.restrict = 'C';
+            this.replace = false;
+            this.link = null;
+            this.link = function (scope, element, attrs) {
+                var self = _this;
+                var expandable = element;
+                var modelName = null;
+                var model = null;
+                if (angular.isDefined(attrs['model'])) {
+                    modelName = attrs['model'];
+                    model = scope[modelName];
+                    if (!angular.isDefined(scope[modelName]['expanded'])) {
+                        model['expanded'] = expandable.hasClass('opened');
+                    }
+                    else {
+                        if (model['expanded']) {
+                            self.forceOpen(model, expandable, scope);
+                        }
+                        else {
+                            self.forceClose(model, expandable, scope);
+                        }
+                    }
+                    if (modelName) {
+                        scope.$watch(modelName + '.expanded', function (newValue, oldValue) {
+                            if (asBoolean(newValue) !== asBoolean(oldValue)) {
+                                if (newValue) {
+                                    self.open(model, expandable, scope);
+                                }
+                                else {
+                                    self.close(model, expandable, scope);
+                                }
+                            }
+                        });
+                    }
+                }
+                var title = expandable.find('.title');
+                var button = expandable.find('.cancel');
+                button.bind('click', function () {
+                    model = scope[modelName];
+                    self.forceClose(model, expandable, scope);
+                    return false;
+                });
+                title.bind('click', function () {
+                    model = scope[modelName];
+                    if (isOpen(expandable)) {
+                        self.close(model, expandable, scope);
+                    }
+                    else {
+                        self.open(model, expandable, scope);
+                    }
+                    return false;
+                });
+            };
+        }
+        Expandable.prototype.open = function (model, expandable, scope) {
+            expandable.find('.expandable-body').slideDown(400, function () {
+                if (!expandable.hasClass('opened')) {
+                    expandable.addClass('opened');
+                }
+                expandable.removeClass('closed');
+                if (model) {
+                    model['expanded'] = true;
+                }
+                Core.$apply(scope);
+            });
+        };
+        Expandable.prototype.close = function (model, expandable, scope) {
+            expandable.find('.expandable-body').slideUp(400, function () {
+                expandable.removeClass('opened');
+                if (!expandable.hasClass('closed')) {
+                    expandable.addClass('closed');
+                }
+                if (model) {
+                    model['expanded'] = false;
+                }
+                Core.$apply(scope);
+            });
+        };
+        Expandable.prototype.forceClose = function (model, expandable, scope) {
+            expandable.find('.expandable-body').slideUp(0, function () {
+                if (!expandable.hasClass('closed')) {
+                    expandable.addClass('closed');
+                }
+                expandable.removeClass('opened');
+                if (model) {
+                    model['expanded'] = false;
+                }
+                Core.$apply(scope);
+            });
+        };
+        Expandable.prototype.forceOpen = function (model, expandable, scope) {
+            expandable.find('.expandable-body').slideDown(0, function () {
+                if (!expandable.hasClass('opened')) {
+                    expandable.addClass('opened');
+                }
+                expandable.removeClass('closed');
+                if (model) {
+                    model['expanded'] = true;
+                }
+                Core.$apply(scope);
+            });
+        };
+        return Expandable;
+    }());
+    UI.Expandable = Expandable;
+    function isOpen(expandable) {
+        return expandable.hasClass('opened') || !expandable.hasClass("closed");
+    }
+    function asBoolean(value) {
+        return value ? true : false;
+    }
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    var hawtioFileDrop = UI._module.directive("hawtioFileDrop", [function () {
+            return {
+                restrict: 'A',
+                replace: false,
+                link: function (scope, element, attr) {
+                    var fileName = attr['hawtioFileDrop'];
+                    var downloadURL = attr['downloadUrl'];
+                    var mimeType = attr['mimeType'] || 'application/octet-stream';
+                    if (Core.isBlank(fileName) || Core.isBlank(downloadURL)) {
+                        return;
+                    }
+                    // DownloadURL needs an absolute URL
+                    if (!_.startsWith(downloadURL, "http")) {
+                        var uri = new URI();
+                        downloadURL = uri.path(downloadURL).toString();
+                    }
+                    var fileDetails = mimeType + ":" + fileName + ":" + downloadURL;
+                    element.attr({
+                        draggable: true
+                    });
+                    element[0].addEventListener("dragstart", function (event) {
+                        if (event.dataTransfer) {
+                            UI.log.debug("Drag started, event: ", event, "File details: ", fileDetails);
+                            event.dataTransfer.setData("DownloadURL", fileDetails);
+                        }
+                        else {
+                            UI.log.debug("Drag event object doesn't contain data transfer: ", event);
+                        }
+                    });
+                    attr.$observe('downloadUrl', function (url) {
+                        fileDetails = mimeType + ":" + fileName + ":" + url;
+                    });
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI.hawtioFilter = UI._module.directive("hawtioFilter", [function () {
+            return {
+                restrict: 'E',
+                replace: true,
+                transclude: true,
+                templateUrl: UI.templatePath + 'filter.html',
+                scope: {
+                    placeholder: '@',
+                    cssClass: '@',
+                    saveAs: '@?',
+                    ngModel: '='
+                },
+                controller: ["$scope", "localStorage", "$location", "$element", function ($scope, localStorage, $location, $element) {
+                        $scope.getClass = function () {
+                            var answer = [];
+                            if (!Core.isBlank($scope.cssClass)) {
+                                answer.push($scope.cssClass);
+                            }
+                            if (!Core.isBlank($scope.ngModel)) {
+                                answer.push("has-text");
+                            }
+                            return answer.join(' ');
+                        };
+                        // sync with local storage and the location bar, maybe could refactor this into a helper function
+                        if (!Core.isBlank($scope.saveAs)) {
+                            if ($scope.saveAs in localStorage) {
+                                var val = localStorage[$scope.saveAs];
+                                if (!Core.isBlank(val)) {
+                                    $scope.ngModel = val;
+                                }
+                                else {
+                                    $scope.ngModel = '';
+                                }
+                            }
+                            else {
+                                $scope.ngModel = '';
+                            }
+                            /*
+                             // input loses focus when we muck with the search, at least on firefox
+                            var search = $location.search();
+                            if ($scope.saveAs in search) {
+                              $scope.ngModel = search[$scope.saveAs];
+                            }
+                            */
+                            var updateFunc = function () {
+                                localStorage[$scope.saveAs] = $scope.ngModel;
+                                // input loses focus when we do this
+                                //$location.search($scope.saveAs, $scope.ngModel);
+                            };
+                            $scope.$watch('ngModel', updateFunc);
+                        }
+                    }]
+            };
+        }]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('gridster', function () {
+        return new UI.GridsterDirective();
+    });
+    var GridsterDirective = (function () {
+        function GridsterDirective() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.controller = ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                }];
+            this.link = function ($scope, $element, $attrs) {
+                var widgetMargins = [6, 6];
+                var widgetBaseDimensions = [150, 150];
+                var gridSize = [150, 150];
+                var extraRows = 10;
+                var extraCols = 6;
+                if (angular.isDefined($attrs['extraRows'])) {
+                    extraRows = $attrs['extraRows'].toNumber();
+                }
+                if (angular.isDefined($attrs['extraCols'])) {
+                    extraCols = $attrs['extraCols'].toNumber();
+                }
+                var grid = $('<ul style="margin: 0"></ul>');
+                var styleStr = '<style type="text/css">';
+                var styleStr = styleStr + '</style>';
+                $element.append($(styleStr));
+                $element.append(grid);
+                $scope.gridster = grid.gridster({
+                    widget_margins: widgetMargins,
+                    grid_size: gridSize,
+                    extra_rows: extraRows,
+                    extra_cols: extraCols
+                }).data('gridster');
+            };
+        }
+        return GridsterDirective;
+    }());
+    UI.GridsterDirective = GridsterDirective;
+})(UI || (UI = {}));
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    function groupBy() {
+        return function (list, group) {
+            if (!list || list.length === 0) {
+                return list;
+            }
+            if (Core.isBlank(group)) {
+                return list;
+            }
+            var newGroup = 'newGroup';
+            var endGroup = 'endGroup';
+            var currentGroup = undefined;
+            function createNewGroup(list, item, index) {
+                item[newGroup] = true;
+                item[endGroup] = false;
+                currentGroup = item[group];
+                if (index > 0) {
+                    list[index - 1][endGroup] = true;
+                }
+            }
+            function addItemToExistingGroup(item) {
+                item[newGroup] = false;
+                item[endGroup] = false;
+            }
+            list.forEach(function (item, index) {
+                var createGroup = item[group] !== currentGroup;
+                if (angular.isArray(item[group])) {
+                    if (currentGroup === undefined) {
+                        createGroup = true;
+                    }
+                    else {
+                        var targetGroup = item[group];
+                        if (targetGroup.length !== currentGroup.length) {
+                            createGroup = true;
+                        }
+                        else {
+                            createGroup = false;
+                            targetGroup.forEach(function (item) {
+                                if (!createGroup && !_.some(currentGroup, function (i) { return i === item; })) {
+                                    createGroup = true;
+                                }
+                            });
+                        }
+                    }
+                }
+                if (createGroup) {
+                    createNewGroup(list, item, index);
+                }
+                else {
+                    addItemToExistingGroup(item);
+                }
+            });
+            return list;
+        };
+    }
+    UI.groupBy = groupBy;
+    UI._module.filter('hawtioGroupBy', UI.groupBy);
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    UI._module.directive('httpSrc', ['$http', function ($http) {
+            return {
+                // do not share scope with sibling img tags and parent
+                // (prevent show same images on img tag)
+                scope: {
+                    httpSrcChanged: '='
+                },
+                link: function ($scope, elem, attrs) {
+                    function revokeObjectURL() {
+                        if ($scope.objectURL) {
+                            URL.revokeObjectURL($scope.objectURL);
+                        }
+                    }
+                    $scope.$watch('objectURL', function (objectURL, oldURL) {
+                        if (objectURL !== oldURL) {
+                            elem.attr('src', objectURL);
+                            if (typeof $scope.httpSrcChanged !== 'undefined') {
+                                $scope.httpSrcChanged = objectURL;
+                            }
+                        }
+                    });
+                    $scope.$on('$destroy', revokeObjectURL);
+                    attrs.$observe('httpSrc', function (url) {
+                        revokeObjectURL();
+                        if (url && url.indexOf('data:') === 0) {
+                            $scope.objectURL = url;
+                        }
+                        else if (url) {
+                            $http.get(url, { responseType: 'arraybuffer' })
+                                .then(function (response) {
+                                var blob = new Blob([response.data], { type: attrs['mediaType'] ? attrs['mediaType'] : 'application/octet-stream' });
+                                $scope.objectURL = URL.createObjectURL(blob);
+                            });
+                        }
+                    });
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    /**
+     * Test controller for the icon help page
+     * @param $scope
+     * @param $templateCache
+     * @constructor
+     */
+    UI.IconTestController = UI._module.controller("UI.IconTestController", ["$scope", "$templateCache", function ($scope, $templateCache) {
+            $scope.exampleHtml = $templateCache.get('example-html');
+            $scope.exampleConfigJson = $templateCache.get('example-config-json');
+            $scope.$watch('exampleConfigJson', function (newValue, oldValue) {
+                $scope.icons = angular.fromJson($scope.exampleConfigJson);
+                //log.debug("Icons: ", $scope.icons);
+            });
+        }]);
+    /**
+     * The hawtio-icon directive
+     * @returns {{}}
+     */
+    function hawtioIcon() {
+        return {
+            restrict: 'E',
+            replace: true,
+            templateUrl: UI.templatePath + 'icon.html',
+            scope: {
+                icon: '=config'
+            },
+            link: function ($scope, $element, $attrs) {
+                if (!$scope.icon) {
+                    return;
+                }
+                if (!('type' in $scope.icon) && !Core.isBlank($scope.icon.src)) {
+                    if (_.startsWith($scope.icon.src, "fa fa-")) {
+                        $scope.icon.type = "icon";
+                    }
+                    else {
+                        $scope.icon.type = "img";
+                    }
+                }
+                //log.debug("Created icon: ", $scope.icon);
+            }
+        };
+    }
+    UI.hawtioIcon = hawtioIcon;
+    UI._module.directive('hawtioIcon', UI.hawtioIcon);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    function hawtioList($templateCache, $compile) {
+        return {
+            restrict: '',
+            replace: true,
+            templateUrl: UI.templatePath + 'list.html',
+            scope: {
+                'config': '=hawtioList'
+            },
+            link: function ($scope, $element, $attr) {
+                $scope.rows = [];
+                $scope.name = "hawtioListScope";
+                if (!$scope.config.selectedItems) {
+                    $scope.config.selectedItems = [];
+                }
+                $scope.$watch('rows', function (newValue, oldValue) {
+                    if (newValue !== oldValue) {
+                        $scope.config.selectedItems.length = 0;
+                        var selected = _.filter($scope.rows, function (row) { return row.selected; });
+                        selected.forEach(function (row) {
+                            $scope.config.selectedItems.push(row.entity);
+                        });
+                    }
+                }, true);
+                $scope.cellTemplate = $templateCache.get('cellTemplate.html');
+                $scope.rowTemplate = $templateCache.get('rowTemplate.html');
+                var columnDefs = $scope.config['columnDefs'];
+                var fieldName = 'name';
+                var displayName = 'Name';
+                if (columnDefs && columnDefs.length > 0) {
+                    var def = _.first(columnDefs);
+                    fieldName = def['field'] || fieldName;
+                    displayName = def['displayName'] || displayName;
+                    if (def['cellTemplate']) {
+                        $scope.cellTemplate = def['cellTemplate'];
+                    }
+                }
+                var configName = $attr['hawtioList'];
+                var dataName = $scope.config['data'];
+                if (Core.isBlank(configName) || Core.isBlank(dataName)) {
+                    return;
+                }
+                $scope.listRoot = function () {
+                    return $element.find('.hawtio-list-root');
+                };
+                $scope.getContents = function (row) {
+                    //first make our row
+                    var innerScope = $scope.$new();
+                    innerScope.row = row;
+                    var rowEl = $compile($scope.rowTemplate)(innerScope);
+                    //now compile the cell but use the parent scope
+                    var innerParentScope = $scope.parentScope.$new();
+                    innerParentScope.row = row;
+                    innerParentScope.col = {
+                        field: fieldName
+                    };
+                    var cellEl = $compile($scope.cellTemplate)(innerParentScope);
+                    $(rowEl).find('.hawtio-list-row-contents').append(cellEl);
+                    return rowEl;
+                };
+                $scope.setRows = function (data) {
+                    $scope.rows = [];
+                    var list = $scope.listRoot();
+                    list.empty();
+                    if (data) {
+                        data.forEach(function (row) {
+                            var newRow = {
+                                entity: row,
+                                getProperty: function (name) {
+                                    if (!angular.isDefined(name)) {
+                                        return null;
+                                    }
+                                    return row[name];
+                                }
+                            };
+                            list.append($scope.getContents(newRow));
+                            $scope.rows.push(newRow);
+                        });
+                    }
+                };
+                // find the parent scope that has our configuration
+                var parentScope = UI.findParentWith($scope, configName);
+                if (parentScope) {
+                    $scope.parentScope = parentScope;
+                    parentScope.$watch(dataName, $scope.setRows, true);
+                }
+            }
+        };
+    }
+    UI.hawtioList = hawtioList;
+    UI._module.directive('hawtioList', ["$templateCache", "$compile", UI.hawtioList]);
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    var objectView = UI._module.directive("hawtioObject", ["$templateCache", "$interpolate", "$compile", function ($templateCache, $interpolate, $compile) {
+            return {
+                restrict: "A",
+                replace: true,
+                templateUrl: UI.templatePath + "object.html",
+                scope: {
+                    "entity": "=?hawtioObject",
+                    "config": "=?",
+                    "path": "=?",
+                    "row": "=?"
+                },
+                link: function ($scope, $element, $attr) {
+                    function interpolate(template, path, key, value) {
+                        var interpolateFunc = $interpolate(template);
+                        if (!key) {
+                            return interpolateFunc({
+                                data: value,
+                                path: path
+                            });
+                        }
+                        else {
+                            return interpolateFunc({
+                                key: _.startCase(key),
+                                data: value,
+                                path: path
+                            });
+                        }
+                    }
+                    function getEntityConfig(path, config) {
+                        var answer = undefined;
+                        var properties = Core.pathGet(config, ['properties']);
+                        if (!answer && properties) {
+                            angular.forEach(properties, function (config, propertySelector) {
+                                var regex = new RegExp(propertySelector);
+                                if (regex.test(path)) {
+                                    // log.debug("Matched selector: ", propertySelector, " for path: ", path);
+                                    if (answer && !answer.override && !config.override) {
+                                        // log.debug("Merged config");
+                                        answer = _.merge(answer, config);
+                                    }
+                                    else {
+                                        // log.debug("Set config");
+                                        answer = _.cloneDeep(config);
+                                    }
+                                }
+                            });
+                        }
+                        // log.debug("Answer for path: ", path, " : ", answer);
+                        return answer;
+                    }
+                    function getTemplate(path, config, def) {
+                        var answer = def;
+                        var config = getEntityConfig(path, config);
+                        if (config && config.template) {
+                            answer = config.template;
+                        }
+                        return answer;
+                    }
+                    function compile(template, path, key, value, config) {
+                        var config = getEntityConfig(path, config);
+                        if (config && config.hidden) {
+                            return;
+                        }
+                        var interpolated = null;
+                        // avoid interpolating custom templates
+                        if (config && config.template) {
+                            interpolated = config.template;
+                        }
+                        else {
+                            interpolated = interpolate(template, path, key, value);
+                        }
+                        var scope = $scope.$new();
+                        scope.row = $scope.row;
+                        scope.entityConfig = config;
+                        scope.data = value;
+                        scope.path = path;
+                        return $compile(interpolated)(scope);
+                    }
+                    function renderPrimitiveValue(path, entity, config) {
+                        var template = getTemplate(path, config, $templateCache.get('primitiveValueTemplate.html'));
+                        return compile(template, path, undefined, entity, config);
+                    }
+                    function renderDateValue(path, entity, config) {
+                        var template = getTemplate(path, config, $templateCache.get('dateValueTemplate.html'));
+                        return compile(template, path, undefined, entity, config);
+                    }
+                    function renderObjectValue(path, entity, config) {
+                        var isArray = false;
+                        var el = undefined;
+                        angular.forEach(entity, function (value, key) {
+                            if (angular.isNumber(key) && "length" in entity) {
+                                isArray = true;
+                            }
+                            if (isArray) {
+                                return;
+                            }
+                            if (_.startsWith(key, "$")) {
+                                return;
+                            }
+                            if (!el) {
+                                el = angular.element('<span></span>');
+                            }
+                            if (angular.isArray(value)) {
+                                el.append(renderArrayAttribute(path + '/' + key, key, value, config));
+                            }
+                            else if (angular.isObject(value)) {
+                                if (_.size(value) === 0) {
+                                    el.append(renderPrimitiveAttribute(path + '/' + key, key, 'empty', config));
+                                }
+                                else {
+                                    el.append(renderObjectAttribute(path + '/' + key, key, value, config));
+                                }
+                            }
+                            else if (StringHelpers.isDate(value)) {
+                                el.append(renderDateAttribute(path + '/' + key, key, new Date(value), config));
+                            }
+                            else {
+                                el.append(renderPrimitiveAttribute(path + '/' + key, key, value, config));
+                            }
+                        });
+                        if (el) {
+                            return el.children();
+                        }
+                        else {
+                            return el;
+                        }
+                    }
+                    function getColumnHeaders(path, entity, config) {
+                        var answer = undefined;
+                        if (!entity) {
+                            return answer;
+                        }
+                        var hasPrimitive = false;
+                        entity.forEach(function (item) {
+                            if (!hasPrimitive && angular.isObject(item)) {
+                                if (!answer) {
+                                    answer = [];
+                                }
+                                var keys = _.keys(item);
+                                var notFunctions = _.filter(keys, function (key) { return !angular.isFunction(item[key]); });
+                                var notHidden = _.filter(notFunctions, function (key) {
+                                    var conf = getEntityConfig(path + '/' + key, config);
+                                    if (conf && conf.hidden) {
+                                        return false;
+                                    }
+                                    return true;
+                                });
+                                return _.union(answer, notHidden);
+                            }
+                            else {
+                                answer = undefined;
+                                hasPrimitive = true;
+                            }
+                        });
+                        if (answer) {
+                            answer = _.reject(answer, function (item) { return _.startsWith("" + item, '$'); });
+                        }
+                        //log.debug("Column headers: ", answer);
+                        return answer;
+                    }
+                    function renderTable(template, path, key, value, headers, config) {
+                        var el = angular.element(interpolate(template, path, key, value));
+                        var thead = el.find('thead');
+                        var tbody = el.find('tbody');
+                        var headerTemplate = $templateCache.get('headerTemplate.html');
+                        var cellTemplate = $templateCache.get('cellTemplate.html');
+                        var rowTemplate = $templateCache.get('rowTemplate.html');
+                        var headerRow = angular.element(interpolate(rowTemplate, path, undefined, undefined));
+                        headers.forEach(function (header) {
+                            headerRow.append(interpolate(headerTemplate, path + '/' + header, header, undefined));
+                        });
+                        thead.append(headerRow);
+                        value.forEach(function (item, index) {
+                            var tr = angular.element(interpolate(rowTemplate, path + '/' + index, undefined, undefined));
+                            headers.forEach(function (header) {
+                                var td = angular.element(interpolate(cellTemplate, path + '/' + index + '/' + header, undefined, undefined));
+                                td.append(renderThing(path + '/' + index + '/' + header, item[header], config));
+                                tr.append(td);
+                            });
+                            tbody.append(tr);
+                        });
+                        return el;
+                    }
+                    function renderArrayValue(path, entity, config) {
+                        var headers = getColumnHeaders(path, entity, config);
+                        if (!headers) {
+                            var template = getTemplate(path, config, $templateCache.get('arrayValueListTemplate.html'));
+                            return compile(template, path, undefined, entity, config);
+                        }
+                        else {
+                            var template = getTemplate(path, config, $templateCache.get('arrayValueTableTemplate.html'));
+                            return renderTable(template, path, undefined, entity, headers, config);
+                        }
+                    }
+                    function renderPrimitiveAttribute(path, key, value, config) {
+                        var template = getTemplate(path, config, $templateCache.get('primitiveAttributeTemplate.html'));
+                        return compile(template, path, key, value, config);
+                    }
+                    function renderDateAttribute(path, key, value, config) {
+                        var template = getTemplate(path, config, $templateCache.get('dateAttributeTemplate.html'));
+                        return compile(template, path, key, value, config);
+                    }
+                    function renderObjectAttribute(path, key, value, config) {
+                        var template = getTemplate(path, config, $templateCache.get('objectAttributeTemplate.html'));
+                        return compile(template, path, key, value, config);
+                    }
+                    function renderArrayAttribute(path, key, value, config) {
+                        var headers = getColumnHeaders(path, value, config);
+                        if (!headers) {
+                            var template = getTemplate(path, config, $templateCache.get('arrayAttributeListTemplate.html'));
+                            return compile(template, path, key, value, config);
+                        }
+                        else {
+                            var template = getTemplate(path, config, $templateCache.get('arrayAttributeTableTemplate.html'));
+                            return renderTable(template, path, key, value, headers, config);
+                        }
+                    }
+                    function renderThing(path, entity, config) {
+                        if (angular.isArray(entity)) {
+                            return renderArrayValue(path, entity, config);
+                        }
+                        else if (angular.isObject(entity)) {
+                            return renderObjectValue(path, entity, config);
+                        }
+                        else if (StringHelpers.isDate(entity)) {
+                            return renderDateValue(path, Date.create(entity), config);
+                        }
+                        else {
+                            return renderPrimitiveValue(path, entity, config);
+                        }
+                    }
+                    $scope.$watch('entity', function (entity) {
+                        if (!entity) {
+                            $element.empty();
+                            return;
+                        }
+                        if (!$scope.path) {
+                            // log.debug("Setting entity: ", $scope.entity, " as the root element");
+                            $scope.path = "";
+                        }
+                        /*
+                        if (angular.isDefined($scope.$index)) {
+                          log.debug("$scope.$index: ", $scope.$index);
+                        }
+                        */
+                        if (!angular.isDefined($scope.row)) {
+                            // log.debug("Setting entity: ", entity);
+                            $scope.row = {
+                                entity: entity
+                            };
+                        }
+                        $element.html(renderThing($scope.path, entity, $scope.config));
+                    }, true);
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    function hawtioPane() {
+        return {
+            restrict: 'E',
+            replace: true,
+            transclude: true,
+            templateUrl: UI.templatePath + 'pane.html',
+            scope: {
+                position: '@',
+                width: '@',
+                header: '@'
+            },
+            controller: ["$scope", "$element", "$attrs", "$transclude", "$document", "$timeout", "$compile", "$templateCache", "$window", function ($scope, $element, $attrs, $transclude, $document, $timeout, $compile, $templateCache, $window) {
+                    $scope.moving = false;
+                    $transclude(function (clone) {
+                        $element.find(".pane-content").append(clone);
+                        if (Core.isBlank($scope.header)) {
+                            return;
+                        }
+                        var headerTemplate = $templateCache.get($scope.header);
+                        var wrapper = $element.find(".pane-header-wrapper");
+                        wrapper.html($compile(headerTemplate)($scope));
+                        $timeout(function () {
+                            $element.find(".pane-viewport").css("top", wrapper.height());
+                        }, 500);
+                    });
+                    $scope.setViewportTop = function () {
+                        var wrapper = $element.find(".pane-header-wrapper");
+                        $timeout(function () {
+                            $element.find(".pane-viewport").css("top", wrapper.height());
+                        }, 10);
+                    };
+                    $scope.setWidth = function (width) {
+                        if (width < 6) {
+                            return;
+                        }
+                        $element.width(width);
+                        $element.parent().css($scope.padding, $element.width() + "px");
+                        $scope.setViewportTop();
+                    };
+                    $scope.open = function () {
+                        $scope.setWidth($scope.width);
+                    };
+                    $scope.close = function () {
+                        $scope.width = $element.width();
+                        $scope.setWidth(6);
+                    };
+                    $scope.$on('pane.close', $scope.close);
+                    $scope.$on('pane.open', $scope.open);
+                    $scope.toggle = function () {
+                        if ($scope.moving) {
+                            return;
+                        }
+                        if ($element.width() > 6) {
+                            $scope.close();
+                        }
+                        else {
+                            $scope.open();
+                        }
+                    };
+                    $scope.startMoving = function ($event) {
+                        $event.stopPropagation();
+                        $event.preventDefault();
+                        $event.stopImmediatePropagation();
+                        $document.on("mouseup.hawtio-pane", function ($event) {
+                            $timeout(function () {
+                                $scope.moving = false;
+                            }, 250);
+                            $event.stopPropagation();
+                            $event.preventDefault();
+                            $event.stopImmediatePropagation();
+                            $document.off(".hawtio-pane");
+                            Core.$apply($scope);
+                        });
+                        $document.on("mousemove.hawtio-pane", function ($event) {
+                            $scope.moving = true;
+                            $event.stopPropagation();
+                            $event.preventDefault();
+                            $event.stopImmediatePropagation();
+                            if ($scope.position === 'left') {
+                                $scope.setWidth($event.pageX + 2);
+                            }
+                            else {
+                                $scope.setWidth($window.innerWidth - $event.pageX + 2);
+                            }
+                            Core.$apply($scope);
+                        });
+                    };
+                }],
+            link: function ($scope, $element, $attr) {
+                var parent = $element.parent();
+                var position = "left";
+                if ($scope.position) {
+                    position = $scope.position;
+                }
+                $element.addClass(position);
+                var width = $element.width();
+                var padding = "padding-" + position;
+                $scope.padding = padding;
+                var original = parent.css(padding);
+                parent.css(padding, width + "px");
+                $scope.$on('$destroy', function () {
+                    parent.css(padding, original);
+                });
+            }
+        };
+    }
+    UI.hawtioPane = hawtioPane;
+    UI._module.directive('hawtioPane', UI.hawtioPane);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioMessagePanel', function () {
+        return new UI.MessagePanel();
+    });
+    var MessagePanel = (function () {
+        function MessagePanel() {
+            this.restrict = 'A';
+            this.link = function ($scope, $element, $attrs) {
+                var height = "100%";
+                if ('hawtioMessagePanel' in $attrs) {
+                    var wantedHeight = $attrs['hawtioMessagePanel'];
+                    if (!Core.isBlank(wantedHeight)) {
+                        height = wantedHeight;
+                    }
+                }
+                var speed = "1s";
+                if ('speed' in $attrs) {
+                    var wantedSpeed = $attrs['speed'];
+                    if (!Core.isBlank(wantedSpeed)) {
+                        speed = wantedSpeed;
+                    }
+                }
+                $element.css({
+                    position: 'absolute',
+                    bottom: 0,
+                    height: 0,
+                    'min-height': 0,
+                    transition: 'all ' + speed + ' ease-in-out'
+                });
+                $element.parent().mouseover(function () {
+                    $element.css({
+                        height: height,
+                        'min-height': 'auto'
+                    });
+                });
+                $element.parent().mouseout(function () {
+                    $element.css({
+                        height: 0,
+                        'min-height': 0
+                    });
+                });
+            };
+        }
+        return MessagePanel;
+    }());
+    UI.MessagePanel = MessagePanel;
+    UI._module.directive('hawtioInfoPanel', function () {
+        return new UI.InfoPanel();
+    });
+    var InfoPanel = (function () {
+        function InfoPanel() {
+            this.restrict = 'A';
+            this.link = function ($scope, $element, $attrs) {
+                var validDirections = {
+                    'left': {
+                        side: 'right',
+                        out: 'width'
+                    },
+                    'right': {
+                        side: 'left',
+                        out: 'width'
+                    },
+                    'up': {
+                        side: 'bottom',
+                        out: 'height'
+                    },
+                    'down': {
+                        side: 'top',
+                        out: 'height'
+                    }
+                };
+                var direction = "right";
+                if ('hawtioInfoPanel' in $attrs) {
+                    var wantedDirection = $attrs['hawtioInfoPanel'];
+                    if (!Core.isBlank(wantedDirection)) {
+                        if (_.some(_.keys(validDirections), wantedDirection)) {
+                            direction = wantedDirection;
+                        }
+                    }
+                }
+                var speed = "1s";
+                if ('speed' in $attrs) {
+                    var wantedSpeed = $attrs['speed'];
+                    if (!Core.isBlank(wantedSpeed)) {
+                        speed = wantedSpeed;
+                    }
+                }
+                var toggle = "open";
+                if ('toggle' in $attrs) {
+                    var wantedToggle = $attrs['toggle'];
+                    if (!Core.isBlank(wantedSpeed)) {
+                        toggle = wantedToggle;
+                    }
+                }
+                var initialCss = {
+                    position: 'absolute',
+                    transition: 'all ' + speed + ' ease-in-out'
+                };
+                var openCss = {};
+                openCss[validDirections[direction]['out']] = '100%';
+                var closedCss = {};
+                closedCss[validDirections[direction]['out']] = 0;
+                initialCss[validDirections[direction]['side']] = 0;
+                initialCss[validDirections[direction]['out']] = 0;
+                $element.css(initialCss);
+                $scope.$watch(toggle, function (newValue, oldValue) {
+                    if (Core.parseBooleanValue(newValue)) {
+                        $element.css(openCss);
+                    }
+                    else {
+                        $element.css(closedCss);
+                    }
+                });
+                $element.click(function () {
+                    $scope[toggle] = false;
+                    Core.$apply($scope);
+                });
+            };
+        }
+        return InfoPanel;
+    }());
+    UI.InfoPanel = InfoPanel;
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioRow', function () {
+        return new UI.DivRow();
+    });
+    // expand the element to accomodate a group of elements to prevent them from wrapping
+    var DivRow = (function () {
+        function DivRow() {
+            this.restrict = 'A';
+            this.link = function ($scope, $element, $attrs) {
+                $element.get(0).addEventListener("DOMNodeInserted", function () {
+                    var targets = $element.children();
+                    var width = 0;
+                    angular.forEach(targets, function (target) {
+                        var el = angular.element(target);
+                        switch (el.css('display')) {
+                            case 'none':
+                                break;
+                            default:
+                                width = width + el.outerWidth(true) + 5;
+                        }
+                    });
+                    $element.width(width);
+                });
+            };
+        }
+        return DivRow;
+    }());
+    UI.DivRow = DivRow;
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioSlideout', function () {
+        return new UI.SlideOut();
+    });
+    var SlideOut = (function () {
+        function SlideOut() {
+            this.restrict = 'A';
+            this.replace = true;
+            this.transclude = true;
+            this.templateUrl = UI.templatePath + 'slideout.html';
+            this.scope = {
+                show: '=hawtioSlideout',
+                direction: '@',
+                top: '@',
+                height: '@',
+                title: '@',
+                close: '@'
+            };
+            this.controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", function ($scope, $element, $attrs, $transclude, $compile) {
+                    $scope.clone = null;
+                    $transclude(function (clone) {
+                        $scope.clone = $(clone).filter('.dialog-body');
+                    });
+                    UI.observe($scope, $attrs, 'direction', 'right');
+                    UI.observe($scope, $attrs, 'top', '10%', function (value) {
+                        $element.css('top', value);
+                    });
+                    UI.observe($scope, $attrs, 'height', '80%', function (value) {
+                        $element.css('height', value);
+                    });
+                    UI.observe($scope, $attrs, 'title', '');
+                    UI.observe($scope, $attrs, 'close', 'true');
+                    $scope.$watch('show', function () {
+                        if ($scope.show) {
+                            $scope.body = $element.find('.slideout-body');
+                            $scope.body.html($compile($scope.clone.html())($scope.$parent));
+                        }
+                    });
+                    $scope.hidePanel = function ($event) {
+                        UI.log.debug("Event: ", $event);
+                        $scope.show = false;
+                    };
+                }];
+            this.link = function ($scope, $element, $attrs) {
+                $scope.$watch('show', function () {
+                    if ($scope.show) {
+                        $element.addClass('out');
+                        $element.focus();
+                    }
+                    else {
+                        $element.removeClass('out');
+                    }
+                });
+            };
+        }
+        return SlideOut;
+    }());
+    UI.SlideOut = SlideOut;
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioPager', function () {
+        return new UI.TablePager();
+    });
+    var TablePager = (function () {
+        function TablePager() {
+            var _this = this;
+            this.restrict = 'A';
+            this.scope = true;
+            this.templateUrl = UI.templatePath + 'tablePager.html';
+            this.$scope = null;
+            this.element = null;
+            this.attrs = null;
+            this.tableName = null;
+            this.setRowIndexName = null;
+            this.rowIndexName = null;
+            // necessary to ensure 'this' is this object <sigh>
+            this.link = function (scope, element, attrs) {
+                return _this.doLink(scope, element, attrs);
+            };
+        }
+        TablePager.prototype.doLink = function (scope, element, attrs) {
+            var _this = this;
+            this.$scope = scope;
+            this.element = element;
+            this.attrs = attrs;
+            this.tableName = attrs["hawtioPager"] || attrs["array"] || "data";
+            this.setRowIndexName = attrs["onIndexChange"] || "onIndexChange";
+            this.rowIndexName = attrs["rowIndex"] || "rowIndex";
+            scope.first = function () {
+                _this.goToIndex(0);
+            };
+            scope.last = function () {
+                _this.goToIndex(scope.tableLength() - 1);
+            };
+            scope.previous = function () {
+                if (scope.rowIndex() > 0) {
+                    _this.goToIndex(scope.rowIndex() - 1);
+                }
+            };
+            scope.next = function () {
+                if (scope.rowIndex() < scope.tableLength() - 1) {
+                    _this.goToIndex(scope.rowIndex() + 1);
+                }
+            };
+            scope.isEmptyOrFirst = function () {
+                var idx = scope.rowIndex();
+                var length = scope.tableLength();
+                return length <= 0 || idx <= 0;
+            };
+            scope.isEmptyOrLast = function () {
+                var idx = scope.rowIndex();
+                var length = scope.tableLength();
+                return length < 1 || idx + 1 >= length;
+            };
+            scope.rowIndex = function () {
+                return Core.pathGet(scope.$parent, _this.rowIndexName.split('.'));
+            };
+            scope.tableLength = function () {
+                var data = _this.tableData();
+                return data ? data.length : 0;
+            };
+        };
+        TablePager.prototype.tableData = function () {
+            return Core.pathGet(this.$scope.$parent, this.tableName.split('.')) || [];
+        };
+        TablePager.prototype.goToIndex = function (idx) {
+            var name = this.setRowIndexName;
+            var fn = this.$scope[name];
+            if (angular.isFunction(fn)) {
+                fn(idx);
+            }
+            else {
+                console.log("No function defined in scope for " + name + " but was " + fn);
+                this.$scope[this.rowIndexName] = idx;
+            }
+        };
+        return TablePager;
+    }());
+    UI.TablePager = TablePager;
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI.selectedTags = UI._module.filter('selectedTags', ['$rootScope', function ($rootScope) {
+            return function (items, property, selected) {
+                if (selected.length === 0) {
+                    return items;
+                }
+                var answer = [];
+                _.forEach(items, function (item) {
+                    var itemTags = $rootScope.$eval(property, item);
+                    if (_.intersection(itemTags, selected).length === selected.length) {
+                        answer.push(item);
+                    }
+                });
+                return answer;
+            };
+        }]);
+    UI.hawtioTagFilter = UI._module.directive("hawtioTagFilter", ['localStorage', '$location', function (localStorage, $location) {
+            return {
+                restrict: 'E',
+                replace: true,
+                templateUrl: UI.templatePath + 'tagFilter.html',
+                scope: {
+                    selected: '=',
+                    tags: '=?',
+                    collection: '=',
+                    collectionProperty: '@',
+                    saveAs: '@'
+                },
+                link: function ($scope, $element, $attr) {
+                    SelectionHelpers.decorate($scope);
+                    // TODO
+                    /*
+                    if (!Core.isBlank($scope.saveAs)) {
+                      var search = $location.search();
+                      if ($scope.saveAs in search) {
+                        $scope.selected.add(angular.fromJson(search[$scope.saveAs]));
+                      } else if ($scope.saveAs in localStorage) {
+                        var val = localStorage[$scope.saveAs];
+                        if (val === 'undefined') {
+                          delete localStorage[$scope.saveAs];
+                        } else {
+                          $scope.selected.add(angular.fromJson(val));
+                        }
+                      }
+                    }
+                    */
+                    function maybeFilterVisibleTags() {
+                        if ($scope.collection && $scope.collectionProperty) {
+                            if (!$scope.selected.length) {
+                                $scope.visibleTags = $scope.tags;
+                                $scope.filteredCollection = $scope.collection;
+                            }
+                            else {
+                                filterVisibleTags();
+                            }
+                            $scope.visibleTags = $scope.visibleTags.map(function (t) {
+                                return {
+                                    id: t,
+                                    count: $scope.filteredCollection.map(function (c) {
+                                        return c[$scope.collectionProperty];
+                                    }).reduce(function (count, c) {
+                                        if (_.includes(c, t)) {
+                                            return count + 1;
+                                        }
+                                        return count;
+                                    }, 0)
+                                };
+                            });
+                        }
+                        else {
+                            $scope.visibleTags = $scope.tags;
+                        }
+                    }
+                    function filterVisibleTags() {
+                        $scope.filteredCollection = $scope.collection.filter(function (c) {
+                            return SelectionHelpers.filterByGroup($scope.selected, c[$scope.collectionProperty]);
+                        });
+                        $scope.visibleTags = [];
+                        $scope.filteredCollection.forEach(function (c) {
+                            $scope.visibleTags = _.union($scope.visibleTags, c[$scope.collectionProperty]);
+                        });
+                    }
+                    $scope.$watchCollection('collection', function (collection) {
+                        var tagValues = _.union(_.map(collection, function (item) { return $scope.$eval($scope.collectionProperty, item); }));
+                        var tags = [];
+                        _.forEach(tagValues, function (values) {
+                            tags = _.union(tags, values);
+                        });
+                        //log.debug("tags: ", tags);
+                        $scope.tags = tags;
+                    });
+                    $scope.$watchCollection('tags', function (newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            SelectionHelpers.syncGroupSelection($scope.selected, $scope.tags);
+                            maybeFilterVisibleTags();
+                        }
+                    });
+                    $scope.$watchCollection('selected', function (selected) {
+                        var unique = _.uniq(selected);
+                        $scope.selected.length = 0;
+                        (_a = $scope.selected).push.apply(_a, unique);
+                        //log.debug("newValue: ", $scope.selected);
+                        //TODO
+                        /*
+                        if (!Core.isBlank($scope.saveAs)) {
+                          var saveAs = angular.toJson($scope.selected);
+                          localStorage[$scope.saveAs] = saveAs;
+                          $location.replace().search($scope.saveAs, saveAs);
+                        }
+                        */
+                        maybeFilterVisibleTags();
+                        var _a;
+                    });
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI.hawtioTagList = UI._module.directive("hawtioTagList", ['$interpolate', '$compile', '$templateCache', function ($interpolate, $compile, $templateCache) {
+            return {
+                restrict: 'E',
+                replace: true,
+                templateUrl: UrlHelpers.join(UI.templatePath, 'tagList.html'),
+                scope: {
+                    tags: '=',
+                    remove: '=?',
+                    selected: '=?'
+                },
+                link: function (scope, $element, attr) {
+                    SelectionHelpers.decorate(scope);
+                    var tagBase = $templateCache.get('tagBase.html');
+                    var tagRemove = $templateCache.get('tagRemove.html');
+                    scope.addSelected = function (tag) {
+                        if (scope.selected) {
+                            scope.selected.push(tag);
+                        }
+                    };
+                    scope.isSelected = function (tag) { return !scope.selected || _.includes(scope.selected, tag); };
+                    scope.removeTag = function (tag) { return scope.tags.remove(tag); };
+                    scope.$watchCollection('tags', function (tags) {
+                        //log.debug("Collection changed: ", tags);
+                        var tmp = angular.element("<div></div>");
+                        tags.forEach(function (tag) {
+                            var func = $interpolate(tagBase);
+                            var el = angular.element(func({ tag: tag }));
+                            if (scope.remove) {
+                                el.append($interpolate(tagRemove)({ tag: tag }));
+                            }
+                            if (scope.selected) {
+                                el.attr('ng-click', 'toggleSelectionFromGroup(selected, \'' + tag + '\')');
+                            }
+                            tmp.append(el);
+                        });
+                        $element.html($compile(tmp.children())(scope));
+                    });
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    function TemplatePopover($templateCache, $compile, $document) {
+        return {
+            restrict: 'A',
+            link: function ($scope, $element, $attr) {
+                var title = UI.getIfSet('title', $attr, undefined);
+                var trigger = UI.getIfSet('trigger', $attr, 'hover');
+                var html = true;
+                var contentTemplate = UI.getIfSet('content', $attr, 'popoverTemplate');
+                var placement = UI.getIfSet('placement', $attr, 'auto');
+                var delay = UI.getIfSet('delay', $attr, '100');
+                var container = UI.getIfSet('container', $attr, 'body');
+                var selector = UI.getIfSet('selector', $attr, 'false');
+                if (container === 'false') {
+                    container = false;
+                }
+                if (selector === 'false') {
+                    selector = false;
+                }
+                var template = $templateCache.get(contentTemplate);
+                if (!template) {
+                    return;
+                }
+                $element.on('$destroy', function () {
+                    $element.popover('destroy');
+                });
+                $element.popover({
+                    title: title,
+                    trigger: trigger,
+                    html: html,
+                    content: function () {
+                        var res = $compile(template)($scope);
+                        Core.$digest($scope);
+                        return res;
+                    },
+                    delay: delay,
+                    container: container,
+                    selector: selector,
+                    placement: function (tip, element) {
+                        if (placement !== 'auto') {
+                            return placement;
+                        }
+                        var el = $element;
+                        var offset = el.offset();
+                        /* not sure on auto bottom/top
+            
+                        var elVerticalCenter = offset['top'] + (el.outerHeight() / 2);
+                        if (elVerticalCenter < 300) {
+                          return 'bottom';
+                        }
+            
+                        var height = window.innerHeight;
+                        if (elVerticalCenter > window.innerHeight - 300) {
+                          return 'top';
+                        }
+                        */
+                        var width = $document.innerWidth();
+                        var elHorizontalCenter = offset['left'] + (el.outerWidth() / 2);
+                        var midpoint = width / 2;
+                        if (elHorizontalCenter < midpoint) {
+                            return 'right';
+                        }
+                        else {
+                            return 'left';
+                        }
+                    }
+                });
+            }
+        };
+    }
+    UI.TemplatePopover = TemplatePopover;
+    UI._module.directive('hawtioTemplatePopover', ["$templateCache", "$compile", "$document", UI.TemplatePopover]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    function HawtioTocDisplay(marked, $location, $anchorScroll, $compile) {
+        var log = Logger.get("UI");
+        return {
+            restrict: 'A',
+            scope: {
+                getContents: '&'
+            },
+            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
+                    $scope.remaining = -1;
+                    $scope.render = false;
+                    $scope.chapters = [];
+                    $scope.addChapter = function (item) {
+                        console.log("Adding: ", item);
+                        $scope.chapters.push(item);
+                        if (!angular.isDefined(item['text'])) {
+                            $scope.fetchItemContent(item);
+                        }
+                    };
+                    $scope.getTarget = function (id) {
+                        if (!id) {
+                            return '';
+                        }
+                        return id.replace(".", "_");
+                    };
+                    $scope.getFilename = function (href, ext) {
+                        var filename = href.split('/').last();
+                        if (ext && !filename.endsWith(ext)) {
+                            filename = filename + '.' + ext;
+                        }
+                        return filename;
+                    };
+                    $scope.$watch('remaining', function (newValue, oldValue) {
+                        if (newValue !== oldValue) {
+                            var renderIfPageLoadFails = false;
+                            if (newValue === 0 || renderIfPageLoadFails) {
+                                $scope.render = true;
+                            }
+                        }
+                    });
+                    $scope.fetchItemContent = function (item) {
+                        var me = $scope;
+                        $scope.$eval(function (parent) {
+                            parent.getContents({
+                                filename: item['filename'],
+                                cb: function (data) {
+                                    if (data) {
+                                        if (item['filename'].endsWith(".md")) {
+                                            item['text'] = marked(data);
+                                        }
+                                        else {
+                                            item['text'] = data;
+                                        }
+                                        $scope.remaining--;
+                                        Core.$apply(me);
+                                    }
+                                }
+                            });
+                        });
+                    };
+                }],
+            link: function ($scope, $element, $attrs) {
+                var offsetTop = 0;
+                var logbar = $('.logbar');
+                var contentDiv = $("#toc-content");
+                if (logbar.length) {
+                    offsetTop = logbar.height() + logbar.offset().top;
+                }
+                else if (contentDiv.length) {
+                    var offsetContentDiv = contentDiv.offset();
+                    if (offsetContentDiv) {
+                        offsetTop = offsetContentDiv.top;
+                    }
+                }
+                if (!offsetTop) {
+                    // set to a decent guestimate
+                    offsetTop = 90;
+                }
+                var previousHtml = null;
+                var html = $element;
+                if (!contentDiv || !contentDiv.length) {
+                    contentDiv = $element;
+                }
+                var ownerScope = $scope.$parent || $scope;
+                var scrollDuration = 1000;
+                var linkFilter = $attrs["linkFilter"];
+                var htmlName = $attrs["html"];
+                if (htmlName) {
+                    ownerScope.$watch(htmlName, function () {
+                        var htmlText = ownerScope[htmlName];
+                        if (htmlText && htmlText !== previousHtml) {
+                            previousHtml = htmlText;
+                            var markup = $compile(htmlText)(ownerScope);
+                            $element.children().remove();
+                            $element.append(markup);
+                            loadChapters();
+                        }
+                    });
+                }
+                else {
+                    loadChapters();
+                }
+                // make the link active for the first panel on the view
+                $(window).scroll(setFirstChapterActive);
+                function setFirstChapterActive() {
+                    // lets find the first panel which is visible...
+                    var cutoff = $(window).scrollTop();
+                    $element.find("li a").removeClass("active");
+                    $('.panel-body').each(function () {
+                        var offset = $(this).offset();
+                        if (offset && offset.top >= cutoff) {
+                            // lets make the related TOC link active
+                            var id = $(this).attr("id");
+                            if (id) {
+                                var link = html.find("a[chapter-id='" + id + "']");
+                                link.addClass("active");
+                                // stop iterating and just make first one active
+                                return false;
+                            }
+                        }
+                    });
+                }
+                function findLinks() {
+                    var answer = html.find('a');
+                    if (linkFilter) {
+                        answer = answer.filter(linkFilter);
+                    }
+                    return answer;
+                }
+                function loadChapters() {
+                    if (!html.get(0).id) {
+                        html.get(0).id = 'toc';
+                    }
+                    $scope.tocId = '#' + html.get(0).id;
+                    $scope.remaining = findLinks().length;
+                    findLinks().each(function (index, a) {
+                        log.debug("Found: ", a);
+                        var filename = $scope.getFilename(a.href, a.getAttribute('file-extension'));
+                        var item = {
+                            filename: filename,
+                            title: a.textContent,
+                            link: a
+                        };
+                        $scope.addChapter(item);
+                    });
+                    // TODO this doesn't seem to have any effect ;)
+                    setTimeout(function () {
+                        setFirstChapterActive();
+                    }, 100);
+                }
+                $scope.$watch('render', function (newValue, oldValue) {
+                    if (newValue !== oldValue) {
+                        if (newValue) {
+                            if (!contentDiv.next('.hawtio-toc').length) {
+                                var div = $('<div class="hawtio-toc"></div>');
+                                div.appendTo(contentDiv);
+                                var selectedChapter = $location.search()["chapter"];
+                                // lets load the chapter panels
+                                $scope.chapters.forEach(function (chapter, index) {
+                                    log.debug("index:", index);
+                                    var panel = $('<div></div>');
+                                    var panelHeader = null;
+                                    var chapterId = $scope.getTarget(chapter['filename']);
+                                    var link = chapter["link"];
+                                    if (link) {
+                                        link.setAttribute("chapter-id", chapterId);
+                                    }
+                                    if (index > 0) {
+                                        panelHeader = $('<div class="panel-title"><a class="toc-back" href="">Back to Top</a></div>');
+                                    }
+                                    var panelBody = $('<div class="panel-body" id="' + chapterId + '">' + chapter['text'] + '</div>');
+                                    if (panelHeader) {
+                                        panel.append(panelHeader).append($compile(panelBody)($scope));
+                                    }
+                                    else {
+                                        panel.append($compile(panelBody)($scope));
+                                    }
+                                    panel.hide().appendTo(div).fadeIn(1000);
+                                    if (chapterId === selectedChapter) {
+                                        // lets scroll on startup to allow for bookmarking
+                                        scrollToChapter(chapterId);
+                                    }
+                                });
+                                var pageTop = contentDiv.offset().top - offsetTop;
+                                div.find('a.toc-back').each(function (index, a) {
+                                    $(a).click(function (e) {
+                                        e.preventDefault();
+                                        $('body,html').animate({
+                                            scrollTop: pageTop
+                                        }, 2000);
+                                    });
+                                });
+                                // handle clicking links in the TOC
+                                findLinks().each(function (index, a) {
+                                    var href = a.href;
+                                    var filename = $scope.getFilename(href, a.getAttribute('file-extension'));
+                                    $(a).click(function (e) {
+                                        log.debug("Clicked: ", e);
+                                        e.preventDefault();
+                                        var chapterId = $scope.getTarget(filename);
+                                        $location.search("chapter", chapterId);
+                                        Core.$apply(ownerScope);
+                                        scrollToChapter(chapterId);
+                                        return true;
+                                    });
+                                });
+                            }
+                        }
+                    }
+                });
+                // watch for back / forward / url changes
+                ownerScope.$on("$locationChangeSuccess", function (event, current, previous) {
+                    // lets do this asynchronously to avoid Error: $digest already in progress
+                    setTimeout(function () {
+                        // lets check if the chapter selection has changed
+                        var currentChapter = $location.search()["chapter"];
+                        scrollToChapter(currentChapter);
+                    }, 50);
+                });
+                /**
+                 * Lets scroll to the given chapter ID
+                 *
+                 * @param chapterId
+                 */
+                function scrollToChapter(chapterId) {
+                    log.debug("selected chapter changed: " + chapterId);
+                    if (chapterId) {
+                        var target = '#' + chapterId;
+                        var top = 0;
+                        var targetElements = $(target);
+                        if (targetElements.length) {
+                            var offset = targetElements.offset();
+                            if (offset) {
+                                top = offset.top - offsetTop;
+                            }
+                            $('body,html').animate({
+                                scrollTop: top
+                            }, scrollDuration);
+                        }
+                    }
+                }
+            }
+        };
+    }
+    UI.HawtioTocDisplay = HawtioTocDisplay;
+    UI._module.directive('hawtioTocDisplay', ["marked", "$location", "$anchorScroll", "$compile", UI.HawtioTocDisplay]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioViewport', function () {
+        return new UI.ViewportHeight();
+    });
+    var ViewportHeight = (function () {
+        function ViewportHeight() {
+            this.restrict = 'A';
+            this.link = function ($scope, $element, $attrs) {
+                var lastHeight = 0;
+                var resizeFunc = function () {
+                    var neighbor = angular.element($attrs['hawtioViewport']);
+                    var container = angular.element($attrs['containingDiv']);
+                    var start = neighbor.position().top + neighbor.height();
+                    var myHeight = container.height() - start;
+                    if (angular.isDefined($attrs['heightAdjust'])) {
+                        var heightAdjust = Core.parseIntValue($attrs['heightAdjust']);
+                    }
+                    myHeight = myHeight + heightAdjust;
+                    $element.css({
+                        height: myHeight,
+                        'min-height': myHeight
+                    });
+                    if (lastHeight !== myHeight) {
+                        lastHeight = myHeight;
+                        $element.trigger('resize');
+                    }
+                };
+                resizeFunc();
+                $scope.$watch(resizeFunc);
+                $().resize(function () {
+                    resizeFunc();
+                    Core.$apply($scope);
+                    return false;
+                });
+            };
+        }
+        return ViewportHeight;
+    }());
+    UI.ViewportHeight = ViewportHeight;
+    UI._module.directive('hawtioHorizontalViewport', function () {
+        return new UI.HorizontalViewport();
+    });
+    var HorizontalViewport = (function () {
+        function HorizontalViewport() {
+            this.restrict = 'A';
+            this.link = function ($scope, $element, $attrs) {
+                var adjustParent = angular.isDefined($attrs['adjustParent']) && Core.parseBooleanValue($attrs['adjustParent']);
+                $element.get(0).addEventListener("DOMNodeInserted", function () {
+                    var canvas = $element.children();
+                    $element.height(canvas.outerHeight(true));
+                    if (adjustParent) {
+                        $element.parent().height($element.outerHeight(true) + UI.getScrollbarWidth());
+                    }
+                });
+            };
+        }
+        return HorizontalViewport;
+    }());
+    UI.HorizontalViewport = HorizontalViewport;
+})(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
+//
+var UI;
+(function (UI) {
+    UI._module.directive('hawtioWindowHeight', ['$window', function ($window) {
+            return {
+                restrict: 'A',
+                replace: false,
+                link: function (scope, element, attrs) {
+                    var viewportHeight = $window.innerHeight;
+                    function processElement(el) {
+                        var offset = el.offset();
+                        if (!offset) {
+                            return;
+                        }
+                        var top = offset.top;
+                        var height = viewportHeight - top;
+                        if (height > 0) {
+                            el.attr({
+                                'style': 'height: ' + height + 'px;'
+                            });
+                        }
+                    }
+                    function layout() {
+                        viewportHeight = $window.innerHeight;
+                        element.parents().each(function (index, el) {
+                            el = $(el);
+                            processElement(el);
+                        });
+                        processElement(element);
+                    }
+                    scope.$watch(_.debounce(layout, 1000, { trailing: true }));
+                }
+            };
+        }]);
+})(UI || (UI = {}));
+/**
+ * @module UI
+ */
+/// <reference path="./uiPlugin.ts"/>
+var UI;
+(function (UI) {
+    UI._module.directive('zeroClipboard', ["$parse", function ($parse) {
+            return UI.ZeroClipboardDirective($parse);
+        }]);
+    function ZeroClipboardDirective($parse) {
+        return {
+            restrict: 'A',
+            link: function ($scope, $element, $attr) {
+                var clip = new ZeroClipboard($element.get(0), {
+                    moviePath: "img/ZeroClipboard.swf"
+                });
+                clip.on('complete', function (client, args) {
+                    if (args.text && angular.isString(args.text)) {
+                        Core.notification('info', "Copied text to clipboard: " + args.text.truncate(20));
+                    }
+                    Core.$apply($scope);
+                });
+                if ('useCallback' in $attr) {
+                    var func = $parse($attr['useCallback']);
+                    if (func) {
+                        func($scope, { clip: clip });
+                    }
+                }
+            }
+        };
+    }
+    UI.ZeroClipboardDirective = ZeroClipboardDirective;
+})(UI || (UI = {}));
+/// <reference path="../../includes.ts"/>
+var UIBootstrap;
+(function (UIBootstrap) {
+    var pluginName = "hawtio-ui-bootstrap";
+    angular.module(pluginName, ["ui.bootstrap"]);
+    hawtioPluginLoader.addModule(pluginName);
+    hawtioPluginLoader.addModule("hawtio-compat.transition");
+    hawtioPluginLoader.addModule("hawtio-compat.dialog");
+    hawtioPluginLoader.addModule("hawtio-compat.modal");
+})(UIBootstrap || (UIBootstrap = {}));
 
 angular.module('hawtio-ui-templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('plugins/editor/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
 $templateCache.put('plugins/ui/html/breadcrumbs.html','<div class="hawtio-breadcrumbs">\n  <ul ng-show="config">\n    <li ng-repeat="(level, config) in levels track by level" ng-show="config">\n      <span class="hawtio-breadcrumbs-menu" hawtio-drop-down="config" process-submenus="false"></span>\n      <i ng-if="!isLastLevel(level)" class="fa fa-angle-double-right hawtio-breadcrumbs-divider"></i>\n    </li>\n  </ul>\n</div>\n');

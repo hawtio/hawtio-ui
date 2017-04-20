@@ -1,5 +1,4 @@
 /// <reference path="libs/hawtio-utilities/defs.d.ts" />
-declare var marked: any;
 /**
  * @module DataTable
  * @main DataTable
@@ -203,27 +202,6 @@ declare module Core {
     function clearNotifications(): void;
 }
 /**
- * @module Tree
- * @main Tree
- */
-declare module Tree {
-    var pluginName: string;
-    var log: Logging.Logger;
-    function expandAll(el: any): void;
-    function contractAll(el: any): void;
-    /**
-     * @function sanitize
-     * @param tree
-     *
-     * Use to HTML escape all entries in a tree before passing it
-     * over to the dynatree plugin to avoid cross site scripting
-     * issues.
-     *
-     */
-    function sanitize(tree: any): void;
-    var _module: ng.IModule;
-}
-/**
  * @module UI
  */
 declare module UI {
@@ -327,7 +305,7 @@ declare module UI {
      * Configuration object for the ConfirmDialog directive
      * @class ConfirmDialogConfig
      */
-    interface ConfirmDialogConfig {
+    interface ConfirmDialogConfig extends ng.IScope {
         /**
          * Model used to open/close the dialog
          *
@@ -411,8 +389,19 @@ declare module UI {
          * @property scope
          * @type ConfirmDialogConfig
          */
-        scope: ConfirmDialogConfig;
-        controller: (string | (($scope: any, $element: any, $attrs: any, $transclude: any, $compile: any) => void))[];
+        scope: {
+            show: string;
+            title: string;
+            okButtonText: string;
+            showOkButton: string;
+            cancelButtonText: string;
+            onCancel: string;
+            onOk: string;
+            onClose: string;
+            size: string;
+            optionalSize: string;
+        };
+        controller: (string | (($scope: any, $element: JQuery, $attrs: ng.IAttributes, $transclude: any, $compile: any) => void))[];
         constructor();
     }
 }
