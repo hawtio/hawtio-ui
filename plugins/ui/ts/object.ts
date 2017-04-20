@@ -44,7 +44,7 @@ module UI {
                   answer = _.merge(answer, config);
                 } else {
                   // log.debug("Set config");
-                  answer = _.clone(config, true);
+                  answer = _.cloneDeep(config);
                 }
               }
             });
