@@ -1,5 +1,4 @@
 ///<reference path="../defs.d.ts"/>
-
 ///<reference path="../includes.ts"/>
 var UIDocs;
 (function (UIDocs) {
@@ -22,7 +21,6 @@ var UIDocs;
         }]);
     hawtioPluginLoader.addModule(pluginName);
 })(UIDocs || (UIDocs = {}));
-
 ///<reference path="../../includes.ts"/>
 var DatatableTest;
 (function (DatatableTest) {
@@ -44,7 +42,6 @@ var DatatableTest;
         }]);
     hawtioPluginLoader.addModule(pluginName);
 })(DatatableTest || (DatatableTest = {}));
-
 /// <reference path="datatablePlugin.ts"/>
 var DatatableTest;
 (function (DatatableTest) {
@@ -165,7 +162,6 @@ var DatatableTest;
         }
     }
 })(DatatableTest || (DatatableTest = {}));
-
 /// <reference path="datatablePlugin.ts"/>
 var DatatableTest;
 (function (DatatableTest) {
@@ -193,11 +189,13 @@ var DatatableTest;
                         field: 'name',
                         displayName: 'Name',
                         width: "***"
+                        //width: 300
                     },
                     {
                         field: 'city',
                         displayName: 'City',
                         width: "***"
+                        //width: 300
                     },
                     {
                         field: 'twitter',
@@ -229,13 +227,13 @@ var DatatableTest;
                                 return 0;
                             }
                         }
+                        //width: 300
                     }
                 ]
             };
             $scope.scrollGrid = angular.extend({ maxBodyHeight: 77 }, $scope.mygrid);
         }]);
 })(DatatableTest || (DatatableTest = {}));
-
 /// <reference path="../docs.ts"/>
 var UIDocs;
 (function (UIDocs) {
@@ -250,7 +248,6 @@ var UIDocs;
             }, 500);
         }]);
 })(UIDocs || (UIDocs = {}));
-
 /// <reference path="../../includes.ts"/>
 var UITest;
 (function (UITest) {
@@ -300,7 +297,6 @@ var UITest;
         }]);
     hawtioPluginLoader.addModule(UITest.pluginName);
 })(UITest || (UITest = {}));
-
 ///<reference path="uiTestPlugin.ts"/>
 var UITest;
 (function (UITest) {
@@ -334,7 +330,6 @@ var UITest;
             $scope.template = $templateCache.get('tag-ex-template.html');
         }]);
 })(UITest || (UITest = {}));
-
 /// <reference path="uiTestPlugin.ts"/>
 /// <reference path="../../includes.ts"/>
 var UITest;

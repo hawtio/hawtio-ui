@@ -1,5 +1,4 @@
 /// <reference path="../libs/hawtio-utilities/defs.d.ts"/>
-
 /// <reference path="../../includes.ts"/>
 /**
  * @module DataTable
@@ -12,7 +11,6 @@ var DataTable;
     DataTable._module = angular.module(DataTable.pluginName, []);
     hawtioPluginLoader.addModule(DataTable.pluginName);
 })(DataTable || (DataTable = {}));
-
 /// <reference path="datatablePlugin.ts"/>
 /**
  * @module DataTable
@@ -220,6 +218,7 @@ var DataTable;
                             data = row['entity']['title'];
                         }
                         catch (e) {
+                            // ignore
                         }
                         if (!data) {
                             // use the row as-is
@@ -432,7 +431,6 @@ var DataTable;
         }
     }
 })(DataTable || (DataTable = {}));
-
 /// <reference path="../../includes.ts"/>
 /**
  * Module that contains several helper functions related to hawtio's code editor
@@ -573,7 +571,6 @@ var CodeEditor;
     }
     CodeEditor.createEditorSettings = createEditorSettings;
 })(CodeEditor || (CodeEditor = {}));
-
 /// <reference path="../../includes.ts"/>
 var HawtioEditor;
 (function (HawtioEditor) {
@@ -581,7 +578,6 @@ var HawtioEditor;
     HawtioEditor.templatePath = "plugins/editor/html";
     HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
 })(HawtioEditor || (HawtioEditor = {}));
-
 /// <reference path="editorGlobals.ts"/>
 /// <reference path="CodeEditor.ts"/>
 var HawtioEditor;
@@ -592,7 +588,6 @@ var HawtioEditor;
     });
     hawtioPluginLoader.addModule(HawtioEditor.pluginName);
 })(HawtioEditor || (HawtioEditor = {}));
-
 /// <reference path="editorPlugin.ts"/>
 /// <reference path="CodeEditor.ts"/>
 /**
@@ -627,6 +622,7 @@ var HawtioEditor;
                                     $scope.codeMirror.setOption(option.key, option.value);
                                 }
                                 catch (err) {
+                                    // ignore
                                 }
                             });
                         }
@@ -759,7 +755,6 @@ var HawtioEditor;
     }
     HawtioEditor.Editor = Editor;
 })(HawtioEditor || (HawtioEditor = {}));
-
 /// <reference path="../../includes.ts"/>
 /// <reference path="forceGraphDirective.ts"/>
 /**
@@ -776,7 +771,6 @@ var ForceGraph;
     });
     hawtioPluginLoader.addModule(pluginName);
 })(ForceGraph || (ForceGraph = {}));
-
 ///<reference path="forceGraphPlugin.ts"/>
 var ForceGraph;
 (function (ForceGraph) {
@@ -1008,7 +1002,6 @@ var ForceGraph;
     }());
     ForceGraph.ForceGraphDirective = ForceGraphDirective;
 })(ForceGraph || (ForceGraph = {}));
-
 /// <reference path="../../includes.ts"/>
 var ForceGraph;
 (function (ForceGraph) {
@@ -1122,7 +1115,6 @@ var ForceGraph;
     }());
     ForceGraph.GraphBuilder = GraphBuilder;
 })(ForceGraph || (ForceGraph = {}));
-
 /// <reference path="../../includes.ts"/>
 var Toastr;
 (function (Toastr) {
@@ -1164,7 +1156,6 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
-
 /// <reference path="../../includes.ts"/>
 /**
  * @module Tree
@@ -1423,7 +1414,6 @@ var Tree;
         }]);
     hawtioPluginLoader.addModule(Tree.pluginName);
 })(Tree || (Tree = {}));
-
 /**
  * @module UI
  */
@@ -1435,7 +1425,6 @@ var UI;
     UI.pluginName = 'hawtio-ui';
     UI.templatePath = 'plugins/ui/html/';
 })(UI || (UI = {}));
-
 /// <reference path="../../includes.ts"/>
 /// <reference path="uiHelpers.ts"/>
 /**
@@ -1510,7 +1499,6 @@ var UI;
         }]);
     hawtioPluginLoader.addModule(UI.pluginName);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -1599,7 +1587,6 @@ var UI;
         }
     };
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -1698,7 +1685,6 @@ var UI;
     UI.hawtioBreadcrumbs = hawtioBreadcrumbs;
     UI._module.directive('hawtioBreadcrumbs', UI.hawtioBreadcrumbs);
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
@@ -1719,7 +1705,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 var UI;
 (function (UI) {
     setTimeout(function () {
@@ -1742,7 +1727,6 @@ var UI;
         });
     }, 1000);
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
@@ -1757,7 +1741,6 @@ var UI;
         "#DBADFF", "#E1E1E1"];
     UI._module.constant('UIColors', UI.colors);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -1828,7 +1811,6 @@ var UI;
     }());
     UI.ColorPicker = ColorPicker;
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -1930,7 +1912,6 @@ var UI;
     }());
     UI.ConfirmDialog = ConfirmDialog;
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 /**
  * @module UI
@@ -1950,7 +1931,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /// <reference path="../../includes.ts"/>
 /// <reference path="uiHelpers.ts"/>
 /**
@@ -2014,7 +1994,6 @@ var UI;
     }
     UI.multiItemConfirmActionDialog = multiItemConfirmActionDialog;
 })(UI || (UI = {}));
-
 ///<reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
@@ -2106,7 +2085,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -2189,7 +2167,6 @@ var UI;
     UI.hawtioDropDown = hawtioDropDown;
     UI._module.directive('hawtioDropDown', ["$templateCache", UI.hawtioDropDown]);
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 /**
  * @module UI
@@ -2289,7 +2266,6 @@ var UI;
     }());
     UI.EditableProperty = EditableProperty;
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -2415,7 +2391,6 @@ var UI;
         return value ? true : false;
     }
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
@@ -2455,7 +2430,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -2517,7 +2491,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -2562,7 +2535,6 @@ var UI;
     }());
     UI.GridsterDirective = GridsterDirective;
 })(UI || (UI = {}));
-
 /// <reference path="./uiPlugin.ts"/>
 var UI;
 (function (UI) {
@@ -2623,7 +2595,6 @@ var UI;
     UI.groupBy = groupBy;
     UI._module.filter('hawtioGroupBy', UI.groupBy);
 })(UI || (UI = {}));
-
 var UI;
 (function (UI) {
     UI._module.directive('httpSrc', ['$http', function ($http) {
@@ -2665,7 +2636,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -2717,7 +2687,6 @@ var UI;
     UI.hawtioIcon = hawtioIcon;
     UI._module.directive('hawtioIcon', UI.hawtioIcon);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -2815,7 +2784,6 @@ var UI;
     UI.hawtioList = hawtioList;
     UI._module.directive('hawtioList', ["$templateCache", "$compile", UI.hawtioList]);
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
@@ -3076,7 +3044,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -3192,7 +3159,6 @@ var UI;
     UI.hawtioPane = hawtioPane;
     UI._module.directive('hawtioPane', UI.hawtioPane);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -3321,7 +3287,6 @@ var UI;
     }());
     UI.InfoPanel = InfoPanel;
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -3356,7 +3321,6 @@ var UI;
     }());
     UI.DivRow = DivRow;
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -3421,7 +3385,6 @@ var UI;
     }());
     UI.SlideOut = SlideOut;
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -3508,7 +3471,6 @@ var UI;
     }());
     UI.TablePager = TablePager;
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -3631,7 +3593,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
@@ -3676,7 +3637,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -3755,7 +3715,6 @@ var UI;
     UI.TemplatePopover = TemplatePopover;
     UI._module.directive('hawtioTemplatePopover', ["$templateCache", "$compile", "$document", UI.TemplatePopover]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -4008,7 +3967,6 @@ var UI;
     UI.HawtioTocDisplay = HawtioTocDisplay;
     UI._module.directive('hawtioTocDisplay', ["marked", "$location", "$anchorScroll", "$compile", UI.HawtioTocDisplay]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -4074,7 +4032,6 @@ var UI;
     }());
     UI.HorizontalViewport = HorizontalViewport;
 })(UI || (UI = {}));
-
 /// <reference path="uiPlugin.ts"/>
 //
 var UI;
@@ -4111,7 +4068,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-
 /**
  * @module UI
  */
@@ -4145,7 +4101,6 @@ var UI;
     }
     UI.ZeroClipboardDirective = ZeroClipboardDirective;
 })(UI || (UI = {}));
-
 /// <reference path="../../includes.ts"/>
 var UIBootstrap;
 (function (UIBootstrap) {
