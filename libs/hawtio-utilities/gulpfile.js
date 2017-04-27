@@ -18,9 +18,9 @@ var config = {
   js: pkg.name + '.js',
   tsProject: plugins.typescript.createProject({
     target: 'ES5',
-    module: 'commonjs',
-    declarationFiles: true,
-    noExternalResolve: false
+    outFile: 'compiled.js',
+    declaration: true,
+    noResolve: false
   })
 };
 
@@ -37,7 +37,7 @@ gulp.task('bower', function() {
 gulp.task('tsc', ['clean-defs'], function() {
   var cwd = process.cwd();
   var tsResult = gulp.src(config.ts)
-    .pipe(plugins.typescript(config.tsProject))
+    .pipe(config.tsProject())
     .on('error', plugins.notify.onError({
       message: '#{ error.message }',
       title: 'Typescript compilation error'
@@ -48,14 +48,8 @@ gulp.task('tsc', ['clean-defs'], function() {
         .pipe(plugins.concat(config.js))
         .pipe(gulp.dest(config.dist)),
       tsResult.dts
-        .pipe(gulp.dest('d.ts')))
-        .pipe(plugins.filter('**/*.d.ts'))
-        .pipe(plugins.concatFilenames('defs.d.ts', {
-          root: cwd,
-          prepend: '/// <reference path="',
-          append: '"/>'
-        }))
-        .pipe(gulp.dest('.'));
+        .pipe(plugins.rename('defs.d.ts'))
+        .pipe(gulp.dest('.')));
 });
 
 gulp.task('watch', ['build'], function() {
@@ -84,6 +78,3 @@ gulp.task('reload', function() {
 gulp.task('build', ['bower', 'tsc']);
 
 gulp.task('default', ['connect']);
-
-
-
