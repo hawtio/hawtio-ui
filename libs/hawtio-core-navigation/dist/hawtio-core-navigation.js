@@ -1000,7 +1000,7 @@ var HawtioMainNav;
 
 
 
-angular.module('hawtio-nav').run(['$templateCache', function($templateCache) {$templateCache.put('templates/main-nav/layoutFull.html','<div ng-view></div>\n\n\n');
+angular.module('hawtio-nav').run(['$templateCache', function($templateCache) {$templateCache.put('templates/main-nav/layoutFull.html','<div ng-view class="nav-ht nav-ht-full-layout"></div>');
 $templateCache.put('templates/main-nav/layoutTest.html','<div>\n  <h1>Test Layout</h1>\n  <div ng-view>\n\n\n  </div>\n</div>\n\n\n');
 $templateCache.put('templates/main-nav/navItem.html','<li class="list-group-item" \n    ng-class="{ active: item.isSelected(), \n                \'secondary-nav-item-pf\': item.tabs,\n                \'is-hover\': item.isHover }" \n    ng-if="item.isValid === undefined || item.isValid()"\n    ng-hide="item.hide()"\n    ng-mouseenter="$ctrl.onHover(item)"\n    ng-mouseleave="$ctrl.onUnHover(item)"\n    data-target="#{{item.id}}-secondary">\n  <a ng-href="{{item.href()}}" ng-click="item.click($event)">\n    <span class="list-group-item-value">\n      <ng-bind-html ng-bind-html="item.title()"></ng-bind-html>\n    </span>\n  </a>\n  <div id="#{{item.id}}-secondary" class="nav-pf-secondary-nav" ng-if="item.tabs">\n    <div class="nav-item-pf-header">\n      <ng-bind-html ng-bind-html="item.title()"></ng-bind-html>\n    </div>\n    <ul class="list-group" item="item" hawtio-sub-tabs></ul>\n  </div>\n</li>\n');
 $templateCache.put('templates/main-nav/subTabHeader.html','<li class="header">\n  <a href=""><strong>{{item.title()}}</strong></a>\n</li>\n');
