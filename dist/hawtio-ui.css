@@ -799,12 +799,6 @@ ol.zebra-list > li:nth-child(even):before {
 i.expandable-indicator.folder {
   color: #EECA7C;
 }
-.camel-canvas {
-  border: 1px solid #d4d4d4;
-  border-radius: 4px;
-  box-shadow: inset 0 1px 13px rgba(0, 0, 0, 0.1);
-  background-image: url('../../../img/img-noise-600x600.png');
-}
 /*
  * jquery.tocify.css 1.8.0
  * Author: @gregfranko
@@ -875,9 +869,6 @@ i.expandable-indicator.folder {
 .hawtio-toc .panel-title a {
   border-radius: 3px;
   background: #cceeff;
-}
-.camel-canvas-endpoint svg circle {
-  fill: #346789;
 }
 .runnable {
   color: green;
@@ -1742,13 +1733,6 @@ table.scroll-body-table tr:last-child td {
 }
 div.scroll-body-table-wrapper {
   overflow-y: scroll;
-}
-
-.editor-autoresize .CodeMirror {
-  height: auto;
-}
-.editor-autoresize .CodeMirror-scroll {
-  min-height: 100px;
 }
 
 .dropdown.overflow {
@@ -2688,4 +2672,11 @@ ul.inline > li {
 }
 .strong {
   font-weight: bold;
+}
+
+.editor-autoresize .CodeMirror {
+  height: auto;
+}
+.editor-autoresize .CodeMirror-scroll {
+  min-height: 100px;
 }
