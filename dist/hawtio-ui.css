@@ -1735,6 +1735,13 @@ div.scroll-body-table-wrapper {
   overflow-y: scroll;
 }
 
+.editor-autoresize .CodeMirror {
+  height: auto;
+}
+.editor-autoresize .CodeMirror-scroll {
+  min-height: 100px;
+}
+
 .dropdown.overflow {
   visibility: hidden;
 }
@@ -2672,11 +2679,4 @@ ul.inline > li {
 }
 .strong {
   font-weight: bold;
-}
-
-.editor-autoresize .CodeMirror {
-  height: auto;
-}
-.editor-autoresize .CodeMirror-scroll {
-  min-height: 100px;
 }

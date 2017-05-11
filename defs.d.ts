@@ -201,6 +201,8 @@ declare module Core {
      */
     function clearNotifications(): void;
 }
+declare module UIBootstrap {
+}
 /**
  * @module UI
  */
@@ -746,6 +748,4 @@ declare module UI {
         restrict: string;
         link: ($scope: any, $element: any, $attr: any) => void;
     };
-}
-declare module UIBootstrap {
 }

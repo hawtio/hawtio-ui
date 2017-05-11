@@ -218,6 +218,7 @@ var DataTable;
                             data = row['entity']['title'];
                         }
                         catch (e) {
+                            // ignore
                         }
                         if (!data) {
                             // use the row as-is
@@ -621,6 +622,7 @@ var HawtioEditor;
                                     $scope.codeMirror.setOption(option.key, option.value);
                                 }
                                 catch (err) {
+                                    // ignore
                                 }
                             });
                         }
@@ -1154,6 +1156,16 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
+/// <reference path="../../includes.ts"/>
+var UIBootstrap;
+(function (UIBootstrap) {
+    var pluginName = "hawtio-ui-bootstrap";
+    angular.module(pluginName, ["ui.bootstrap"]);
+    hawtioPluginLoader.addModule(pluginName);
+    hawtioPluginLoader.addModule("hawtio-compat.transition");
+    hawtioPluginLoader.addModule("hawtio-compat.dialog");
+    hawtioPluginLoader.addModule("hawtio-compat.modal");
+})(UIBootstrap || (UIBootstrap = {}));
 /**
  * @module UI
  */
@@ -3841,16 +3853,6 @@ var UI;
     }
     UI.ZeroClipboardDirective = ZeroClipboardDirective;
 })(UI || (UI = {}));
-/// <reference path="../../includes.ts"/>
-var UIBootstrap;
-(function (UIBootstrap) {
-    var pluginName = "hawtio-ui-bootstrap";
-    angular.module(pluginName, ["ui.bootstrap"]);
-    hawtioPluginLoader.addModule(pluginName);
-    hawtioPluginLoader.addModule("hawtio-compat.transition");
-    hawtioPluginLoader.addModule("hawtio-compat.dialog");
-    hawtioPluginLoader.addModule("hawtio-compat.modal");
-})(UIBootstrap || (UIBootstrap = {}));
 
 angular.module('hawtio-ui-templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('plugins/editor/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
 $templateCache.put('plugins/ui/html/breadcrumbs.html','<div class="hawtio-breadcrumbs">\n  <ul ng-show="config">\n    <li ng-repeat="(level, config) in levels track by level" ng-show="config">\n      <span class="hawtio-breadcrumbs-menu" hawtio-drop-down="config" process-submenus="false"></span>\n      <i ng-if="!isLastLevel(level)" class="fa fa-angle-double-right hawtio-breadcrumbs-divider"></i>\n    </li>\n  </ul>\n</div>\n');

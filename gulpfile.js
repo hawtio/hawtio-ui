@@ -55,9 +55,14 @@ gulp.task('bower', function() {
 
 /** Adjust the reference path of any typescript-built plugin this project depends on */
 gulp.task('path-adjust', function() {
-  return gulp.src('libs/**/includes.d.ts')
-    .pipe(plugins.replace(/"\.\.\/libs/gm, '"../../../libs'))
-    .pipe(gulp.dest('libs'));
+  return eventStream.merge(
+    gulp.src('libs/**/includes.d.ts')
+      .pipe(plugins.replace(/"\.\.\/libs/gm, '"../../../libs'))
+      .pipe(gulp.dest('libs')),
+    gulp.src('libs/**/defs.d.ts')
+      .pipe(plugins.replace(/"libs/gm, '"../../libs'))
+      .pipe(gulp.dest('libs'))
+  );
 });
 
 gulp.task('clean-defs', function() {
@@ -66,12 +71,7 @@ gulp.task('clean-defs', function() {
 
 gulp.task('example-tsc', ['tsc'], function() {
   var tsResult = gulp.src(config.testTs)
-    .pipe(config.testTsProject())
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'Typescript compilation error - test'
-    }));
+    .pipe(config.testTsProject());
 
     return tsResult.js.pipe(gulp.dest('.'));
 });
@@ -101,12 +101,7 @@ gulp.task('example-clean', ['example-concat'], function() {
 gulp.task('tsc', ['clean-defs'], function() {
   var cwd = process.cwd();
   var tsResult = gulp.src(config.ts)
-    .pipe(config.tsProject())
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'Typescript compilation error'
-    }));
+    .pipe(config.tsProject());
 
     return eventStream.merge(
       tsResult.js
@@ -124,11 +119,6 @@ gulp.task('less', function () {
         path.join(__dirname, 'libs')
       ]
     }))
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'less file compilation error'
-    }))
     .pipe(plugins.concat(config.css))
     .pipe(gulp.dest(config.dist));
 });
@@ -140,11 +130,6 @@ gulp.task('test-less', function () {
         path.join(__dirname, 'less', 'includes'),
         path.join(__dirname, 'libs')
       ]
-    }))
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'less file compilation error'
     }))
     .pipe(plugins.concat(config.testCss))
     .pipe(gulp.dest(config.dist));
