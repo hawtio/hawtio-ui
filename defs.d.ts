@@ -14,6 +14,58 @@ declare module DataTable {
 declare module DataTable {
 }
 /**
+ * Force Graph plugin & directive
+ *
+ * @module ForceGraph
+ */
+declare module ForceGraph {
+    var _module: ng.IModule;
+}
+declare module ForceGraph {
+    class ForceGraphDirective {
+        restrict: string;
+        replace: boolean;
+        transclude: boolean;
+        scope: {
+            graph: string;
+            nodesize: string;
+            selectedModel: string;
+            linkDistance: string;
+            markerKind: string;
+            charge: string;
+        };
+        link: ($scope: any, $element: any, $attrs: any) => void;
+    }
+}
+declare module ForceGraph {
+    /**
+     * GraphBuilder
+     *
+     * @class GraphBuilder
+     */
+    class GraphBuilder {
+        private nodes;
+        private links;
+        private linkTypes;
+        /**
+         * Adds a node to this graph
+         * @method addNode
+         * @param {Object} node
+         */
+        addNode(node: any): void;
+        getNode(id: any): any;
+        hasLinks(id: any): boolean;
+        addLink(srcId: any, targetId: any, linkType: any): void;
+        nodeIndex(id: any, nodes: any): number;
+        filterNodes(filter: any): void;
+        buildGraph(): {
+            nodes: any[];
+            links: any[];
+            linktypes: any;
+        };
+    }
+}
+/**
  * Module that contains several helper functions related to hawtio's code editor
  *
  * @module CodeEditor
@@ -129,58 +181,6 @@ declare module HawtioEditor {
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-declare module ForceGraph {
-    var _module: ng.IModule;
-}
-declare module ForceGraph {
-    class ForceGraphDirective {
-        restrict: string;
-        replace: boolean;
-        transclude: boolean;
-        scope: {
-            graph: string;
-            nodesize: string;
-            selectedModel: string;
-            linkDistance: string;
-            markerKind: string;
-            charge: string;
-        };
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    }
-}
-declare module ForceGraph {
-    /**
-     * GraphBuilder
-     *
-     * @class GraphBuilder
-     */
-    class GraphBuilder {
-        private nodes;
-        private links;
-        private linkTypes;
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        addNode(node: any): void;
-        getNode(id: any): any;
-        hasLinks(id: any): boolean;
-        addLink(srcId: any, targetId: any, linkType: any): void;
-        nodeIndex(id: any, nodes: any): number;
-        filterNodes(filter: any): void;
-        buildGraph(): {
-            nodes: any[];
-            links: any[];
-            linktypes: any;
-        };
-    }
-}
 declare module Toastr {
 }
 declare module Core {
@@ -200,8 +200,6 @@ declare module Core {
      * @static
      */
     function clearNotifications(): void;
-}
-declare module UIBootstrap {
 }
 /**
  * @module UI
@@ -748,4 +746,6 @@ declare module UI {
         restrict: string;
         link: ($scope: any, $element: any, $attr: any) => void;
     };
+}
+declare module UIBootstrap {
 }
