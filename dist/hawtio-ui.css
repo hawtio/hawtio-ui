@@ -951,60 +951,6 @@ strong.new,
   background-color: white;
   color: black;
 }
-.window,
-.node > rect {
-  stroke-width: 2px;
-  stroke: #346789;
-  border: 2px solid #346789;
-  box-shadow: 2px 2px 19px #e0e0e0;
-  -o-box-shadow: 2px 2px 19px #e0e0e0;
-  -webkit-box-shadow: 2px 2px 19px #e0e0e0;
-  -moz-box-shadow: 2px 2px 19px #e0e0e0;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
-  background-color: lightgrey;
-  fill: lightgrey;
-}
-.window-inner.from,
-.node > .from {
-  background-color: lightsteelblue;
-  fill: lightsteelblue;
-}
-.window-inner.choice,
-.node > .choice {
-  background-color: lightblue;
-  fill: lightblue;
-}
-.window-inner.when,
-.node > .when {
-  background-color: lightgreen;
-  fill: lightgreen;
-}
-.window-inner.otherwise,
-.node > .otherwise {
-  background-color: lightgreen;
-  fill: lightgreen;
-}
-.window-inner.to,
-.node > .to {
-  background-color: lightsteelblue;
-  fill: lightsteelblue;
-}
-.window-inner.log,
-.node > .log {
-  background-color: lightcyan;
-  fill: lightcyan;
-}
-.window-inner.onException,
-.node > .onException {
-  background-color: lightpink;
-  fill: lightpink;
-}
-.window-inner.bean,
-.node > .bean {
-  background-color: mediumaquamarine;
-  fill: mediumaquamarine;
-}
 .window:hover {
   border-color: #5d94a6;
   background-color: #ffffa0;
