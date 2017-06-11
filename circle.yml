@@ -4,11 +4,9 @@ branches:
 
 dependencies:
   pre:
-    - npm install -g bower gulp
-    - npm install
-    - bower install
+    - npm install:dev
   override:
-    - gulp build
+    - npm run build
 
 test:
   override:

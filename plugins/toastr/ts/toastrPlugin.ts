@@ -1,4 +1,3 @@
-/// <reference path="../../includes.ts"/>
 module Toastr {
   var pluginName = 'hawtio-toastr';
   var _module = angular.module(pluginName, []);
@@ -6,6 +5,9 @@ module Toastr {
 }
 
 module Core {
+
+  let visibleToastElem: HTMLElement = null;
+  let timeoutId: number;
 
   /**
    * Displays an alert message which is typically the result of some asynchronous operation
@@ -17,17 +19,27 @@ module Core {
    *
    */
   export function notification(type:string, message:string, options:any = null) {
-    if (options === null) {
-      options = {};
-    }
+    let toastHtml = `
+      <div class="toast-pf alert alert-${type}">
+        <span class="pficon pficon-ok"></span>
+        ${message}
+      </div>
+    `;
+    let toastFrag = document.createRange().createContextualFragment(toastHtml);
+    let toastElem = toastFrag.querySelector('div');
 
-    if (type === 'error' || type === 'warning') {
-      if (!angular.isDefined(options.onclick)) {
-        options.onclick = window['showLogPanel'];
-      }
-    }
+    let bodyElem = document.querySelector('body');
 
-    toastr[type](message, '', options);
+    // if toast element is in the DOM
+    if (visibleToastElem && visibleToastElem.parentNode) {
+      clearTimeout(timeoutId);
+      bodyElem.removeChild(visibleToastElem);
+    }
+    visibleToastElem = bodyElem.appendChild(toastElem);
+
+    timeoutId = window.setTimeout(() => {
+      bodyElem.removeChild(toastElem);
+    }, 8000);
   }
 
   /**
@@ -36,7 +48,6 @@ module Core {
    * @static
    */
   export function clearNotifications() {
-    toastr.clear();
   }
 
 
