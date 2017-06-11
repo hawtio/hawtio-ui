@@ -1,27 +1,50 @@
 {
-  "name": "hawtio-ui",
-  "version": "3.0.0",
-  "license": "Apache-2.0",
+  "name": "@hawtio/ui",
+  "version": "3.0.21",
+  "main": "dist/hawtio-core-navigation.js",
+  "types": "dist/hawtio-core-navigation.d.ts",
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:hawtio/hawtio-ui.git"
+    "url": "https://github.com/hawtio/hawtio-ui.git"
   },
+  "license": "Apache-2.0",
   "scripts": {
     "start": "gulp",
-    "build": "gulp build"
+    "build": "gulp build",
+    "install:prod": "yarn install --flat --production=true",
+    "install:dev": "npm run install:prod && yarn install --production=false",
+    "prepublish": "yarn version"
+  },
+  "dependencies": {
+    "@hawtio/core": "^3.0.10",
+    "@hawtio/core-dts": "^3.0.12",
+    "@hawtio/core-navigation": "^3.0.14",
+    "@hawtio/template-cache": "^3.0.3",
+    "@hawtio/utilities": "^3.0.8",
+    "@types/clipboard": "^1.5.34",
+    "@types/codemirror": "0.0.40",
+    "@types/js-beautify": "0.0.30",
+    "@types/marked": "0.0.28",
+    "clipboard": "^1.7.1",
+    "codemirror": "^5.26.0",
+    "js-beautify": "^1.6.14",
+    "lodash": "^4.17.4",
+    "marked": "^0.3.6"
   },
   "devDependencies": {
-    "bower": "^1.0.0",
-    "del": "^2.0.0",
-    "event-stream": "^3.0.0",
-    "glob": "^7.0.0",
+    "del": "^2.2.2",
+    "event-stream": "3.3.2",
+    "glob": "^7.1.2",
     "gulp": "^3.0.0",
     "gulp-angular-templatecache": "^2.0.0",
     "gulp-concat": "^2.0.0",
     "gulp-concat-filenames": "^1.0.0",
-    "gulp-connect": "^2.0.0",
-    "gulp-debug": "^2.0.0",
-    "gulp-filter": "^4.0.0",
+    "gulp-connect": "^5.0.0",
+    "gulp-debug": "^3.1.0",
+    "gulp-filter": "^5.0.0",
     "gulp-gh-pages": "~0.5.0",
     "gulp-header": "^1.8.0",
     "gulp-img64": "~0.0.6",
@@ -30,20 +53,20 @@
     "gulp-rename": "^1.0.0",
     "gulp-replace": "~0.5.0",
     "gulp-replace-task": "~0.11.0",
-    "gulp-size": "^1.0.0",
-    "gulp-sourcemaps": "^1.0.0",
-    "gulp-tslint": "^8.0.0",
-    "gulp-typescript": "^3.0.0",
-    "gulp-watch": "^3.0.0",
-    "imagemin": "^3.0.0",
+    "gulp-size": "^2.1.0",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-typescript": "^3.1.7",
+    "gulp-watch": "^4.3.11",
+    "imagemin": "^5.3.1",
     "run-sequence": "^1.0.0",
-    "through2": "^2.0.0",
-    "tslint": "^5.1.0",
-    "typescript": "^2.0.0",
-    "underscore.string": "^3.0.0",
-    "urijs": "^1.0.0",
-    "which": "^1.0.0",
-    "wiredep": "^4.0.0",
-    "yargs": "^6.0.0"
+    "typescript": "^2.3.4",
+    "underscore.string": "^3.3.4",
+    "yargs": "^8.0.1"
+  },
+  "resolutions": {
+    "angular": "1.6.4",
+    "angular-sanitize": "1.6.4",
+    "jquery": "2.2.4",
+    "bootstrap-select": "1.12.2"
   }
 }

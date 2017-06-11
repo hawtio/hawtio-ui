@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "outFile": "test-compiled.js",
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/@hawtio"
+    ]
+  },
+  "include": [
+    "test-plugins/**/*.ts"
+  ]
+}

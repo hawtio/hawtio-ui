@@ -1,4 +1,4 @@
-/// <reference path="libs/hawtio-utilities/defs.d.ts" />
+/// <reference types="angular" />
 /**
  * @module DataTable
  * @main DataTable
@@ -6,64 +6,12 @@
 declare module DataTable {
     var pluginName: string;
     var log: Logging.Logger;
-    var _module: ng.IModule;
+    var _module: angular.IModule;
 }
 /**
  * @module DataTable
  */
 declare module DataTable {
-}
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-declare module ForceGraph {
-    var _module: ng.IModule;
-}
-declare module ForceGraph {
-    class ForceGraphDirective {
-        restrict: string;
-        replace: boolean;
-        transclude: boolean;
-        scope: {
-            graph: string;
-            nodesize: string;
-            selectedModel: string;
-            linkDistance: string;
-            markerKind: string;
-            charge: string;
-        };
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    }
-}
-declare module ForceGraph {
-    /**
-     * GraphBuilder
-     *
-     * @class GraphBuilder
-     */
-    class GraphBuilder {
-        private nodes;
-        private links;
-        private linkTypes;
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        addNode(node: any): void;
-        getNode(id: any): any;
-        hasLinks(id: any): boolean;
-        addLink(srcId: any, targetId: any, linkType: any): void;
-        nodeIndex(id: any, nodes: any): number;
-        filterNodes(filter: any): void;
-        buildGraph(): {
-            nodes: any[];
-            links: any[];
-            linktypes: any;
-        };
-    }
 }
 /**
  * Module that contains several helper functions related to hawtio's code editor
@@ -160,7 +108,7 @@ declare module HawtioEditor {
     var log: Logging.Logger;
 }
 declare module HawtioEditor {
-    var _module: ng.IModule;
+    var _module: angular.IModule;
 }
 /**
  * @module HawtioEditor
@@ -180,6 +128,58 @@ declare module HawtioEditor {
         controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
+}
+/**
+ * Force Graph plugin & directive
+ *
+ * @module ForceGraph
+ */
+declare module ForceGraph {
+    var _module: angular.IModule;
+}
+declare module ForceGraph {
+    class ForceGraphDirective {
+        restrict: string;
+        replace: boolean;
+        transclude: boolean;
+        scope: {
+            graph: string;
+            nodesize: string;
+            selectedModel: string;
+            linkDistance: string;
+            markerKind: string;
+            charge: string;
+        };
+        link: ($scope: any, $element: any, $attrs: any) => void;
+    }
+}
+declare module ForceGraph {
+    /**
+     * GraphBuilder
+     *
+     * @class GraphBuilder
+     */
+    class GraphBuilder {
+        private nodes;
+        private links;
+        private linkTypes;
+        /**
+         * Adds a node to this graph
+         * @method addNode
+         * @param {Object} node
+         */
+        addNode(node: any): void;
+        getNode(id: any): any;
+        hasLinks(id: any): boolean;
+        addLink(srcId: any, targetId: any, linkType: any): void;
+        nodeIndex(id: any, nodes: any): number;
+        filterNodes(filter: any): void;
+        buildGraph(): {
+            nodes: any[];
+            links: any[];
+            linktypes: any;
+        };
+    }
 }
 declare module Toastr {
 }
@@ -217,7 +217,7 @@ declare module UI {
  * @main UI
  */
 declare module UI {
-    var _module: ng.IModule;
+    var _module: angular.IModule;
 }
 /**
  * @module UI
@@ -401,7 +401,7 @@ declare module UI {
             size: string;
             optionalSize: string;
         };
-        controller: (string | (($scope: any, $element: JQuery, $attrs: ng.IAttributes, $transclude: any, $compile: any) => void))[];
+        controller: (string | (($scope: any, $element: JQuery, $attrs: angular.IAttributes, $transclude: any, $compile: any) => void))[];
         constructor();
     }
 }
@@ -452,8 +452,8 @@ declare module UI {
     function multiItemConfirmActionDialog(options: MultiItemConfirmActionOptions): any;
 }
 declare module UI {
-    var hawtioDrag: ng.IModule;
-    var hawtioDrop: ng.IModule;
+    var hawtioDrag: angular.IModule;
+    var hawtioDrop: angular.IModule;
 }
 /**
  * @module UI
@@ -550,7 +550,7 @@ declare module UI {
  * @module UI
  */
 declare module UI {
-    var hawtioFilter: ng.IModule;
+    var hawtioFilter: angular.IModule;
 }
 /**
  * @module UI
@@ -578,7 +578,7 @@ declare module UI {
      * @param $templateCache
      * @constructor
      */
-    var IconTestController: ng.IModule;
+    var IconTestController: angular.IModule;
     /**
      * The hawtio-icon directive
      * @returns {{}}
@@ -695,11 +695,11 @@ declare module UI {
  * @module UI
  */
 declare module UI {
-    var selectedTags: ng.IModule;
-    var hawtioTagFilter: ng.IModule;
+    var selectedTags: angular.IModule;
+    var hawtioTagFilter: angular.IModule;
 }
 declare module UI {
-    var hawtioTagList: ng.IModule;
+    var hawtioTagList: angular.IModule;
 }
 /**
  * @module UI
@@ -737,15 +737,6 @@ declare module UI {
     }
 }
 declare module UI {
-}
-/**
- * @module UI
- */
-declare module UI {
-    function ZeroClipboardDirective($parse: any): {
-        restrict: string;
-        link: ($scope: any, $element: any, $attr: any) => void;
-    };
 }
 declare module UIBootstrap {
 }

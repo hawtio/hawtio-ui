@@ -130,7 +130,6 @@ module UITest {
     $scope.dropDownEx = $templateCache.get("dropDownTemplate");
     $scope.autoDropDown1 = $templateCache.get("autoDropDownTemplate1");
     $scope.autoDropDown2 = $templateCache.get("autoDropDownTemplate2");
-    $scope.zeroClipboard = $templateCache.get("zeroClipboardTemplate");
     $scope.clipboard = $templateCache.get("clipboardTemplate");
     $scope.popoverEx = $templateCache.get("myTemplate");
     $scope.popoverUsageEx = $templateCache.get("popoverExTemplate");
@@ -249,7 +248,9 @@ module UITest {
       '   <div>Text : {{someText}}</div>\n' +
       '</div>';
 
+    $scope.toastNotificationEx1 = "Core.notification('success', 'Saved successfully!');";
 
+    $scope.showToastNotification = () => Core.notification('success', 'Saved successfully!');
 
     $scope.transcludedValue = "and this is transcluded";
 

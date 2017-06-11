@@ -17,31 +17,24 @@ module UITest {
                   .build());
 
     tabs.push(builder.create()
-                   .id(builder.join(pluginName, 'tab2'))
-                   .href(function () { return '/ui2'; })
-                   .title(function () { return "UI Components 2"; })
-                     .subPath('Tags', 'tags', builder.join(path, 'tags.html'))
-                     .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
-                     .subPath('Template Popover', 'template-popover', builder.join(path, 'template-popover.html'))
-                     .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
+                   .id(builder.join(pluginName, 'components'))
+                   .href(function () { return '/components'; })
+                   .title(function () { return "UI Components"; })
                      .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
-                     .subPath('Zero Clipboard', 'zero-clipboard', builder.join(path, 'zero-clipboard.html'))
-                     .subPath('Clipboard', 'clipboard', builder.join(path, 'clipboard.html'))
-                   .build());
-
-    tabs.push(builder.create()
-                   .id(builder.join(pluginName, 'tab1'))
-                   .href(function () { return '/ui1'; })
-                   .title(function () { return "UI Components 1"; })
-                     .subPath('Icons', 'icons', builder.join(path, 'icon.html'))
                      .subPath('Breadcrumbs', 'breadcrumbs', builder.join(path, 'breadcrumbs.html'))
+                     .subPath('Clipboard', 'clipboard', builder.join(path, 'clipboard.html'))
                      .subPath('Color Picker', 'color-picker', builder.join(path, 'color-picker.html'))
                      .subPath('Confirm Dialog', 'confirm-dialog', builder.join(path, 'confirm-dialog.html'))
+                     .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                      .subPath('Editable Property', 'editable-property', builder.join(path, 'editable-property.html'))
                      .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
                      //.subPath('File Upload', 'file-upload', builder.join(path, 'file-upload.html'))
+                     .subPath('Icons', 'icons', builder.join(path, 'icon.html'))
                      .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                      .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
+                     .subPath('Tags', 'tags', builder.join(path, 'tags.html'))
+                     .subPath('Template Popover', 'template-popover', builder.join(path, 'template-popover.html'))
+                     .subPath('Toast Notification', 'toast-notification', builder.join(path, 'toast-notification.html'))
                    .build());
 
     _.forEach(tabs, (tab) => builder.configureRouting($routeProvider, tab));

@@ -39,7 +39,7 @@ module UI {
             }
             tmp.append(el);
           });
-          $element.html($compile(tmp.children())(scope));
+          $element.append($compile(tmp.children())(scope));
         });
       }
     }
