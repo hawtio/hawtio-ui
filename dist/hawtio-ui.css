@@ -1149,13 +1149,6 @@ ol.zebra-list > li:before {
   padding-left: 0;
 }
 
-.editor-autoresize .CodeMirror {
-  height: auto;
-}
-.editor-autoresize .CodeMirror-scroll {
-  min-height: 100px;
-}
-
 .dataTables_filter label {
   margin-bottom: 0px;
 }
@@ -1262,6 +1255,13 @@ table.scroll-body-table tr:last-child td {
 }
 div.scroll-body-table-wrapper {
   overflow-y: scroll;
+}
+
+.editor-autoresize .CodeMirror {
+  height: auto;
+}
+.editor-autoresize .CodeMirror-scroll {
+  min-height: 100px;
 }
 
 .toast-pf {

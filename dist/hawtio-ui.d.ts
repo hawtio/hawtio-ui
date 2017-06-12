@@ -1,5 +1,19 @@
 /// <reference types="angular" />
 /**
+ * @module DataTable
+ * @main DataTable
+ */
+declare module DataTable {
+    var pluginName: string;
+    var log: Logging.Logger;
+    var _module: angular.IModule;
+}
+/**
+ * @module DataTable
+ */
+declare module DataTable {
+}
+/**
  * Module that contains several helper functions related to hawtio's code editor
  *
  * @module CodeEditor
@@ -114,20 +128,6 @@ declare module HawtioEditor {
         controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
-}
-/**
- * @module DataTable
- * @main DataTable
- */
-declare module DataTable {
-    var pluginName: string;
-    var log: Logging.Logger;
-    var _module: angular.IModule;
-}
-/**
- * @module DataTable
- */
-declare module DataTable {
 }
 /**
  * Force Graph plugin & directive
