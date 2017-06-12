@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html class="layout-pf layout-pf-fixed">
+
   <head>
-    <title>hawtio-ui</title>
-    <base href='/'></base>
+    <title>hawtio-core-navigation</title>
+    <base href='/'>
     <meta charset="UTF8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSS -->
-    <!-- datatables -->
-    <link rel="stylesheet" href="node_modules/datatables.net-dt/css/jquery.dataTables.css" />
     <!-- patternfly -->
     <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly.min.css">
     <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly-additions.min.css">
-    <!-- angular-patternfly -->
-    <link rel="stylesheet" href="node_modules/angular-patternfly/dist/styles/angular-patternfly.min.css" />
     <!-- codemirror -->
     <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css" />
     <!-- @hawtio/ui -->
@@ -21,29 +19,20 @@
     <!-- JAVASCRIPT -->
     <!-- jquery -->
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
-    <!-- datatables -->
-    <script src="node_modules/datatables.net/js/jquery.dataTables.js"></script>
-    <script src="node_modules/datatables.net-select/js/dataTables.select.js"></script>
     <!-- bootstrap -->
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
     <!-- patternfly -->
     <script src="node_modules/patternfly/dist/js/patternfly.min.js"></script>
     <!-- angular -->
     <script src="node_modules/angular/angular.js"></script>
-    <!-- angular-route -->
-    <script src="node_modules/angular-route/angular-route.min.js"></script>
     <!-- angular-sanitize -->
     <script src="node_modules/angular-sanitize/angular-sanitize.js"></script>
-    <!-- angular-patternfly -->
-    <script src="node_modules/angular-patternfly/dist/angular-patternfly.min.js"></script>
-    <!-- angular-datatables -->
-    <script src="node_modules/angular-datatables/dist/angular-datatables.js"></script>
-    <script src="node_modules/angular-datatables/dist/plugins/select/angular-datatables.select.js"></script>
+    <!-- angular-route -->
+    <script src="node_modules/angular-route/angular-route.min.js"></script>
+    <!-- angular-file-upload -->
+    <script src="node_modules/angular-file-upload/dist/angular-file-upload.min.js"></script>
     <!-- angular-ui-bootstrap -->
     <script src="node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js"></script>
-    <!-- c3, d3 -->
-    <script src="node_modules/c3/c3.min.js"></script>
-    <script src="node_modules/d3/d3.min.js"></script>
     <!-- lodash -->
     <script src="node_modules/lodash/lodash.min.js"></script>
     <!-- urijs -->
@@ -54,8 +43,9 @@
     <script src="node_modules/clipboard/dist/clipboard.js"></script>
     <!-- marked -->
     <script src="node_modules/marked/lib/marked.js"></script>
-    <!-- angular-file-upload -->
-    <script src="node_modules/angular-file-upload/dist/angular-file-upload.min.js"></script>
+    <!-- js-beautify -->
+    <script src="node_modules/js-beautify/js/lib/beautify.js"></script>
+    <script src="node_modules/js-beautify/js/lib/beautify-html.js"></script>
     <!-- codemirror -->
     <script src="node_modules/codemirror/lib/codemirror.js"></script>
     <script src="node_modules/codemirror/addon/edit/closetag.js"></script>
@@ -85,13 +75,17 @@
     <script src="dist/hawtio-ui.js"></script>
     <script src="test-dist/hawtio-ui-test.js"></script>
   </head>
+
   <body>
     <nav class="navbar navbar-pf-vertical" style="height: 60px">
     </nav>
+
     <hawtio-vertical-nav></hawtio-vertical-nav>
+
     <div class="container-fluid container-pf-nav-pf-vertical ng-cloak" 
-        ng-controller="HawtioNav.ViewController"
-        ng-include src="viewPartial">
+        ng-controller="HawtioNav.ViewController">
+      <div ng-include src="viewPartial"></div>
     </div>
   </body>
+
 </html>
