@@ -1,4 +1,3 @@
-/// <reference path="../../includes.ts"/>
 module UITest {
 
   export var templatePath = 'test-plugins/ui/html';

@@ -1,4 +1,3 @@
-/// <reference path="../../includes.ts"/>
 /**
  * @module DataTable
  * @main DataTable

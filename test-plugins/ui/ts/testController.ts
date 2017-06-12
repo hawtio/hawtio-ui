@@ -1,5 +1,4 @@
 /// <reference path="uiTestPlugin.ts"/>
-/// <reference path="../../includes.ts"/>
 module UITest {
 
   _module.controller("UI.UITestController2", ["$scope", "$templateCache", ($scope, $templateCache) => {

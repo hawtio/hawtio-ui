@@ -1,4 +1,3 @@
-/// <reference path="../../includes.ts"/>
 /// <reference path="forceGraphDirective.ts"/>
 /**
  * Force Graph plugin & directive

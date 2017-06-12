@@ -327,7 +327,6 @@ var UITest;
         }]);
 })(UITest || (UITest = {}));
 /// <reference path="uiTestPlugin.ts"/>
-/// <reference path="../../includes.ts"/>
 var UITest;
 (function (UITest) {
     UITest._module.controller("UI.UITestController2", ["$scope", "$templateCache", function ($scope, $templateCache) {

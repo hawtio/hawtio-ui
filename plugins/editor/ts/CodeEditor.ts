@@ -1,4 +1,3 @@
-/// <reference path="../../includes.ts"/>
 /**
  * Module that contains several helper functions related to hawtio's code editor
  *
