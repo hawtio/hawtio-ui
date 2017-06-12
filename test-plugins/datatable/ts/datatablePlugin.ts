@@ -1,5 +1,3 @@
-///<reference path="../../includes.ts"/>
-
 module DatatableTest {
 
   var pluginName = "datatable-test";
