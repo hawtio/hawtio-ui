@@ -128,12 +128,8 @@ gulp.task('clean', ['concat'], function() {
 });
 
 gulp.task('watch-less', function() {
-  plugins.watch(config.less, function() {
-    gulp.start('less');
-  });
-  plugins.watch(config.testLess, function() {
-    gulp.start('test-less');
-  });
+  gulp.watch(config.less, ['less']);
+  gulp.watch(config.testLess, ['test-less']);
 });
 
 gulp.task('watch', ['build', 'build-example', 'watch-less'], function() {
