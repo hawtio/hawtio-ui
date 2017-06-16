@@ -473,7 +473,8 @@ pf-topology {
   opacity: 0;
   pointer-events: none;
 }
-.toolbar-pf-actions.no-filter-results {
+.toolbar-pf-actions.no-filter {
+  margin-left: -30px;
   margin-bottom: 10px;
 }
 .filter-pf a {
@@ -527,6 +528,9 @@ table.dataTable.no-footer {
   margin: 0px;
   padding: 0px;
 }
+table.dataTable {
+  margin: 0;
+}
 table.dataTable thead .sorting_asc {
   background-image: none !important;
 }
@@ -567,6 +571,14 @@ table.dataTable tbody td {
 }
 .wizard-pf-cancel-inline {
   margin-left: 25px;
+}
+.wizard-pf-steps-indicator li a.disabled {
+  cursor: default;
+}
+.wizard-pf-steps-indicator li a.disabled:hover .wizard-pf-step-number {
+  background-color: #fff;
+  border-color: #bbb;
+  color: #bbb;
 }
 .canvas {
   height: 756px;
