@@ -83,8 +83,7 @@ gulp.task('less', function () {
   return gulp.src(config.less)
     .pipe(plugins.less({
       paths: [
-        path.join(__dirname, 'less', 'includes'),
-        path.join(__dirname, 'node_modules')
+        path.join(__dirname, 'less', 'includes')
       ]
     }))
     .pipe(plugins.concat(config.css))
@@ -96,14 +95,11 @@ gulp.task('test-less', function () {
     .pipe(plugins.less({
       paths: [
         path.join(__dirname, 'less', 'includes'),
-        path.join(__dirname, 'node_modules')
       ]
     }))
     .pipe(plugins.concat(config.testCss))
     .pipe(gulp.dest(config.dist));
 });
-
-
 
 gulp.task('template', ['tsc'], function() {
   return gulp.src(config.templates)

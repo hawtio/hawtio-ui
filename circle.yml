@@ -1,16 +1,25 @@
+machine:
+  node:
+    version: v6.1.0
+  environment:
+    PATH: "${PATH}:${HOME}/${CIRCLE_PROJECT_REPONAME}/node_modules/.bin"
+
 branches:
   ignore:
     - gh-pages
 
 dependencies:
   pre:
-    - npm install:dev
+    - rm -rf ~/.yarn
+    - npm install --global yarn
   override:
-    - npm run build
+    - yarn run install:dev
+  cache_directories:
+    - ~/.cache/yarn
 
 test:
   override:
-    - echo yes
+    - yarn test
 
 deployment:
   website:
