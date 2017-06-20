@@ -208,9 +208,7 @@ gulp.task('embed-images', ['concat'], function() {
 });
 
 gulp.task('site', ['build', 'build-example'], function() {
-  gulp.src('website/.gitignore')
-    .pipe(gulp.dest('site'));
-  gulp.src('website/*')
+  gulp.src('website/*', { dot: true })
     .pipe(gulp.dest('site'));
   gulp.src('index.html')
     .pipe(plugins.rename('404.html'))
