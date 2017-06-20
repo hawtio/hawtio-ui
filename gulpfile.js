@@ -217,7 +217,7 @@ gulp.task('site', ['build', 'build-example'], function() {
     .pipe(gulp.dest('site'));
   gulp.src('README.md')
     .pipe(gulp.dest('site'));
-  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'libs/**/*.js', 'libs/**/*.css', 'libs/**/*.swf', 'libs/**/*.woff','libs/**/*.woff2', 'libs/**/*.ttf', 'libs/**/*.map', 'dist/**'], {base: '.'})
+  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'node_modules/**/*.js', 'node_modules/**/*.css', 'node_modules/**/*.swf', 'node_modules/**/*.woff','node_modules/**/*.woff2', 'node_modules/**/*.ttf', 'node_modules/**/*.map', 'dist/**', 'test-dist/**'], {base: '.'})
     .pipe(gulp.dest('site'));
 
   var dirs = fs.readdirSync('./node_modules');
