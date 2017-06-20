@@ -234,21 +234,6 @@ declare module UI {
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }
-/**
- * @module UI
- */
-declare module UI {
-    function hawtioBreadcrumbs(): {
-        restrict: string;
-        replace: boolean;
-        templateUrl: string;
-        require: string;
-        scope: {
-            config: string;
-        };
-        controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
-    };
-}
 declare module UI {
 }
 declare module UI {
@@ -567,31 +552,6 @@ declare module UI {
     function groupBy(): (list: any, group: any) => any;
 }
 declare module UI {
-}
-/**
- * @module UI
- */
-declare module UI {
-    /**
-     * Test controller for the icon help page
-     * @param $scope
-     * @param $templateCache
-     * @constructor
-     */
-    var IconTestController: angular.IModule;
-    /**
-     * The hawtio-icon directive
-     * @returns {{}}
-     */
-    function hawtioIcon(): {
-        restrict: string;
-        replace: boolean;
-        templateUrl: string;
-        scope: {
-            icon: string;
-        };
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    };
 }
 /**
  * @module UI
