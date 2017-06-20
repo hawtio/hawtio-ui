@@ -75,57 +75,6 @@ module UITest {
       }
     });
 
-    $scope.breadcrumbSelection = 1;
-
-    $scope.breadcrumbConfig = {
-      path: '/root',
-      icon: 'fa fa-cogs',
-      title: 'root',
-      items: [{
-        title: 'first child',
-        icon: 'fa fa-folder-close-alt',
-        items: [{
-          title: "first child's first child",
-          icon: 'fa fa-file-text'
-        }]
-      }, {
-        title: 'second child',
-        icon: 'fa fa-file'
-      }, {
-        title: "third child",
-        icon: 'fa fa-folder-close-alt',
-        items: [{
-          title: "third child's first child",
-          icon: 'fa fa-file-text'
-        }, {
-          title: "third child's second child",
-          icon: 'fa fa-file-text'
-        }, {
-          title: "third child's third child",
-          icon: 'fa fa-folder-close-alt',
-          items: [{
-            title: 'More!',
-            icon: 'fa fa-file-text'
-          }, {
-            title: 'Child',
-            icon: 'fa fa-file-text'
-          }, {
-            title: 'Menus!',
-            icon: 'fa fa-file-text'
-          }]
-        }]
-      }]
-    };
-
-    $scope.breadcrumbConfigTxt = angular.toJson($scope.breadcrumbConfig, true);
-
-    $scope.$watch('breadcrumbConfigTxt', (newValue, oldValue) => {
-      if (newValue !== oldValue) {
-        $scope.breadcrumbconfig = angular.toJson($scope.breadcrumbConfigTxt);
-      }
-    });
-
-    $scope.breadcrumbEx = $templateCache.get("breadcrumbTemplate");
     $scope.dropDownEx = $templateCache.get("dropDownTemplate");
     $scope.autoDropDown1 = $templateCache.get("autoDropDownTemplate1");
     $scope.autoDropDown2 = $templateCache.get("autoDropDownTemplate2");
