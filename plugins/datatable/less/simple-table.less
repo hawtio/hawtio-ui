@@ -1,60 +1,80 @@
+.hawtio-simple-table {
+  table-layout: fixed;
+  border-collapse: collapse;
 
-.simple-table-checkbox { 
-  padding: 0 !important;
-  width: 36px;
-  input {
-    min-width: 16px;
-    margin-top: 3px;
-    margin-bottom: 3px;
-    margin-right: 10px;
-    margin-left: 10px;
+  .simple-table-checkbox { 
+    padding: 0 !important;
+    width: 36px;
+    input {
+      min-width: 16px;
+      margin-top: 3px;
+      margin-bottom: 3px;
+      margin-right: 10px;
+      margin-left: 10px;
+    }
+  }
+
+  thead .sorting {
+    background-image: none;
+  }
+
+  th {
+    vertical-align: middle;
+  }
+
+  td {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+
+  table.dataTable td div {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
-.table td,
-.table th {
-  vertical-align: middle;
-}
-
-table.scroll-header-table {
+.scroll-header-table {
   border: none;
   margin-bottom: 0;
+
+  th:first-child {
+    border-left: none;
+  }
+
+  th:nth-last-child(2) {
+    border-right: none;
+  }
+
+  th:last-child {
+    padding: 0;
+    border-left: none;
+    border-top: none;
+    border-right: none;
+  }
 }
 
-table.scroll-header-table th:first-child {
-  border-left: none;
-}
-
-table.scroll-header-table th:nth-last-child(2) {
-  border-right: none;
-}
-
-table.scroll-header-table th:last-child {
-  padding: 0;
-  border-left: none;
-  border-top: none;
-  border-right: none;
-}
-
-table.scroll-body-table {
+.scroll-body-table {
   border: none;
   margin-bottom: 0;
-}
 
-table.scroll-body-table td:first-child {
-  border-left: none;
-}
+  td:first-child {
+    border-left: none;
+  }
 
-table.scroll-body-table td:last-child {
-  border-right: none;
-}
+  td:last-child {
+    border-right: none;
+  }
 
-table.scroll-body-table tr:first-child td {
-  border-top: none;
-}
+  tr:first-child td {
+    border-top: none;
+  }
 
-table.scroll-body-table tr:last-child td {
-  border-bottom: none;
+  tr:last-child td {
+    border-bottom: none;
+  }
 }
 
 div.scroll-body-table-wrapper {

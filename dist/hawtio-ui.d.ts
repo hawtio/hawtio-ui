@@ -1,5 +1,19 @@
 /// <reference types="angular" />
 /**
+ * @module DataTable
+ * @main DataTable
+ */
+declare module DataTable {
+    var pluginName: string;
+    var log: Logging.Logger;
+    var _module: angular.IModule;
+}
+/**
+ * @module DataTable
+ */
+declare module DataTable {
+}
+/**
  * Module that contains several helper functions related to hawtio's code editor
  *
  * @module CodeEditor
@@ -166,20 +180,6 @@ declare module ForceGraph {
             linktypes: any;
         };
     }
-}
-/**
- * @module DataTable
- * @main DataTable
- */
-declare module DataTable {
-    var pluginName: string;
-    var log: Logging.Logger;
-    var _module: angular.IModule;
-}
-/**
- * @module DataTable
- */
-declare module DataTable {
 }
 declare module Toastr {
 }

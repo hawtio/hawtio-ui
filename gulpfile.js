@@ -30,6 +30,7 @@ var config = {
   testJs: 'hawtio-ui-test.js',
   css: 'hawtio-ui.css',
   testCss: 'hawtio-ui-test.css',
+  dts: 'hawtio-ui.d.ts',
   tsProject: plugins.typescript.createProject('tsconfig.json'),
   testTsProject: plugins.typescript.createProject('test-tsconfig.json'),
   vendorJs: 'plugins/vendor/*.js'
@@ -75,7 +76,7 @@ gulp.task('tsc', ['clean-defs'], function() {
     tsResult.js
       .pipe(gulp.dest('.')),
     tsResult.dts
-      .pipe(plugins.rename('hawtio-ui.d.ts'))
+      .pipe(plugins.rename(config.dts))
       .pipe(gulp.dest(config.dist)));
 });
 
@@ -218,19 +219,19 @@ gulp.task('site', ['build', 'build-example'], function() {
   gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'node_modules/**/*.js', 'node_modules/**/*.css', 'node_modules/**/*.swf', 'node_modules/**/*.woff','node_modules/**/*.woff2', 'node_modules/**/*.ttf', 'node_modules/**/*.map', 'dist/**', 'test-dist/**'], {base: '.'})
     .pipe(gulp.dest('site'));
 
-  var dirs = fs.readdirSync('./node_modules');
-  dirs.forEach(function(dir) {
-    var path = './node_modules/' + dir + "/img";
-    try {
-      if (fs.statSync(path).isDirectory()) {
-        console.log("found image dir: " + path);
-        var pattern = 'node_modules/' + dir + "/img/**";
-        gulp.src([pattern]).pipe(gulp.dest('site/img'));
-      }
-    } catch (e) {
-      // ignore, file does not exist
-    }
-  });
+  // var dirs = fs.readdirSync('./node_modules');
+  // dirs.forEach(function(dir) {
+  //   var path = './node_modules/' + dir + "/img";
+  //   try {
+  //     if (fs.statSync(path).isDirectory()) {
+  //       console.log("found image dir: " + path);
+  //       var pattern = 'node_modules/' + dir + "/img/**";
+  //       gulp.src([pattern]).pipe(gulp.dest('site/img'));
+  //     }
+  //   } catch (e) {
+  //     // ignore, file does not exist
+  //   }
+  // });
 });
 
 gulp.task('deploy', function() {
