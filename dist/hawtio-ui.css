@@ -1134,23 +1134,6 @@ ol.zebra-list > li:before {
   padding-left: 4px \9;
   margin-bottom: 0;
 }
-table.dataTable {
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-table.dataTable thead .sorting {
-  background-image: none;
-}
-table.dataTable td {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-table.dataTable td div {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
 
 .ngTotalSelectContainer {
   margin: 0px;
@@ -1181,51 +1164,68 @@ table.dataTable td div {
   outline: none;
 }
 
-.simple-table-checkbox {
+.hawtio-simple-table {
+  table-layout: fixed;
+  border-collapse: collapse !important;
+}
+.hawtio-simple-table .simple-table-checkbox {
   padding: 0 !important;
   width: 36px;
 }
-.simple-table-checkbox input {
+.hawtio-simple-table .simple-table-checkbox input {
   min-width: 16px;
   margin-top: 3px;
   margin-bottom: 3px;
   margin-right: 10px;
   margin-left: 10px;
 }
-.table td,
-.table th {
+.hawtio-simple-table thead .sorting {
+  background-image: none;
+}
+.hawtio-simple-table th {
   vertical-align: middle;
 }
-table.scroll-header-table {
+.hawtio-simple-table td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+.hawtio-simple-table table.dataTable td div {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.scroll-header-table {
   border: none;
   margin-bottom: 0;
 }
-table.scroll-header-table th:first-child {
+.scroll-header-table th:first-child {
   border-left: none;
 }
-table.scroll-header-table th:nth-last-child(2) {
+.scroll-header-table th:nth-last-child(2) {
   border-right: none;
 }
-table.scroll-header-table th:last-child {
+.scroll-header-table th:last-child {
   padding: 0;
   border-left: none;
   border-top: none;
   border-right: none;
 }
-table.scroll-body-table {
+.scroll-body-table {
   border: none;
   margin-bottom: 0;
 }
-table.scroll-body-table td:first-child {
+.scroll-body-table td:first-child {
   border-left: none;
 }
-table.scroll-body-table td:last-child {
+.scroll-body-table td:last-child {
   border-right: none;
 }
-table.scroll-body-table tr:first-child td {
+.scroll-body-table tr:first-child td {
   border-top: none;
 }
-table.scroll-body-table tr:last-child td {
+.scroll-body-table tr:last-child td {
   border-bottom: none;
 }
 div.scroll-body-table-wrapper {

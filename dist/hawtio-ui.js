@@ -22,6 +22,7 @@ var DataTable;
                     config: '=hawtioSimpleTable'
                 },
                 link: function ($scope, $element, $attrs) {
+                    $element.addClass('hawtio-simple-table');
                     var defaultPrimaryKeyFn = function (entity) {
                         // default function to use id/_id/_key/name as primary key, and fallback to use all property values
                         var primaryKey = entity["id"] || entity["_id"] || entity["_key"] || entity["name"];
