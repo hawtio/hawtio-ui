@@ -4,20 +4,9 @@
 /// <reference path="./uiPlugin.ts"/>
 module UI {
 
-  _module.directive('hawtioAutoDropdown', () => {
-    return UI.AutoDropDown;
-  });
-
-  /**
-   * TODO turn this into a normal directive function
-   *
-   * @property AutoDropDown
-   * @type IAutoDropDown
-   */
-  export var AutoDropDown = {
+  _module.directive('hawtioAutoDropdown', () => ({
     restrict: 'A',
     link: ($scope, $element, $attrs) => {
-
       function locateElements (event) {
         var el = $element.get(0);
         if (event && event.relatedNode !== el && event.type) {
@@ -96,6 +85,5 @@ module UI {
       $(window).resize(_.throttle(locateElements, 100));
       $scope.$root.$on('jmxTreeClicked', () => setTimeout(locateElements, 0));
     }
-  };
-
+  }));
 }

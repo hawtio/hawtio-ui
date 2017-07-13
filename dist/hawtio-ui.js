@@ -1244,16 +1244,7 @@ var UI;
 /// <reference path="./uiPlugin.ts"/>
 var UI;
 (function (UI) {
-    UI._module.directive('hawtioAutoDropdown', function () {
-        return UI.AutoDropDown;
-    });
-    /**
-     * TODO turn this into a normal directive function
-     *
-     * @property AutoDropDown
-     * @type IAutoDropDown
-     */
-    UI.AutoDropDown = {
+    UI._module.directive('hawtioAutoDropdown', function () { return ({
         restrict: 'A',
         link: function ($scope, $element, $attrs) {
             function locateElements(event) {
@@ -1323,7 +1314,7 @@ var UI;
             $(window).resize(_.throttle(locateElements, 100));
             $scope.$root.$on('jmxTreeClicked', function () { return setTimeout(locateElements, 0); });
         }
-    };
+    }); });
 })(UI || (UI = {}));
 /// <reference path="uiPlugin.ts"/>
 var UI;
