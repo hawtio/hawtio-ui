@@ -17,13 +17,6 @@ module UI {
 
         var overflowEl = $($element.find('.dropdown.overflow'));
         var overflowMenu = $(overflowEl.find('ul.dropdown-menu'));
-        /*
-        Logger.info("element inner width: ", $element.innerWidth());
-        Logger.info("element position: ", $element.position());
-        Logger.info("element offset: ", $element.offset());
-        Logger.info("overflowEl offset: ", overflowEl.offset());
-        Logger.info("overflowEl position: ", overflowEl.position());
-        */
         var margin = 0;
         var availableWidth = 0;
 
@@ -79,7 +72,6 @@ module UI {
         if (overflowMenu.children().length === 0) {
           overflowEl.css('visibility', 'hidden');
         }
-
       }
 
       $(window).resize(_.throttle(locateElements, 100));
