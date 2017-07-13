@@ -1,15 +1,19 @@
-function spawnFactory(namespace, debugFabFactory) {
-  namespace = namespace || '';
+function spawnFactory(_namespace, _debugFabFactory) {
+  var memoize = require('memoizee');
+  var namespace = _namespace || '';
+  var debugFabFactory = _debugFabFactory;
 
   if(!debugFabFactory){
     debugFabFactory = require('./debugFabFactory')();
   }
 
-  function Debugger(base, ns){
-    base = base || '';
-    ns = ns || '';
-    var newNs = ns ? base + ':' + ns : base;
+  function Debugger(_base, _ns){
+    var base = _base || '';
+    var ns = _ns || '';
+
+    var newNs = ns ? [base, ns].join(':') : base;
     var debug = debugFabFactory(newNs);
+
     this.debug = debug;
     this.debug.spawn = this.spawn;
   }
@@ -19,6 +23,8 @@ function spawnFactory(namespace, debugFabFactory) {
 
     return dbg.debug;
   };
+
+  Debugger.prototype.spawn = memoize(Debugger.prototype.spawn);
 
   var rootDebug = (new Debugger(namespace)).debug;
 

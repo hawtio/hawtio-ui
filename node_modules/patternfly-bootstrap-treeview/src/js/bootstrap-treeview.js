@@ -972,11 +972,14 @@
 				node.$el
 					.append(this._template.badge.clone()
 						.addClass(
-							typeof node.tagsClass[id] === 'string' ?
-								node.tagsClass[id] :
-								this._options.tagsClass
+							(typeof tag === 'object' ? tag.class : undefined)
+							|| node.tagsClass
+							|| this._options.tagsClass
 						)
-						.append(tag)
+						.append(
+							(typeof tag === 'object' ? tag.text : undefined)
+							|| tag
+						)
 					);
 			}, this));
 		}
@@ -1142,6 +1145,11 @@
 					innerStyle += 'background-color:' + node.backColor + ';';
 				}
 				style += '.node-' + this._elementId + '[data-nodeId="' + node.nodeId + '"]{' + innerStyle + '}';
+			}
+
+			if (node.iconColor) {
+				var innerStyle = 'color:' + node.iconColor + ';';
+				style += '.node-' + this._elementId + '[data-nodeId="' + node.nodeId + '"] .node-icon{' + innerStyle + '}';
 			}
 		}, this));
 

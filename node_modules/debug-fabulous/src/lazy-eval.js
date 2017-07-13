@@ -1,13 +1,11 @@
-
-
-var slice = [].slice,
-  objectAssign = require('object-assign');
-
+var objectAssign = require('object-assign');
+var memoize = require('memoizee');
 
 function _resolveOutput(func, bindThis) {
   var wrapped = function() {
-    var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+    var i = arguments.length;
+    var args = [];
+    while (i--) args[i] = arguments[i];
 
     // lazy function eval to keep output memory pressure down, if not used
     if (typeof args[0] === 'function') {
@@ -21,12 +19,12 @@ function _resolveOutput(func, bindThis) {
 };
 
 
-function wrapEval(debug) {
+function wrapEval(_debug) {
 
-  var debugOrig = debug,
-    noop = function(){};
+  var debugOrig = _debug;
+  var noop = function(){};
 
-  debug = function (namespace) {
+  function debug(namespace) {
 
     var instance = debugOrig(namespace);
 
@@ -42,9 +40,11 @@ function wrapEval(debug) {
     return instance;
   }
 
-  objectAssign(debug, debugOrig);
+  var debugMemoized = memoize(debug);
 
-  return debug;
+  objectAssign(debugMemoized, debugOrig);
+
+  return debugMemoized;
 }
 
 module.exports = wrapEval;
