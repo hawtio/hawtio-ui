@@ -95,7 +95,6 @@ module UI {
 
       $(window).resize(_.throttle(locateElements, 100));
       $scope.$root.$on('jmxTreeClicked', () => setTimeout(locateElements, 0));
-      $scope.$watch(setTimeout(locateElements, 500));
     }
   };
 

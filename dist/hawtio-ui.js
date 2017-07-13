@@ -1322,7 +1322,6 @@ var UI;
             }
             $(window).resize(_.throttle(locateElements, 100));
             $scope.$root.$on('jmxTreeClicked', function () { return setTimeout(locateElements, 0); });
-            $scope.$watch(setTimeout(locateElements, 500));
         }
     };
 })(UI || (UI = {}));
