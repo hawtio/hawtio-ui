@@ -1239,13 +1239,6 @@ div.scroll-body-table-wrapper {
   min-height: 100px;
 }
 
-.toast-pf {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 2000;
-}
-
 .dropdown.overflow {
   visibility: hidden;
 }
@@ -2166,4 +2159,11 @@ ul.inline > li {
 }
 .strong {
   font-weight: bold;
+}
+
+.toast-pf {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 2000;
 }

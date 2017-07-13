@@ -76,6 +76,8 @@ module UI {
 
       $(window).resize(_.throttle(locateElements, 100));
       $scope.$on('$routeChangeSuccess', () => $timeout(locateElements, 0, false));
+
+      $timeout(locateElements, 0, false);
     }
   })]);
 }
