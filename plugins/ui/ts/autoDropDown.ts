@@ -4,10 +4,10 @@
 /// <reference path="./uiPlugin.ts"/>
 module UI {
 
-  _module.directive('hawtioAutoDropdown', () => ({
+  _module.directive('hawtioAutoDropdown', ['$timeout', ($timeout) => ({
     restrict: 'A',
     link: ($scope, $element, $attrs) => {
-      function locateElements (event) {
+      function locateElements (event?) {
         var el = $element.get(0);
         if (event && event.relatedNode !== el && event.type) {
           if (event && event.type !== 'resize') {
@@ -83,7 +83,7 @@ module UI {
       }
 
       $(window).resize(_.throttle(locateElements, 100));
-      $scope.$root.$on('jmxTreeClicked', () => setTimeout(locateElements, 0));
+      $scope.$on('$routeChangeSuccess', () => $timeout(locateElements, 0, false));
     }
-  }));
+  })]);
 }
