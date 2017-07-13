@@ -1244,87 +1244,71 @@ var UI;
 /// <reference path="./uiPlugin.ts"/>
 var UI;
 (function (UI) {
-    UI._module.directive('hawtioAutoDropdown', function () {
-        return UI.AutoDropDown;
-    });
-    /**
-     * TODO turn this into a normal directive function
-     *
-     * @property AutoDropDown
-     * @type IAutoDropDown
-     */
-    UI.AutoDropDown = {
-        restrict: 'A',
-        link: function ($scope, $element, $attrs) {
-            function locateElements(event) {
-                var el = $element.get(0);
-                if (event && event.relatedNode !== el && event.type) {
-                    if (event && event.type !== 'resize') {
-                        return;
-                    }
-                }
-                var overflowEl = $($element.find('.dropdown.overflow'));
-                var overflowMenu = $(overflowEl.find('ul.dropdown-menu'));
-                /*
-                Logger.info("element inner width: ", $element.innerWidth());
-                Logger.info("element position: ", $element.position());
-                Logger.info("element offset: ", $element.offset());
-                Logger.info("overflowEl offset: ", overflowEl.offset());
-                Logger.info("overflowEl position: ", overflowEl.position());
-                */
-                var margin = 0;
-                var availableWidth = 0;
-                try {
-                    overflowEl.addClass('pull-right');
-                    margin = overflowEl.outerWidth() - overflowEl.innerWidth();
-                    availableWidth = overflowEl.position().left - $element.position().left - 50;
-                    overflowEl.removeClass('pull-right');
-                }
-                catch (e) {
-                    UI.log.debug("caught " + e);
-                }
-                overflowMenu.children().insertBefore(overflowEl);
-                var overflowItems = [];
-                $element.children(':not(.overflow):not(:hidden)').each(function () {
-                    var self = $(this);
-                    availableWidth = availableWidth - self.outerWidth(true);
-                    if (availableWidth < 0) {
-                        overflowItems.push(self);
-                    }
-                });
-                for (var i = overflowItems.length - 1; i > -1; i--) {
-                    overflowItems[i].prependTo(overflowMenu);
-                }
-                if (overflowMenu.children().length > 0) {
-                    overflowEl.css('visibility', 'visible');
-                }
-                if (availableWidth > 130) {
-                    var noSpace = false;
-                    overflowMenu.children(':not(.overflow)').filter(function () {
-                        return $(this).css('display') !== 'none';
-                    }).each(function () {
-                        if (noSpace) {
+    UI._module.directive('hawtioAutoDropdown', ['$timeout', function ($timeout) { return ({
+            restrict: 'A',
+            link: function ($scope, $element, $attrs) {
+                function locateElements(event) {
+                    var el = $element.get(0);
+                    if (event && event.relatedNode !== el && event.type) {
+                        if (event && event.type !== 'resize') {
                             return;
                         }
+                    }
+                    var overflowEl = $($element.find('.dropdown.overflow'));
+                    var overflowMenu = $(overflowEl.find('ul.dropdown-menu'));
+                    var margin = 0;
+                    var availableWidth = 0;
+                    try {
+                        overflowEl.addClass('pull-right');
+                        margin = overflowEl.outerWidth() - overflowEl.innerWidth();
+                        availableWidth = overflowEl.position().left - $element.position().left - 50;
+                        overflowEl.removeClass('pull-right');
+                    }
+                    catch (e) {
+                        UI.log.debug("caught " + e);
+                    }
+                    overflowMenu.children().insertBefore(overflowEl);
+                    var overflowItems = [];
+                    $element.children(':not(.overflow):not(:hidden)').each(function () {
                         var self = $(this);
-                        if (availableWidth > self.outerWidth()) {
-                            availableWidth = availableWidth - self.outerWidth();
-                            self.insertBefore(overflowEl);
-                        }
-                        else {
-                            noSpace = true;
+                        availableWidth = availableWidth - self.outerWidth(true);
+                        if (availableWidth < 0) {
+                            overflowItems.push(self);
                         }
                     });
+                    for (var i = overflowItems.length - 1; i > -1; i--) {
+                        overflowItems[i].prependTo(overflowMenu);
+                    }
+                    if (overflowMenu.children().length > 0) {
+                        overflowEl.css('visibility', 'visible');
+                    }
+                    if (availableWidth > 130) {
+                        var noSpace = false;
+                        overflowMenu.children(':not(.overflow)').filter(function () {
+                            return $(this).css('display') !== 'none';
+                        }).each(function () {
+                            if (noSpace) {
+                                return;
+                            }
+                            var self = $(this);
+                            if (availableWidth > self.outerWidth()) {
+                                availableWidth = availableWidth - self.outerWidth();
+                                self.insertBefore(overflowEl);
+                            }
+                            else {
+                                noSpace = true;
+                            }
+                        });
+                    }
+                    if (overflowMenu.children().length === 0) {
+                        overflowEl.css('visibility', 'hidden');
+                    }
                 }
-                if (overflowMenu.children().length === 0) {
-                    overflowEl.css('visibility', 'hidden');
-                }
+                $(window).resize(_.throttle(locateElements, 100));
+                $scope.$on('$routeChangeSuccess', function () { return $timeout(locateElements, 0, false); });
+                $timeout(locateElements, 0, false);
             }
-            $(window).resize(_.throttle(locateElements, 100));
-            $scope.$root.$on('jmxTreeClicked', function () { return setTimeout(locateElements, 0); });
-            $scope.$watch(setTimeout(locateElements, 500));
-        }
-    };
+        }); }]);
 })(UI || (UI = {}));
 /// <reference path="uiPlugin.ts"/>
 var UI;
