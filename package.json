@@ -1,6 +1,6 @@
 {
   "name": "@hawtio/ui",
-  "version": "3.0.30",
+  "version": "3.0.31",
   "main": "dist/hawtio-ui.js",
   "types": "dist/hawtio-ui.d.ts",
   "files": [
