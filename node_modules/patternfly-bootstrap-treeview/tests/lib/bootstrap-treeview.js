@@ -1146,6 +1146,11 @@
 				}
 				style += '.node-' + this._elementId + '[data-nodeId="' + node.nodeId + '"]{' + innerStyle + '}';
 			}
+
+			if (node.iconColor) {
+				var innerStyle = 'color:' + node.iconColor + ';';
+				style += '.node-' + this._elementId + '[data-nodeId="' + node.nodeId + '"] .node-icon{' + innerStyle + '}';
+			}
 		}, this));
 
 		return this._css + style;

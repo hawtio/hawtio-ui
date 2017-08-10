@@ -9,6 +9,15 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+            t[p[i]] = s[p[i]];
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var stream = require("stream");
 var vfs = require("vinyl-fs");
@@ -19,7 +28,7 @@ var reporter_1 = require("./reporter");
 var input_1 = require("./input");
 var output_1 = require("./output");
 var compiler_1 = require("./compiler");
-function setupProject(projectDirectory, config, options, typescript) {
+function setupProject(projectDirectory, configFileName, rawConfig, config, options, typescript) {
     var input = new input_1.FileCache(typescript, options);
     var compiler = options.isolatedModules ? new compiler_1.FileCompiler() : new compiler_1.ProjectCompiler();
     var running = false;
@@ -48,6 +57,8 @@ function setupProject(projectDirectory, config, options, typescript) {
     project.src = src;
     project.typescript = typescript;
     project.projectDirectory = projectDirectory;
+    project.configFileName = configFileName;
+    project.rawConfig = rawConfig;
     project.config = config;
     project.options = options;
     var projectInfo = {
@@ -72,16 +83,8 @@ function src() {
     if (this.options["rootDir"]) {
         base = path.resolve(this.projectDirectory, this.options["rootDir"]);
     }
-    var content = {};
-    if (this.config.include)
-        content.include = this.config.include;
-    if (this.config.exclude)
-        content.exclude = this.config.exclude;
-    if (this.config.files)
-        content.files = this.config.files;
-    if (this.options['allowJs'])
-        content.compilerOptions = { allowJs: true };
-    var _a = this.typescript.parseJsonConfigFileContent(content, this.typescript.sys, this.projectDirectory), fileNames = _a.fileNames, errors = _a.errors;
+    var _a = this.rawConfig, _extends = _a.extends, config = __rest(_a, ["extends"]);
+    var _b = this.typescript.parseJsonConfigFileContent(config, this.typescript.sys, path.resolve(this.projectDirectory), undefined, path.basename(this.configFileName)), fileNames = _b.fileNames, errors = _b.errors;
     for (var _i = 0, errors_1 = errors; _i < errors_1.length; _i++) {
         var error = errors_1[_i];
         console.log(error.messageText);
