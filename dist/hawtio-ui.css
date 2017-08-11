@@ -168,9 +168,6 @@ div.stack-line {
 .CodeMirror {
   border: 1px solid #d4d4d4;
 }
-i.expandable-indicator {
-  color: #666;
-}
 .table-hover tbody tr:hover td.details {
   background-color: #ffffff;
 }
@@ -746,9 +743,6 @@ ol.zebra-list > li:nth-child(even):before {
 }
 .file-name {
   color: #333333;
-}
-i.expandable-indicator.folder {
-  color: #EECA7C;
 }
 /*
  * jquery.tocify.css 1.8.0
@@ -1336,43 +1330,6 @@ editable-property {
 .ep.editing > form > fieldset > i {
   position: relative;
   top: 2px;
-}
-
-.expandable {
-  padding: 3px;
-}
-.expandable > .title {
-  cursor: pointer;
-}
-.expandable .expandable-indicator {
-  font-family: FontAwesome;
-  font-weight: normal;
-  font-style: normal;
-  display: inline-block;
-  text-decoration: inherit;
-}
-.expandable.opened .expandable-indicator:before {
-  content: "\f078" !important;
-}
-.expandable.opened .expandable-indicator.folder:before {
-  content: "\F07C" !important;
-}
-.expandable.opened .expandable-body {
-  font-size: inherit;
-  margin-bottom: 0px;
-}
-.expandable.closed .expandable-indicator:before {
-  content: "\f054";
-}
-.expandable.closed .expandable-indicator.folder:before {
-  content: "\F07B";
-}
-.expandable.closed .expandable-body {
-  display: none;
-}
-.expandable .expandable-body form fieldset legend {
-  font-size: inherit;
-  margin-bottom: 0px;
 }
 
 .hawtio-list-row {

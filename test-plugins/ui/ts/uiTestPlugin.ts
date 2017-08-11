@@ -23,7 +23,6 @@ module UITest {
                      .subPath('Clipboard', 'clipboard', builder.join(path, 'clipboard.html'))
                      .subPath('Confirm Dialog', 'confirm-dialog', builder.join(path, 'confirm-dialog.html'))
                      .subPath('Editable Property', 'editable-property', builder.join(path, 'editable-property.html'))
-                     .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
                      //.subPath('File Upload', 'file-upload', builder.join(path, 'file-upload.html'))
                      .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                      .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
