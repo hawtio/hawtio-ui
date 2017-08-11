@@ -129,58 +129,6 @@ declare module HawtioEditor {
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-declare module ForceGraph {
-    var _module: angular.IModule;
-}
-declare module ForceGraph {
-    class ForceGraphDirective {
-        restrict: string;
-        replace: boolean;
-        transclude: boolean;
-        scope: {
-            graph: string;
-            nodesize: string;
-            selectedModel: string;
-            linkDistance: string;
-            markerKind: string;
-            charge: string;
-        };
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    }
-}
-declare module ForceGraph {
-    /**
-     * GraphBuilder
-     *
-     * @class GraphBuilder
-     */
-    class GraphBuilder {
-        private nodes;
-        private links;
-        private linkTypes;
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        addNode(node: any): void;
-        getNode(id: any): any;
-        hasLinks(id: any): boolean;
-        addLink(srcId: any, targetId: any, linkType: any): void;
-        nodeIndex(id: any, nodes: any): number;
-        filterNodes(filter: any): void;
-        buildGraph(): {
-            nodes: any[];
-            links: any[];
-            linktypes: any;
-        };
-    }
-}
 declare module Toastr {
 }
 declare module Core {
@@ -230,47 +178,6 @@ declare module UI {
 }
 interface Window {
     Clipboard?: any;
-}
-declare module UI {
-    /**
-     * Pre defined colors used in the color picker
-     * @property colors
-     * @for UI
-     * @type Array
-     */
-    var colors: string[];
-}
-/**
- * @module UI
- */
-declare module UI {
-    var selected: string;
-    var unselected: string;
-    /**
-  Directive that allows the user to pick a color from a pre-defined pallete of colors.
-  
-  Use it like:
-  
-  ```html
-  <div hawtio-color-picker="myModel"></div>
-  ```
-  
-  'myModel' will be bound to the color the user clicks on
-  
-  @class ColorPicker
-     */
-    class ColorPicker {
-        restrict: string;
-        replace: boolean;
-        scope: {
-            property: string;
-        };
-        templateUrl: string;
-        compile: (tElement: any, tAttrs: any, transclude: any) => {
-            post: (scope: any, iElement: any, iAttrs: any, controller: any) => void;
-        };
-        controller: (string | (($scope: any, $element: any, $timeout: any) => void))[];
-    }
 }
 /**
  * @module UI
@@ -434,65 +341,6 @@ declare module UI {
  * @module UI
  */
 declare module UI {
-    interface MenuItem {
-        /**
-         * If set this menu item will be a separator
-         * with a heading to help group related menu
-         * items
-         */
-        heading?: string;
-        /**
-         * The string displayed in the menu
-         */
-        title?: string;
-        /**
-         * An optional icon, if not provided a spacer
-         * is used to ensure the menu is laid out
-         * correctly
-         */
-        icon?: string;
-        /**
-         * Used in extensible menus to determine whether
-         * or not the menu item should be shown
-         */
-        valid?: () => boolean;
-        /**
-         * Can be a string with an expression to evaluate
-         * or a function
-         */
-        action?: any;
-        /**
-         * A submenu for this item
-         */
-        items?: MenuItem[];
-        /**
-         * Object name for RBAC checking
-         */
-        objectName?: string;
-        /**
-         * method name for RBAC checking
-         */
-        methodName?: string;
-        /**
-         * argument types for RBAC checking
-         */
-        argumentTypes?: string;
-    }
-    function hawtioDropDown($templateCache: any): {
-        restrict: string;
-        replace: boolean;
-        templateUrl: string;
-        scope: {
-            config: string;
-        };
-        controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    };
-}
-/**
- * @module UI
- */
-declare module UI {
     class EditableProperty {
         private $parse;
         restrict: string;
@@ -501,22 +349,6 @@ declare module UI {
         require: string;
         link: any;
         constructor($parse: any);
-    }
-}
-/**
- * @module UI
- */
-declare module UI {
-    class Expandable {
-        log: Logging.Logger;
-        restrict: string;
-        replace: boolean;
-        open(model: any, expandable: any, scope: any): void;
-        close(model: any, expandable: any, scope: any): void;
-        forceClose(model: any, expandable: any, scope: any): void;
-        forceOpen(model: any, expandable: any, scope: any): void;
-        link: any;
-        constructor();
     }
 }
 declare module UI {
