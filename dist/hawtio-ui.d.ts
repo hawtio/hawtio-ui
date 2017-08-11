@@ -129,57 +129,25 @@ declare module HawtioEditor {
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-declare module ForceGraph {
-    var _module: angular.IModule;
+declare module Toastr {
 }
-declare module ForceGraph {
-    class ForceGraphDirective {
-        restrict: string;
-        replace: boolean;
-        transclude: boolean;
-        scope: {
-            graph: string;
-            nodesize: string;
-            selectedModel: string;
-            linkDistance: string;
-            markerKind: string;
-            charge: string;
-        };
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    }
-}
-declare module ForceGraph {
+declare module Core {
     /**
-     * GraphBuilder
+     * Displays an alert message which is typically the result of some asynchronous operation
      *
-     * @class GraphBuilder
+     * @method notification
+     * @static
+     * @param type which is usually "success" or "error" and matches css alert-* css styles
+     * @param message the text to display
+     *
      */
-    class GraphBuilder {
-        private nodes;
-        private links;
-        private linkTypes;
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        addNode(node: any): void;
-        getNode(id: any): any;
-        hasLinks(id: any): boolean;
-        addLink(srcId: any, targetId: any, linkType: any): void;
-        nodeIndex(id: any, nodes: any): number;
-        filterNodes(filter: any): void;
-        buildGraph(): {
-            nodes: any[];
-            links: any[];
-            linktypes: any;
-        };
-    }
+    function notification(type: string, message: string, options?: any): void;
+    /**
+     * Clears all the pending notifications
+     * @method clearNotifications
+     * @static
+     */
+    function clearNotifications(): void;
 }
 /**
  * @module UI
@@ -210,47 +178,6 @@ declare module UI {
 }
 interface Window {
     Clipboard?: any;
-}
-declare module UI {
-    /**
-     * Pre defined colors used in the color picker
-     * @property colors
-     * @for UI
-     * @type Array
-     */
-    var colors: string[];
-}
-/**
- * @module UI
- */
-declare module UI {
-    var selected: string;
-    var unselected: string;
-    /**
-  Directive that allows the user to pick a color from a pre-defined pallete of colors.
-  
-  Use it like:
-  
-  ```html
-  <div hawtio-color-picker="myModel"></div>
-  ```
-  
-  'myModel' will be bound to the color the user clicks on
-  
-  @class ColorPicker
-     */
-    class ColorPicker {
-        restrict: string;
-        replace: boolean;
-        scope: {
-            property: string;
-        };
-        templateUrl: string;
-        compile: (tElement: any, tAttrs: any, transclude: any) => {
-            post: (scope: any, iElement: any, iAttrs: any, controller: any) => void;
-        };
-        controller: (string | (($scope: any, $element: any, $timeout: any) => void))[];
-    }
 }
 /**
  * @module UI
@@ -667,26 +594,6 @@ declare module UI {
     }
 }
 declare module UI {
-}
-declare module Toastr {
-}
-declare module Core {
-    /**
-     * Displays an alert message which is typically the result of some asynchronous operation
-     *
-     * @method notification
-     * @static
-     * @param type which is usually "success" or "error" and matches css alert-* css styles
-     * @param message the text to display
-     *
-     */
-    function notification(type: string, message: string, options?: any): void;
-    /**
-     * Clears all the pending notifications
-     * @method clearNotifications
-     * @static
-     */
-    function clearNotifications(): void;
 }
 declare module UIBootstrap {
 }

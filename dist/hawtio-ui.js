@@ -752,364 +752,51 @@ var HawtioEditor;
     }
     HawtioEditor.Editor = Editor;
 })(HawtioEditor || (HawtioEditor = {}));
-/// <reference path="forceGraphDirective.ts"/>
-/**
- * Force Graph plugin & directive
- *
- * @module ForceGraph
- */
-var ForceGraph;
-(function (ForceGraph) {
-    var pluginName = 'forceGraph';
-    ForceGraph._module = angular.module(pluginName, []);
-    ForceGraph._module.directive('hawtioForceGraph', function () {
-        return new ForceGraph.ForceGraphDirective();
-    });
+var Toastr;
+(function (Toastr) {
+    var pluginName = 'hawtio-toastr';
+    var _module = angular.module(pluginName, []);
     hawtioPluginLoader.addModule(pluginName);
-})(ForceGraph || (ForceGraph = {}));
-///<reference path="forceGraphPlugin.ts"/>
-var ForceGraph;
-(function (ForceGraph) {
-    var log = Logger.get("ForceGraph");
-    var ForceGraphDirective = (function () {
-        function ForceGraphDirective() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.transclude = false;
-            this.scope = {
-                graph: '=graph',
-                nodesize: '@',
-                selectedModel: '@',
-                linkDistance: '@',
-                markerKind: '@',
-                charge: '@'
-            };
-            this.link = function ($scope, $element, $attrs) {
-                $scope.trans = [0, 0];
-                $scope.scale = 1;
-                $scope.$watch('graph', function (oldVal, newVal) {
-                    updateGraph();
-                });
-                $scope.redraw = function () {
-                    $scope.trans = d3.event.translate;
-                    $scope.scale = d3.event.scale;
-                    $scope.viewport.attr("transform", "translate(" + $scope.trans + ")" + " scale(" + $scope.scale + ")");
-                };
-                // This is a callback for the animation
-                $scope.tick = function () {
-                    // provide curvy lines as curves are kind of hawt
-                    $scope.graphEdges.attr("d", function (d) {
-                        var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
-                        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
-                    });
-                    // apply the translates coming from the layouter
-                    $scope.graphNodes.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    $scope.graphLabels.attr("transform", function (d) {
-                        return "translate(" + d.x + "," + d.y + ")";
-                    });
-                    // Only run this in IE
-                    if (Object.hasOwnProperty.call(window, "ActiveXObject") || !window.ActiveXObject) {
-                        $scope.svg.selectAll(".link").each(function () { this.parentNode.insertBefore(this, this); });
-                    }
-                };
-                $scope.mover = function (d) {
-                    if (d.popup != null) {
-                        $("#pop-up").fadeOut(100, function () {
-                            // Popup content
-                            if (d.popup.title != null) {
-                                $("#pop-up-title").html(d.popup.title);
-                            }
-                            else {
-                                $("#pop-up-title").html("");
-                            }
-                            if (d.popup.content != null) {
-                                $("#pop-up-content").html(d.popup.content);
-                            }
-                            else {
-                                $("#pop-up-content").html("");
-                            }
-                            // Popup position
-                            var popLeft = (d.x * $scope.scale) + $scope.trans[0] + 20;
-                            var popTop = (d.y * $scope.scale) + $scope.trans[1] + 20;
-                            $("#pop-up").css({ "left": popLeft, "top": popTop });
-                            $("#pop-up").fadeIn(100);
-                        });
-                    }
-                };
-                $scope.mout = function (d) {
-                    $("#pop-up").fadeOut(50);
-                    //d3.select(this).attr("fill","url(#ten1)");
-                };
-                var updateGraph = function () {
-                    var canvas = $($element);
-                    // TODO: determine the canvas size dynamically
-                    var h = $($element).parent().height();
-                    var w = $($element).parent().width();
-                    var i = 0;
-                    canvas.children("svg").remove();
-                    // First we create the top level SVG object
-                    // TODO maybe pass in the width/height
-                    $scope.svg = d3.select(canvas[0]).append("svg")
-                        .attr("width", w)
-                        .attr("height", h);
-                    // The we add the markers for the arrow tips
-                    var linkTypes = null;
-                    if ($scope.graph) {
-                        linkTypes = $scope.graph.linktypes;
-                    }
-                    if (!linkTypes) {
-                        return;
-                    }
-                    $scope.svg.append("svg:defs").selectAll("marker")
-                        .data(linkTypes)
-                        .enter().append("svg:marker")
-                        .attr("id", String)
-                        .attr("viewBox", "0 -5 10 10")
-                        .attr("refX", 15)
-                        .attr("refY", -1.5)
-                        .attr("markerWidth", 6)
-                        .attr("markerHeight", 6)
-                        .attr("orient", "auto")
-                        .append("svg:path")
-                        .attr("d", "M0,-5L10,0L0,5");
-                    // The bounding box can't be zoomed or scaled at all
-                    $scope.svg.append("svg:g")
-                        .append("svg:rect")
-                        .attr("class", "graphbox.frame")
-                        .attr('width', w)
-                        .attr('height', h);
-                    $scope.viewport = $scope.svg.append("svg:g")
-                        .call(d3.behavior.zoom().on("zoom", $scope.redraw))
-                        .append("svg:g");
-                    $scope.viewport.append("svg:rect")
-                        .attr("width", 1000000)
-                        .attr("height", 1000000)
-                        .attr("class", "graphbox")
-                        .attr("transform", "translate(-50000, -500000)");
-                    // Only do this if we have a graph object
-                    if ($scope.graph) {
-                        var ownerScope = $scope.$parent || $scope;
-                        var selectedModel = $scope.selectedModel || "selectedNode";
-                        // kick off the d3 forced graph layout
-                        $scope.force = d3.layout.force()
-                            .nodes($scope.graph.nodes)
-                            .links($scope.graph.links)
-                            .size([w, h])
-                            .on("tick", $scope.tick);
-                        if (angular.isDefined($scope.linkDistance)) {
-                            $scope.force.linkDistance($scope.linkDistance);
-                        }
-                        if (angular.isDefined($scope.charge)) {
-                            $scope.force.charge($scope.charge);
-                        }
-                        var markerTypeName = $scope.markerKind || "marker-end";
-                        // Add all edges to the viewport
-                        $scope.graphEdges = $scope.viewport.append("svg:g").selectAll("path")
-                            .data($scope.force.links())
-                            .enter().append("svg:path")
-                            .attr("class", function (d) {
-                            return "link " + d.type;
-                        })
-                            .attr(markerTypeName, function (d) {
-                            return "url(#" + d.type + ")";
-                        });
-                        // add all nodes to the viewport
-                        $scope.graphNodes = $scope.viewport.append("svg:g").selectAll("circle")
-                            .data($scope.force.nodes())
-                            .enter()
-                            .append("a")
-                            .attr("xlink:href", function (d) {
-                            return d.navUrl;
-                        })
-                            .on("mouseover.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', true);
-                            ownerScope[selectedModel] = d;
-                            Core.pathSet(ownerScope, selectedModel, d);
-                            Core.$apply(ownerScope);
-                        })
-                            .on("mouseout.onLink", function (d, i) {
-                            var sel = d3.select(d3.event.target);
-                            sel.classed('selected', false);
-                        });
-                        var hasImage_1 = function (d) {
-                            return d.image && d.image.url;
-                        };
-                        // Add the images if they are set
-                        $scope.graphNodes.filter(function (d) {
-                            return d.image != null;
-                        })
-                            .append("image")
-                            .attr("xlink:href", function (d) {
-                            return d.image.url;
-                        })
-                            .attr("x", function (d) {
-                            return -(d.image.width / 2);
-                        })
-                            .attr("y", function (d) {
-                            return -(d.image.height / 2);
-                        })
-                            .attr("width", function (d) {
-                            return d.image.width;
-                        })
-                            .attr("height", function (d) {
-                            return d.image.height;
-                        });
-                        // if we don't have an image add a circle
-                        $scope.graphNodes.filter(function (d) { return !hasImage_1(d); })
-                            .append("circle")
-                            .attr("class", function (d) {
-                            return d.type;
-                        })
-                            .attr("r", function (d) {
-                            return d.size || $scope.nodesize;
-                        });
-                        // Add the labels to the viewport
-                        $scope.graphLabels = $scope.viewport.append("svg:g").selectAll("g")
-                            .data($scope.force.nodes())
-                            .enter().append("svg:g");
-                        // A copy of the text with a thick white stroke for legibility.
-                        $scope.graphLabels.append("svg:text")
-                            .attr("x", 8)
-                            .attr("y", ".31em")
-                            .attr("class", "shadow")
-                            .text(function (d) {
-                            return d.name;
-                        });
-                        $scope.graphLabels.append("svg:text")
-                            .attr("x", 8)
-                            .attr("y", ".31em")
-                            .text(function (d) {
-                            return d.name;
-                        });
-                        // animate, then stop
-                        $scope.force.start();
-                        $scope.graphNodes
-                            .call($scope.force.drag)
-                            .on("mouseover", $scope.mover)
-                            .on("mouseout", $scope.mout);
-                    }
-                };
-            };
-        }
-        return ForceGraphDirective;
-    }());
-    ForceGraph.ForceGraphDirective = ForceGraphDirective;
-})(ForceGraph || (ForceGraph = {}));
-var ForceGraph;
-(function (ForceGraph) {
+})(Toastr || (Toastr = {}));
+var Core;
+(function (Core) {
+    var visibleToastElem = null;
+    var timeoutId;
     /**
-     * GraphBuilder
+     * Displays an alert message which is typically the result of some asynchronous operation
      *
-     * @class GraphBuilder
+     * @method notification
+     * @static
+     * @param type which is usually "success" or "error" and matches css alert-* css styles
+     * @param message the text to display
+     *
      */
-    var GraphBuilder = (function () {
-        function GraphBuilder() {
-            this.nodes = {};
-            this.links = [];
-            this.linkTypes = {};
+    function notification(type, message, options) {
+        if (options === void 0) { options = null; }
+        var toastHtml = "\n      <div class=\"toast-pf alert alert-" + type + "\">\n        <span class=\"pficon pficon-ok\"></span>\n        " + message + "\n      </div>\n    ";
+        var toastFrag = document.createRange().createContextualFragment(toastHtml);
+        var toastElem = toastFrag.querySelector('div');
+        var bodyElem = document.querySelector('body');
+        // if toast element is in the DOM
+        if (visibleToastElem && visibleToastElem.parentNode) {
+            clearTimeout(timeoutId);
+            bodyElem.removeChild(visibleToastElem);
         }
-        /**
-         * Adds a node to this graph
-         * @method addNode
-         * @param {Object} node
-         */
-        GraphBuilder.prototype.addNode = function (node) {
-            if (!this.nodes[node.id]) {
-                this.nodes[node.id] = node;
-            }
-        };
-        GraphBuilder.prototype.getNode = function (id) {
-            return this.nodes[id];
-        };
-        GraphBuilder.prototype.hasLinks = function (id) {
-            var _this = this;
-            var result = false;
-            this.links.forEach(function (link) {
-                if (link.source.id == id || link.target.id == id) {
-                    result = result || (_this.nodes[link.source.id] != null && _this.nodes[link.target.id] != null);
-                }
-            });
-            return result;
-        };
-        GraphBuilder.prototype.addLink = function (srcId, targetId, linkType) {
-            if ((this.nodes[srcId] != null) && (this.nodes[targetId] != null)) {
-                this.links.push({
-                    source: this.nodes[srcId],
-                    target: this.nodes[targetId],
-                    type: linkType
-                });
-                if (!this.linkTypes[linkType]) {
-                    this.linkTypes[linkType] = {
-                        used: true
-                    };
-                }
-                ;
-            }
-        };
-        GraphBuilder.prototype.nodeIndex = function (id, nodes) {
-            var result = -1;
-            var index = 0;
-            for (index = 0; index < nodes.length; index++) {
-                var node = nodes[index];
-                if (node.id == id) {
-                    result = index;
-                    break;
-                }
-            }
-            return result;
-        };
-        GraphBuilder.prototype.filterNodes = function (filter) {
-            var filteredNodes = {};
-            var newLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (filter(node)) {
-                    filteredNodes[node.id] = node;
-                }
-            });
-            this.links.forEach(function (link) {
-                if (filteredNodes[link.source.id] && filteredNodes[link.target.id]) {
-                    newLinks.push(link);
-                }
-            });
-            this.nodes = filteredNodes;
-            this.links = newLinks;
-        };
-        GraphBuilder.prototype.buildGraph = function () {
-            var _this = this;
-            var graphNodes = [];
-            var linktypes = d3.keys(this.linkTypes);
-            var graphLinks = [];
-            d3.values(this.nodes).forEach(function (node) {
-                if (node.includeInGraph == null || node.includeInGraph) {
-                    node.includeInGraph = true;
-                    graphNodes.push(node);
-                }
-            });
-            this.links.forEach(function (link) {
-                if (_this.nodes[link.source.id] != null
-                    && _this.nodes[link.target.id] != null
-                    && _this.nodes[link.source.id].includeInGraph
-                    && _this.nodes[link.target.id].includeInGraph) {
-                    graphLinks.push({
-                        source: _this.nodeIndex(link.source.id, graphNodes),
-                        target: _this.nodeIndex(link.target.id, graphNodes),
-                        type: link.type
-                    });
-                }
-            });
-            return {
-                nodes: graphNodes,
-                links: graphLinks,
-                linktypes: linktypes
-            };
-        };
-        return GraphBuilder;
-    }());
-    ForceGraph.GraphBuilder = GraphBuilder;
-})(ForceGraph || (ForceGraph = {}));
+        visibleToastElem = bodyElem.appendChild(toastElem);
+        timeoutId = window.setTimeout(function () {
+            bodyElem.removeChild(toastElem);
+        }, 8000);
+    }
+    Core.notification = notification;
+    /**
+     * Clears all the pending notifications
+     * @method clearNotifications
+     * @static
+     */
+    function clearNotifications() {
+    }
+    Core.clearNotifications = clearNotifications;
+})(Core || (Core = {}));
 /**
  * @module UI
  */
@@ -1306,90 +993,6 @@ var UI;
             });
         });
     }, 1000);
-})(UI || (UI = {}));
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    /**
-     * Pre defined colors used in the color picker
-     * @property colors
-     * @for UI
-     * @type Array
-     */
-    UI.colors = ["#5484ED", "#A4BDFC", "#46D6DB", "#7AE7BF",
-        "#51B749", "#FBD75B", "#FFB878", "#FF887C", "#DC2127",
-        "#DBADFF", "#E1E1E1"];
-    UI._module.constant('UIColors', UI.colors);
-})(UI || (UI = {}));
-/**
- * @module UI
- */
-/// <reference path="./colors.ts"/>
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    UI._module.directive('hawtioColorPicker', function () {
-        return new UI.ColorPicker();
-    });
-    UI.selected = "selected";
-    UI.unselected = "unselected";
-    /**
-  Directive that allows the user to pick a color from a pre-defined pallete of colors.
-  
-  Use it like:
-  
-  ```html
-  <div hawtio-color-picker="myModel"></div>
-  ```
-  
-  'myModel' will be bound to the color the user clicks on
-  
-  @class ColorPicker
-     */
-    var ColorPicker = (function () {
-        function ColorPicker() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.scope = {
-                property: '=hawtioColorPicker'
-            };
-            this.templateUrl = UI.templatePath + "colorPicker.html";
-            this.compile = function (tElement, tAttrs, transclude) {
-                return {
-                    post: function postLink(scope, iElement, iAttrs, controller) {
-                        scope.colorList = [];
-                        angular.forEach(UI.colors, function (color) {
-                            var select = UI.unselected;
-                            if (scope.property === color) {
-                                select = UI.selected;
-                            }
-                            scope.colorList.push({
-                                color: color,
-                                select: select
-                            });
-                        });
-                    }
-                };
-            };
-            this.controller = ["$scope", "$element", "$timeout", function ($scope, $element, $timeout) {
-                    $scope.popout = false;
-                    $scope.$watch('popout', function () {
-                        $element.find('.color-picker-popout').toggleClass('popout-open', $scope.popout);
-                    });
-                    $scope.selectColor = function (color) {
-                        for (var i = 0; i < $scope.colorList.length; i++) {
-                            $scope.colorList[i].select = UI.unselected;
-                            if ($scope.colorList[i] === color) {
-                                $scope.property = color.color;
-                                $scope.colorList[i].select = UI.selected;
-                            }
-                        }
-                    };
-                }];
-        }
-        return ColorPicker;
-    }());
-    UI.ColorPicker = ColorPicker;
 })(UI || (UI = {}));
 /**
  * @module UI
@@ -3596,51 +3199,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-var Toastr;
-(function (Toastr) {
-    var pluginName = 'hawtio-toastr';
-    var _module = angular.module(pluginName, []);
-    hawtioPluginLoader.addModule(pluginName);
-})(Toastr || (Toastr = {}));
-var Core;
-(function (Core) {
-    var visibleToastElem = null;
-    var timeoutId;
-    /**
-     * Displays an alert message which is typically the result of some asynchronous operation
-     *
-     * @method notification
-     * @static
-     * @param type which is usually "success" or "error" and matches css alert-* css styles
-     * @param message the text to display
-     *
-     */
-    function notification(type, message, options) {
-        if (options === void 0) { options = null; }
-        var toastHtml = "\n      <div class=\"toast-pf alert alert-" + type + "\">\n        <span class=\"pficon pficon-ok\"></span>\n        " + message + "\n      </div>\n    ";
-        var toastFrag = document.createRange().createContextualFragment(toastHtml);
-        var toastElem = toastFrag.querySelector('div');
-        var bodyElem = document.querySelector('body');
-        // if toast element is in the DOM
-        if (visibleToastElem && visibleToastElem.parentNode) {
-            clearTimeout(timeoutId);
-            bodyElem.removeChild(visibleToastElem);
-        }
-        visibleToastElem = bodyElem.appendChild(toastElem);
-        timeoutId = window.setTimeout(function () {
-            bodyElem.removeChild(toastElem);
-        }, 8000);
-    }
-    Core.notification = notification;
-    /**
-     * Clears all the pending notifications
-     * @method clearNotifications
-     * @static
-     */
-    function clearNotifications() {
-    }
-    Core.clearNotifications = clearNotifications;
-})(Core || (Core = {}));
 var UIBootstrap;
 (function (UIBootstrap) {
     var pluginName = "hawtio-ui-bootstrap";
@@ -3652,9 +3210,8 @@ var UIBootstrap;
 })(UIBootstrap || (UIBootstrap = {}));
 
 angular.module('hawtio-ui-templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('plugins/editor/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
-$templateCache.put('plugins/ui/html/colorPicker.html','<div class="color-picker">\n  <div class="wrapper">\n    <div class="selected-color" style="background-color: {{property}};" ng-click="popout = !popout"></div>\n  </div>\n  <div class="color-picker-popout">\n    <table>\n      <tr>\n        <td ng-repeat="color in colorList">\n          <div class="{{color.select}}" style="background-color: {{color.color}};"\n               ng-click="selectColor(color)">\n          </div>\n        <td>\n        <td>\n          <i class="fa fa-remove clickable" ng-click="popout = !popout"></i>\n        </td>\n      </tr>\n    </table>\n  </div>\n</div>\n');
 $templateCache.put('plugins/ui/html/confirmDialog.html','<div modal="show">\n  <div class="modal-dialog {{sizeClass}}">\n    <div class="modal-content">    \n      <div class="modal-header">\n        <button type="button" class="close" aria-hidden="true" ng-click="cancel()">\n          <span class="pficon pficon-close"></span>\n        </button>\n        <h4 class="modal-title">{{title}}</h4>\n      </div>\n      <div class="modal-body">\n      </div>\n      <div class="modal-footer">\n        <button type="button" class="btn btn-default" ng-click="cancel()">\n          {{cancelButtonText}}\n        </button>\n        <button type="submit" class="btn btn-primary" ng-click="submit()" ng-hide="{{showOkButton === \'false\'}}">\n          {{okButtonText}}\n        </button>\n      </div>\n    </div>\n  </div>\n</div>\n');
-$templateCache.put('plugins/ui/html/developerPage.html','<div ng-controller="UI.DeveloperPageController">\n\n  <div class="tocify" wiki-href-adjuster>\n    <div hawtio-toc-display\n         get-contents="getContents(filename, cb)">\n      <ul>\n        <li>\n          <a href="plugins/ui/html/test/auto-columns.html" chapter-id="auto-columns">auto-columns</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/auto-dropdown.html" chapter-id="auto-dropdown">auto-dropdown</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/color-picker.html" chapter-id="color-picker">color-picker</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/confirm-dialog.html" chapter-id="confirm-dialog">confirm-dialog</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/drop-down.html" chapter-id="drop-down">drop-down</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editable-property.html" chapter-id="editableProperty">editable-property</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editor.html" chapter-id="editor">editor</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/expandable.html" chapter-id="expandable">expandable</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/file-upload.html" chapter-id="file-upload">file-upload</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/pager.html" chapter-id="pager">pager</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/slideout.html" chapter-id="slideout">slideout</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/template-popover.html" chapter-id="template-popover">template-popover</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n  <div class="toc-content" id="toc-content"></div>\n</div>\n');
+$templateCache.put('plugins/ui/html/developerPage.html','<div ng-controller="UI.DeveloperPageController">\n\n  <div class="tocify" wiki-href-adjuster>\n    <div hawtio-toc-display\n         get-contents="getContents(filename, cb)">\n      <ul>\n        <li>\n          <a href="plugins/ui/html/test/auto-columns.html" chapter-id="auto-columns">auto-columns</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/auto-dropdown.html" chapter-id="auto-dropdown">auto-dropdown</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/confirm-dialog.html" chapter-id="confirm-dialog">confirm-dialog</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/drop-down.html" chapter-id="drop-down">drop-down</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editable-property.html" chapter-id="editableProperty">editable-property</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editor.html" chapter-id="editor">editor</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/expandable.html" chapter-id="expandable">expandable</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/file-upload.html" chapter-id="file-upload">file-upload</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/pager.html" chapter-id="pager">pager</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/slideout.html" chapter-id="slideout">slideout</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/template-popover.html" chapter-id="template-popover">template-popover</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n  <div class="toc-content" id="toc-content"></div>\n</div>\n');
 $templateCache.put('plugins/ui/html/dropDown.html','<span>\n\n  <script type="text/ng-template" id="withsubmenus.html">\n    <span class="hawtio-dropdown dropdown" ng-class="open(config)" ng-click="action(config, $event)">\n      <p ng-show="config.heading" ng-bind="config.heading"></p>\n      <span ng-show="config.title">\n        <i ng-class="icon(config)"></i>&nbsp;<span ng-bind="config.title"></span>\n        <span ng-show="config.items" ng-hide="config.submenu" class="caret"></span>\n        <span ng-show="config.items && config.submenu" class="submenu-caret"></span>\n      </span>\n\n      <ul ng-hide="config.action" ng-show="config.items" class="dropdown-menu" ng-class="submenu(config)">\n        <li ng-repeat="item in config.items track by $index" ng-init="config=item; config[\'submenu\']=true" ng-include="\'withsubmenus.html\'" hawtio-show object-name="{{item.objectName}}" method-name="{{item.methodName}}" argument-types="{{item.argumentTypes}}" mode="remove">\n        </li>\n      </ul>\n    </span>\n  </script>\n\n  <script type="text/ng-template" id="withoutsubmenus.html">\n    <span class="hawtio-dropdown dropdown" ng-class="open(config)" ng-click="action(config, $event)">\n      <p ng-if="config.heading" ng-bind="config.heading"></p>\n      <span ng-if="config.title">\n        <i ng-class="icon(config)"></i>&nbsp;<span ng-bind="config.title"></span>\n        <span ng-if="config.items && config.items.length > 0" class="caret"></span>\n     </span>\n\n      <ul ng-if="!config.action && config.items" class="dropdown-menu" ng-class="submenu(config)">\n        <li ng-repeat="item in config.items track by $index" hawtio-show object-name="{{item.objectName}}" method-name="{{item.methodName}}" argument-types="{{item.argumentTypes}}" mode="remove">\n          <span class="menu-item" ng-click="action(item, $event)">\n            <i ng-class="icon(item)"></i>&nbsp;<span ng-bind="item.title"></span>\n            <span ng-if="item.items" class="submenu-caret"></span>\n          </span>\n        </li>\n      </ul>\n\n    </span>\n  </script>\n  <span compile="menuStyle"></span>\n</span>\n');
 $templateCache.put('plugins/ui/html/editableProperty.html','<div ng-mouseenter="showEdit()" ng-mouseleave="hideEdit()" class="ep" ng-dblclick="doEdit()">\n  {{getText()}}&nbsp;&nbsp;<i class="ep-edit fa fa-pencil" title="Click to edit" ng-click="doEdit()" no-click></i>\n</div>\n<div class="ep editing" ng-show="editing" no-click>\n  <form class="form-inline no-bottom-margin" ng-submit="saveEdit()">\n    <fieldset>\n      <span ng-switch="inputType">\n        <span ng-switch-when="number">\n          <input type="number" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}" max="{{max}}" min="{{min}}">\n        </span>\n        <span ng-switch-when="password">\n          <input type="password" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}">\n        </span>\n        <span ng-switch-default>\n          <input type="text" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}">\n        </span>\n      </span>\n      <i class="blue clickable fa fa-check icon1point5x" title="Save changes" ng-click="saveEdit()"></i>\n      <i class="clickable fa fa-remove icon1point5x" title="Discard changes" ng-click="stopEdit()"></i>\n    </fieldset>\n  </form>\n</div>\n');
 $templateCache.put('plugins/ui/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');

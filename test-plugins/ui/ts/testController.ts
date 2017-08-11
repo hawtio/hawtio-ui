@@ -137,8 +137,6 @@ module UITest {
     $scope.fileUploadEx2 = '<div hawtio-file-upload="files" target="test2" show-files="false"></div>';
     $scope.fileUploadExMode = 'text/html';
 
-    $scope.colorPickerEx = 'My Color ({{myColor}}): <div hawtio-color-picker="myColor"></div>';
-
     $scope.confirmationEx1 = '' +
       '<button class="btn btn-default" ng-click="showDeleteOne.open()">Delete stuff</button>\n' +
       '\n' +

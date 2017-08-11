@@ -445,10 +445,6 @@ table.table thead .sorting_desc:after {
 .ngHeaderCell:last-child {
   border-right: 1px solid rgba(0, 0, 0, 0) !important;
 }
-.color-picker .wrapper {
-  border: 1px solid #d4d4d4;
-  border-radius: 4px;
-}
 .selected-color {
   width: 1em;
   height: 1em;
@@ -456,22 +452,8 @@ table.table thead .sorting_desc:after {
   padding: 4px;
   box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
 }
-.color-picker-popout {
-  transition: opacity 0.25s ease-in-out;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0);
-}
 .popout-open {
   border: 1px solid #d4d4d4;
-}
-.color-picker div table tr td div {
-  border: 1px solid rgba(0, 0, 0, 0);
-  border-radius: 4px;
-  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
-}
-.color-picker div table tr td div.selected {
-  border-color: #474747;
 }
 .clickable {
   color: #787878;
@@ -1239,6 +1221,13 @@ div.scroll-body-table-wrapper {
   min-height: 100px;
 }
 
+.toast-pf {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 2000;
+}
+
 .dropdown.overflow {
   visibility: hidden;
 }
@@ -1297,54 +1286,6 @@ div.scroll-body-table-wrapper {
 .input-group-button .btn-clipboard {
   padding: 3px 7px;
   border-width: 0;
-}
-
-.color-picker {
-  display: inline-block;
-  position: relative;
-  margin: 0px;
-  line-height: 0px;
-}
-.color-picker .wrapper {
-  display: inline-block;
-  padding: 2px;
-  line-height: 0;
-}
-.selected-color {
-  width: 1em;
-  height: 1em;
-  padding: 4px;
-  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
-  display: inline-block;
-  cursor: pointer;
-}
-.color-picker-popout {
-  transition: opacity 0.25s ease-in-out;
-  position: absolute;
-  top: 0px;
-  overflow: hidden;
-  padding: 0px;
-  line-height: 0;
-  margin: 0px;
-  width: 0px;
-  opacity: 0;
-}
-.popout-open {
-  padding: 1px;
-  width: auto;
-  opacity: 1;
-}
-.color-picker div table tr td div {
-  width: 1em;
-  height: 1em;
-  padding: 3px;
-  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
-}
-.color-picker div table tr td {
-  padding-right: 5px;
-}
-.color-picker div table tr td:last-child {
-  padding-right: 0px;
 }
 
 .contained {
@@ -2159,11 +2100,4 @@ ul.inline > li {
 }
 .strong {
   font-weight: bold;
-}
-
-.toast-pf {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 2000;
 }
