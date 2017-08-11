@@ -22,7 +22,6 @@ module UITest {
                      .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
                      .subPath('Clipboard', 'clipboard', builder.join(path, 'clipboard.html'))
                      .subPath('Confirm Dialog', 'confirm-dialog', builder.join(path, 'confirm-dialog.html'))
-                     .subPath('Drop Down', 'drop-down', builder.join(path, 'drop-down.html'))
                      .subPath('Editable Property', 'editable-property', builder.join(path, 'editable-property.html'))
                      .subPath('Expandable', 'expandable', builder.join(path, 'expandable.html'))
                      //.subPath('File Upload', 'file-upload', builder.join(path, 'file-upload.html'))

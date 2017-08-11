@@ -456,8 +456,7 @@ table.table thead .sorting_desc:after {
   border: 1px solid #d4d4d4;
 }
 
-.section-controls > a,
-.section-controls > span > span > span > span > span > .hawtio-dropdown {
+.section-controls > a {
   color: #4d5258;
 }
 
@@ -932,29 +931,6 @@ strong.new,
   color: #53595f;
 }
 
-.hawtio-dropdown > ul > li:hover {
-  text-decoration: none;
-  color: #ffffff;
-  background-color: #0081c2;
-  background-image: -moz-linear-gradient(top, #0088cc, #0077b3);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0077b3));
-  background-image: -webkit-linear-gradient(top, #0088cc, #0077b3);
-  background-image: -o-linear-gradient(top, #0088cc, #0077b3);
-  background-image: linear-gradient(to bottom, #0088cc, #0077b3);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
-}
-
-.hawtio-dropdown > ul > li:hover > a {
-  color: #ffffff;
-  background-color: unset;
-  border-color: transparent;
-}
-
-.hawtio-dropdown > ul > li:hover > span > ul.sub-menu > li {
-  color: #333333;
-}
-
 .dropdown-menu .sub-menu {
   border-top: 1px solid #d3d3d3;
 }
@@ -1014,11 +990,6 @@ img.nodeIcon:hover {
 
 .pane {
   background: #fff;
-  /* box-shadow: 0 0 50px rgba(0, 0, 0, 0.05); */
-}
-
-.pane-header-wrapper {
-  /* box-shadow: 0 0 50px rgba(0, 0, 0, 0.2); */ 
 }
 
 .navbar .nav > li > .dropdown-menu:before,
@@ -1027,8 +998,7 @@ img.nodeIcon:hover {
   border: none;
 }
 
-.dropdown.perspective-selector .dropdown-menu > div > p,
-.hawtio-dropdown p {
+.dropdown.perspective-selector .dropdown-menu > div > p {
   border-top: 1px solid #d4d4d4;
   border-bottom: 1px solid #d4d4d4;
   background-image: linear-gradient(to bottom, #fff, #e5e5e5);

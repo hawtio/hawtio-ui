@@ -478,8 +478,7 @@ table.table thead .sorting_desc:after {
   background-repeat: repeat-x;
   border: 1px solid #d4d4d4;
 }
-.section-controls > a,
-.section-controls > span > span > span > span > span > .hawtio-dropdown {
+.section-controls > a {
   color: #4d5258;
 }
 .section-controls > a.nav-danger {
@@ -866,26 +865,6 @@ strong.new,
 .submenu-caret:before {
   color: #53595f;
 }
-.hawtio-dropdown > ul > li:hover {
-  text-decoration: none;
-  color: #ffffff;
-  background-color: #0081c2;
-  background-image: -moz-linear-gradient(top, #0088cc, #0077b3);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0077b3));
-  background-image: -webkit-linear-gradient(top, #0088cc, #0077b3);
-  background-image: -o-linear-gradient(top, #0088cc, #0077b3);
-  background-image: linear-gradient(to bottom, #0088cc, #0077b3);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0077b3', GradientType=0);
-}
-.hawtio-dropdown > ul > li:hover > a {
-  color: #ffffff;
-  background-color: unset;
-  border-color: transparent;
-}
-.hawtio-dropdown > ul > li:hover > span > ul.sub-menu > li {
-  color: #333333;
-}
 .dropdown-menu .sub-menu {
   border-top: 1px solid #d3d3d3;
 }
@@ -932,18 +911,13 @@ img.nodeIcon:hover {
 }
 .pane {
   background: #fff;
-  /* box-shadow: 0 0 50px rgba(0, 0, 0, 0.05); */
-}
-.pane-header-wrapper {
-  /* box-shadow: 0 0 50px rgba(0, 0, 0, 0.2); */
 }
 .navbar .nav > li > .dropdown-menu:before,
 .navbar .nav > li > .dropdown-menu:after {
   display: none;
   border: none;
 }
-.dropdown.perspective-selector .dropdown-menu > div > p,
-.hawtio-dropdown p {
+.dropdown.perspective-selector .dropdown-menu > div > p {
   border-top: 1px solid #d4d4d4;
   border-bottom: 1px solid #d4d4d4;
   background-image: linear-gradient(to bottom, #fff, #e5e5e5);
@@ -1324,115 +1298,6 @@ h4 > .contained {
 }
 .c-max {
   width: 100%;
-}
-
-.hawtio-dropdown .dropdown-menu {
-  padding-top: 0;
-  padding-bottom: 0;
-  margin-top: 0;
-  top: 100%;
-  left: 0;
-  right: 0;
-  border-radius: 0;
-}
-.hawtio-dropdown .dropdown-menu:before {
-  display: none !important;
-}
-.hawtio-dropdown .dropdown-menu:after {
-  display: none !important;
-}
-.hawtio-dropdown .dropdown-menu.right {
-  left: auto;
-  right: 0;
-}
-.hawtio-dropdown .dropdown-menu.right:before {
-  left: auto !important;
-  right: 9px;
-}
-.hawtio-dropdown .dropdown-menu.right:after {
-  left: auto !important;
-  right: 10px;
-}
-.submenu-caret {
-  display: inline-block;
-  width: 0;
-  height: 0;
-}
-.submenu-caret:before {
-  font-family: 'FontAwesome';
-  border: 0;
-  content: "\f054";
-  font-size: 11px;
-  display: block;
-}
-.hawtio-dropdown > ul > li {
-  padding: 3px;
-  padding-left: 5px;
-}
-.hawtio-dropdown > ul > li > .menu-item {
-  position: relative;
-  display: block;
-}
-.hawtio-dropdown > .submenu-caret:before,
-.hawtio-dropdown > ul > li > .menu-item > .submenu-caret:before {
-  position: absolute;
-  top: 0;
-  right: -2px;
-}
-.hawtio-dropdown .dropdown-menu .sub-menu {
-  position: absolute;
-  left: 195px;
-  top: -8px;
-}
-.hawtio-dropdown .dropdown-menu .dropdown .caret {
-  display: none;
-}
-span.hawtio-dropdown {
-  position: relative;
-  display: block;
-  cursor: pointer;
-}
-li.hawtio-dropdown {
-  cursor: pointer;
-}
-span.hawtio-dropdown .dropdown-menu {
-  width: auto;
-}
-.btn .hawtio-dropdown > .caret {
-  width: 7px;
-}
-.btn .hawtio-dropdown > .dropdown-menu {
-  left: -10px;
-  margin-top: 5px;
-  text-align: left;
-}
-.hawtio-dropdown .dropdown.perspective-selector > .dropdown-menu {
-  min-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div {
-  display: block;
-}
-.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div > p,
-.hawtio-dropdown p {
-  font-size: smaller;
-  padding-left: 3px;
-  padding-right: 3px;
-  margin-bottom: 0;
-}
-.nav .hawtio-dropdown {
-  margin-top: 2px;
-}
-.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div > ul {
-  margin-top: 0;
-}
-.hawtio-dropdown .dropdown.perspective-selector .dropdown-menu > div > ul > li.clear-recent > a {
-  padding: 3px 5px;
-}
-.nav.nav-tabs li .hawtio-dropdown .dropdown-menu {
-  margin-top: 4px;
-  border-top: none;
 }
 
 editable-property {

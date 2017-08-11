@@ -1267,88 +1267,6 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
-/**
- * @module UI
- */
-/// <reference path="uiPlugin.ts"/>
-var UI;
-(function (UI) {
-    function hawtioDropDown($templateCache) {
-        return {
-            restrict: 'A',
-            replace: true,
-            templateUrl: UI.templatePath + 'dropDown.html',
-            scope: {
-                config: '=hawtioDropDown'
-            },
-            controller: ["$scope", "$element", "$attrs", function ($scope, $element, $attrs) {
-                    if (!$scope.config) {
-                        $scope.config = {};
-                    }
-                    if (!('open' in $scope.config)) {
-                        $scope.config['open'] = false;
-                    }
-                    $scope.action = function (config, $event) {
-                        //log.debug("doAction on : ", config, "event: ", $event);
-                        if ('items' in config && !('action' in config)) {
-                            config.open = !config.open;
-                            $event.preventDefault();
-                            $event.stopPropagation();
-                        }
-                        else if ('action' in config) {
-                            //log.debug("executing action: ", config.action);
-                            var action = config['action'];
-                            if (angular.isFunction(action)) {
-                                action();
-                            }
-                            else if (angular.isString(action)) {
-                                $scope.$parent.$eval(action, {
-                                    config: config,
-                                    '$event': $event
-                                });
-                            }
-                        }
-                    };
-                    $scope.$watch('config.items', function (newValue, oldValue) {
-                        if (newValue !== oldValue) {
-                            // just add some space to force a redraw
-                            $scope.menuStyle = $scope.menuStyle + " ";
-                        }
-                    }, true);
-                    $scope.submenu = function (config) {
-                        if (config && config.submenu) {
-                            return "sub-menu";
-                        }
-                        return "";
-                    };
-                    $scope.icon = function (config) {
-                        if (config && !Core.isBlank(config.icon)) {
-                            return config.icon;
-                        }
-                        else {
-                            return 'fa fa-spacer';
-                        }
-                    };
-                    $scope.open = function (config) {
-                        if (config && !config.open) {
-                            return '';
-                        }
-                        return 'open';
-                    };
-                }],
-            link: function ($scope, $element, $attrs) {
-                $scope.menuStyle = $templateCache.get("withsubmenus.html");
-                if ('processSubmenus' in $attrs) {
-                    if (!Core.parseBooleanValue($attrs['processSubmenus'])) {
-                        $scope.menuStyle = $templateCache.get("withoutsubmenus.html");
-                    }
-                }
-            }
-        };
-    }
-    UI.hawtioDropDown = hawtioDropDown;
-    UI._module.directive('hawtioDropDown', ["$templateCache", UI.hawtioDropDown]);
-})(UI || (UI = {}));
 /// <reference path="uiPlugin.ts"/>
 /**
  * @module UI
@@ -3212,7 +3130,6 @@ var UIBootstrap;
 angular.module('hawtio-ui-templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('plugins/editor/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
 $templateCache.put('plugins/ui/html/confirmDialog.html','<div modal="show">\n  <div class="modal-dialog {{sizeClass}}">\n    <div class="modal-content">    \n      <div class="modal-header">\n        <button type="button" class="close" aria-hidden="true" ng-click="cancel()">\n          <span class="pficon pficon-close"></span>\n        </button>\n        <h4 class="modal-title">{{title}}</h4>\n      </div>\n      <div class="modal-body">\n      </div>\n      <div class="modal-footer">\n        <button type="button" class="btn btn-default" ng-click="cancel()">\n          {{cancelButtonText}}\n        </button>\n        <button type="submit" class="btn btn-primary" ng-click="submit()" ng-hide="{{showOkButton === \'false\'}}">\n          {{okButtonText}}\n        </button>\n      </div>\n    </div>\n  </div>\n</div>\n');
 $templateCache.put('plugins/ui/html/developerPage.html','<div ng-controller="UI.DeveloperPageController">\n\n  <div class="tocify" wiki-href-adjuster>\n    <div hawtio-toc-display\n         get-contents="getContents(filename, cb)">\n      <ul>\n        <li>\n          <a href="plugins/ui/html/test/auto-columns.html" chapter-id="auto-columns">auto-columns</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/auto-dropdown.html" chapter-id="auto-dropdown">auto-dropdown</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/confirm-dialog.html" chapter-id="confirm-dialog">confirm-dialog</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/drop-down.html" chapter-id="drop-down">drop-down</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editable-property.html" chapter-id="editableProperty">editable-property</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editor.html" chapter-id="editor">editor</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/expandable.html" chapter-id="expandable">expandable</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/file-upload.html" chapter-id="file-upload">file-upload</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/pager.html" chapter-id="pager">pager</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/slideout.html" chapter-id="slideout">slideout</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/template-popover.html" chapter-id="template-popover">template-popover</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n  <div class="toc-content" id="toc-content"></div>\n</div>\n');
-$templateCache.put('plugins/ui/html/dropDown.html','<span>\n\n  <script type="text/ng-template" id="withsubmenus.html">\n    <span class="hawtio-dropdown dropdown" ng-class="open(config)" ng-click="action(config, $event)">\n      <p ng-show="config.heading" ng-bind="config.heading"></p>\n      <span ng-show="config.title">\n        <i ng-class="icon(config)"></i>&nbsp;<span ng-bind="config.title"></span>\n        <span ng-show="config.items" ng-hide="config.submenu" class="caret"></span>\n        <span ng-show="config.items && config.submenu" class="submenu-caret"></span>\n      </span>\n\n      <ul ng-hide="config.action" ng-show="config.items" class="dropdown-menu" ng-class="submenu(config)">\n        <li ng-repeat="item in config.items track by $index" ng-init="config=item; config[\'submenu\']=true" ng-include="\'withsubmenus.html\'" hawtio-show object-name="{{item.objectName}}" method-name="{{item.methodName}}" argument-types="{{item.argumentTypes}}" mode="remove">\n        </li>\n      </ul>\n    </span>\n  </script>\n\n  <script type="text/ng-template" id="withoutsubmenus.html">\n    <span class="hawtio-dropdown dropdown" ng-class="open(config)" ng-click="action(config, $event)">\n      <p ng-if="config.heading" ng-bind="config.heading"></p>\n      <span ng-if="config.title">\n        <i ng-class="icon(config)"></i>&nbsp;<span ng-bind="config.title"></span>\n        <span ng-if="config.items && config.items.length > 0" class="caret"></span>\n     </span>\n\n      <ul ng-if="!config.action && config.items" class="dropdown-menu" ng-class="submenu(config)">\n        <li ng-repeat="item in config.items track by $index" hawtio-show object-name="{{item.objectName}}" method-name="{{item.methodName}}" argument-types="{{item.argumentTypes}}" mode="remove">\n          <span class="menu-item" ng-click="action(item, $event)">\n            <i ng-class="icon(item)"></i>&nbsp;<span ng-bind="item.title"></span>\n            <span ng-if="item.items" class="submenu-caret"></span>\n          </span>\n        </li>\n      </ul>\n\n    </span>\n  </script>\n  <span compile="menuStyle"></span>\n</span>\n');
 $templateCache.put('plugins/ui/html/editableProperty.html','<div ng-mouseenter="showEdit()" ng-mouseleave="hideEdit()" class="ep" ng-dblclick="doEdit()">\n  {{getText()}}&nbsp;&nbsp;<i class="ep-edit fa fa-pencil" title="Click to edit" ng-click="doEdit()" no-click></i>\n</div>\n<div class="ep editing" ng-show="editing" no-click>\n  <form class="form-inline no-bottom-margin" ng-submit="saveEdit()">\n    <fieldset>\n      <span ng-switch="inputType">\n        <span ng-switch-when="number">\n          <input type="number" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}" max="{{max}}" min="{{min}}">\n        </span>\n        <span ng-switch-when="password">\n          <input type="password" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}">\n        </span>\n        <span ng-switch-default>\n          <input type="text" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}">\n        </span>\n      </span>\n      <i class="blue clickable fa fa-check icon1point5x" title="Save changes" ng-click="saveEdit()"></i>\n      <i class="clickable fa fa-remove icon1point5x" title="Discard changes" ng-click="stopEdit()"></i>\n    </fieldset>\n  </form>\n</div>\n');
 $templateCache.put('plugins/ui/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
 $templateCache.put('plugins/ui/html/editorPreferences.html','<div ng-controller="CodeEditor.PreferencesController">\n  <form class="form-horizontal">\n    <div class="control-group">\n      <label class="control-label" for="theme" title="The default theme to be used by the code editor">Theme</label>\n\n      <div class="controls">\n        <select id="theme" ng-model="preferences.theme">\n          <option value="default">Default</option>\n          <option value="ambiance">Ambiance</option>\n          <option value="blackboard">Blackboard</option>\n          <option value="cobalt">Cobalt</option>\n          <option value="eclipse">Eclipse</option>\n          <option value="monokai">Monokai</option>\n          <option value="neat">Neat</option>\n          <option value="twilight">Twilight</option>\n          <option value="vibrant-ink">Vibrant ink</option>\n        </select>\n      </div>\n    </div>\n  </form>\n\n  <form name="editorTabForm" class="form-horizontal">\n    <div class="control-group">\n      <label class="control-label" for="tabSIze">Tab size</label>\n\n      <div class="controls">\n        <input type="number" id="tabSize" name="tabSize" ng-model="preferences.tabSize" ng-required="ng-required" min="1" max="10"/>\n        <span class="help-block"\n            ng-hide="editorTabForm.tabSize.$valid">Please specify correct size (1-10).</span>\n      </div>\n    </div>\n  </form>\n\n  <div compile="codeMirrorEx"></div>\n\n<!-- please do not change the tabs into spaces in the following script! -->\n<script type="text/ng-template" id="exampleText">\nvar foo = "World!";\n\nvar myObject = {\n\tmessage: "Hello",\n\t\tgetMessage: function() {\n\t\treturn message + " ";\n \t}\n};\n\nwindow.alert(myObject.getMessage() + foo);\n</script>\n\n<script type="text/ng-template" id="codeMirrorExTemplate">\n  <div hawtio-editor="exampleText" mode="javascript"></div>\n</script>\n</div>\n\n</div>\n');
