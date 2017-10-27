@@ -17,7 +17,7 @@
       ];
     },
     multipleSeparator: ', ',
-    selectAllText: 'Tout sélectionner',
-    deselectAllText: 'Tout désélectionner',
+    selectAllText: 'Tout Sélectionner',
+    deselectAllText: 'Tout Dé-selectionner',
   };
 })(jQuery);
