@@ -154,6 +154,7 @@
     "sprintf-js": "1.1.1",
     "acorn": "4.0.13",
     "string-width": "2.1.1",
-    "is-fullwidth-code-point": "2.0.0"
+    "is-fullwidth-code-point": "2.0.0",
+    "mime-types": "2.1.17"
   }
 }
