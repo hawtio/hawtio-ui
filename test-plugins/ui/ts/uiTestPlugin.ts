@@ -26,7 +26,6 @@ module UITest {
                      //.subPath('File Upload', 'file-upload', builder.join(path, 'file-upload.html'))
                      .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
                      .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
-                     .subPath('Tags', 'tags', builder.join(path, 'tags.html'))
                      .subPath('Template Popover', 'template-popover', builder.join(path, 'template-popover.html'))
                      .subPath('Toast Notification', 'toast-notification', builder.join(path, 'toast-notification.html'))
                    .build());

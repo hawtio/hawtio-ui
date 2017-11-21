@@ -477,16 +477,6 @@ declare module UI {
  * @module UI
  */
 declare module UI {
-    var selectedTags: angular.IModule;
-    var hawtioTagFilter: angular.IModule;
-}
-declare module UI {
-    var hawtioTagList: angular.IModule;
-}
-/**
- * @module UI
- */
-declare module UI {
     function TemplatePopover($templateCache: any, $compile: any, $document: any): {
         restrict: string;
         link: ($scope: any, $element: any, $attr: any) => void;
