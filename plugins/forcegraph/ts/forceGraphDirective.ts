@@ -209,10 +209,6 @@ module ForceGraph {
               sel.classed('selected', false);
             });
 
-          function hasImage(d) {
-            return d.image && d.image.url;
-          }
-
           // Add the images if they are set
           $scope.graphNodes.filter((d) => {
             return d.image != null;
@@ -275,6 +271,11 @@ module ForceGraph {
 
         }
       }
+
+      function hasImage(d) {
+        return d.image && d.image.url;
+      }
+
     };
   }
 }

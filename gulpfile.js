@@ -32,18 +32,9 @@ var config = {
   testJs: pkg.name + '-test.js',
   css: pkg.name + '.css',
   testCss: pkg.name + '-test.css',
-  tsProject: plugins.typescript.createProject({
-    target: 'ES5',
-    module: 'commonjs',
-    declarationFiles: true,
-    noExternalResolve: false
-  }),
-  testTsProject: plugins.typescript.createProject({
-    target: 'ES5',
-    module: 'commonjs',
-    declarationFiles: false,
-    noExternalResolve: false
-  }),
+  dts: 'defs.d.ts',
+  tsProject: plugins.typescript.createProject('tsconfig.json'),
+  testTsProject: plugins.typescript.createProject('test-tsconfig.json'),
   vendorJs: 'plugins/vendor/*.js'
 };
 
@@ -61,21 +52,14 @@ gulp.task('path-adjust', function() {
 });
 
 gulp.task('clean-defs', function() {
-  return del('defs.d.ts');
+  return del(config.dts);
 });
 
 gulp.task('example-tsc', ['tsc'], function() {
-  var tsResult = gulp.src(config.testTs)
-    .pipe(plugins.typescript(config.testTsProject))
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'Typescript compilation error - test'
-    }));
-
-    return tsResult.js
-        .pipe(plugins.concat('test-compiled.js'))
-        .pipe(gulp.dest('.'));
+  return gulp.src(config.testTs)
+    .pipe(config.testTsProject())
+    .js
+    .pipe(gulp.dest('.'));
 });
 
 gulp.task('example-template', ['example-tsc'], function() {
@@ -101,28 +85,14 @@ gulp.task('example-clean', ['example-concat'], function() {
 });
 
 gulp.task('tsc', ['clean-defs'], function() {
-  var cwd = process.cwd();
   var tsResult = gulp.src(config.ts)
-    .pipe(plugins.typescript(config.tsProject))
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'Typescript compilation error'
-    }));
-
-    return eventStream.merge(
-      tsResult.js
-        .pipe(plugins.concat('compiled.js'))
-        .pipe(gulp.dest('.')),
-      tsResult.dts
-        .pipe(gulp.dest('d.ts')))
-        .pipe(plugins.filter('**/*.d.ts'))
-        .pipe(plugins.concatFilenames('defs.d.ts', {
-          root: cwd,
-          prepend: '/// <reference path="',
-          append: '"/>'
-        }))
-        .pipe(gulp.dest('.'));
+    .pipe(config.tsProject());
+  return eventStream.merge(
+    tsResult.js,
+    tsResult.dts
+      .pipe(plugins.rename(config.dts))
+  )
+  .pipe(gulp.dest('.'));
 });
 
 gulp.task('less', function () {
@@ -132,11 +102,6 @@ gulp.task('less', function () {
         path.join(__dirname, 'less', 'includes'),
         path.join(__dirname, 'libs')
       ]
-    }))
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'less file compilation error'
     }))
     .pipe(plugins.concat(config.css))
     .pipe(gulp.dest(config.dist));
@@ -149,11 +114,6 @@ gulp.task('test-less', function () {
         path.join(__dirname, 'less', 'includes'),
         path.join(__dirname, 'libs')
       ]
-    }))
-    .on('error', plugins.notify.onError({
-      onLast: true,
-      message: '<%= error.message %>',
-      title: 'less file compilation error'
     }))
     .pipe(plugins.concat(config.testCss))
     .pipe(gulp.dest(config.dist));
@@ -184,24 +144,14 @@ gulp.task('clean', ['concat'], function() {
 });
 
 gulp.task('watch-less', function() {
-  plugins.watch(config.less, function() {
-    gulp.start('less');
-  });
-  plugins.watch(config.testLess, function() {
-    gulp.start('test-less');
-  });
+  gulp.watch(config.less, ['less']);
+  gulp.watch(config.testLess, ['test-less']);
 });
 
 gulp.task('watch', ['build', 'build-example', 'watch-less'], function() {
-  plugins.watch(['libs/**/*.d.ts', config.ts, config.templates], function() {
-    gulp.start(['tsc', 'template', 'concat', 'clean']);
-  });
-  plugins.watch([config.testTs, config.testTemplates], function() {
-    gulp.start([ 'example-template', 'example-concat', 'example-clean']);
-  });
-  plugins.watch(['libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + '*'], function() {
-    gulp.start('reload');
-  });
+  gulp.watch(['libs/**/*.d.ts', config.ts, config.templates], ['tsc', 'template', 'concat', 'clean']);
+  gulp.watch([config.testTs, config.testTemplates], ['example-template', 'example-concat', 'example-clean']);
+  gulp.watch(['libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + '*'], ['reload']);
 });
 
 gulp.task('connect', ['watch'], function() {
