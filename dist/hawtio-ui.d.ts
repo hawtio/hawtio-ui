@@ -137,7 +137,7 @@ declare module Core {
      *
      * @method notification
      * @static
-     * @param type which is usually "success" or "error" and matches css alert-* css styles
+     * @param type which is usually "success", "warning", or "danger" (for error) and matches css alert-* css styles
      * @param message the text to display
      *
      */
