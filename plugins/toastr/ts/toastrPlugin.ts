@@ -39,7 +39,7 @@ module Core {
 
     timeoutId = window.setTimeout(() => {
       bodyElem.removeChild(toastElem);
-    }, 8000);
+    }, 3000);
   }
 
   /**
