@@ -767,13 +767,13 @@ var Core;
      *
      * @method notification
      * @static
-     * @param type which is usually "success" or "error" and matches css alert-* css styles
+     * @param type which is usually "success", "warning", or "danger" (for error) and matches css alert-* css styles
      * @param message the text to display
      *
      */
     function notification(type, message, options) {
-        if (options === void 0) { options = null; }
-        var toastHtml = "\n      <div class=\"toast-pf alert alert-" + type + "\">\n        <span class=\"pficon pficon-ok\"></span>\n        " + message + "\n      </div>\n    ";
+        if (options === void 0) { options = {}; }
+        var toastHtml = "\n      <div class=\"toast-pf alert alert-" + type + " alert-dismissable\">\n        <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">\n          <span class=\"pficon pficon-close\"></span>\n        </button>\n        <span class=\"pficon pficon-" + resolveToastIcon(type) + "\"></span>\n        " + message + "\n      </div>\n    ";
         var toastFrag = document.createRange().createContextualFragment(toastHtml);
         var toastElem = toastFrag.querySelector('div');
         var bodyElem = document.querySelector('body');
@@ -785,9 +785,21 @@ var Core;
         visibleToastElem = bodyElem.appendChild(toastElem);
         timeoutId = window.setTimeout(function () {
             bodyElem.removeChild(toastElem);
-        }, 8000);
+        }, 3000);
     }
     Core.notification = notification;
+    function resolveToastIcon(type) {
+        switch (type) {
+            case 'success':
+                return 'ok';
+            case 'warning':
+                return 'warning-triangle-o';
+            case 'danger':
+                return 'error-circle-o';
+            default:
+                return 'info';
+        }
+    }
     /**
      * Clears all the pending notifications
      * @method clearNotifications
