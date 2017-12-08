@@ -14,14 +14,17 @@ module Core {
    *
    * @method notification
    * @static
-   * @param type which is usually "success" or "error" and matches css alert-* css styles
+   * @param type which is usually "success", "warning", or "danger" (for error) and matches css alert-* css styles
    * @param message the text to display
    *
    */
-  export function notification(type:string, message:string, options:any = null) {
+  export function notification(type: string, message: string, options: any = {}) {
     let toastHtml = `
-      <div class="toast-pf alert alert-${type}">
-        <span class="pficon pficon-ok"></span>
+      <div class="toast-pf alert alert-${type} alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+          <span class="pficon pficon-close"></span>
+        </button>
+        <span class="pficon pficon-${resolveToastIcon(type)}"></span>
         ${message}
       </div>
     `;
@@ -42,6 +45,19 @@ module Core {
     }, 3000);
   }
 
+  function resolveToastIcon(type: string): string {
+    switch (type) {
+      case 'success':
+        return 'ok';
+      case 'warning':
+        return 'warning-triangle-o';
+      case 'danger':
+        return 'error-circle-o';
+      default:
+        return 'info';
+    }
+  }
+
   /**
    * Clears all the pending notifications
    * @method clearNotifications
@@ -49,6 +65,5 @@ module Core {
    */
   export function clearNotifications() {
   }
-
 
 }
