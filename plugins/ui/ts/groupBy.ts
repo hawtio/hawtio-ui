@@ -1,5 +1,5 @@
 /// <reference path="./uiPlugin.ts"/>
-module UI {
+namespace UI {
 
   export function groupBy() {
     return (list, group) => {

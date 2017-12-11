@@ -2,7 +2,7 @@
 /**
  * @module UI
  */
-module UI {
+namespace UI {
 
   _module.directive('editableProperty', ["$parse", ($parse) => {
     return new UI.EditableProperty($parse);

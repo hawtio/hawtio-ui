@@ -3,7 +3,7 @@
  * @module DataTable
  * @main DataTable
  */
-declare module DataTable {
+declare namespace DataTable {
     var pluginName: string;
     var log: Logging.Logger;
     var _module: angular.IModule;
@@ -11,7 +11,7 @@ declare module DataTable {
 /**
  * @module DataTable
  */
-declare module DataTable {
+declare namespace DataTable {
 }
 /**
  * Module that contains several helper functions related to hawtio's code editor
@@ -19,7 +19,7 @@ declare module DataTable {
  * @module CodeEditor
  * @main CodeEditor
  */
-declare module CodeEditor {
+declare namespace CodeEditor {
     /**
      * Options for the CodeMirror text editor
      *
@@ -102,18 +102,18 @@ declare module CodeEditor {
      */
     function createEditorSettings(options?: any): any;
 }
-declare module HawtioEditor {
+declare namespace HawtioEditor {
     var pluginName: string;
     var templatePath: string;
     var log: Logging.Logger;
 }
-declare module HawtioEditor {
+declare namespace HawtioEditor {
     var _module: angular.IModule;
 }
 /**
  * @module HawtioEditor
  */
-declare module HawtioEditor {
+declare namespace HawtioEditor {
     function Editor($parse: any): {
         restrict: string;
         replace: boolean;
@@ -129,9 +129,9 @@ declare module HawtioEditor {
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }
-declare module Toastr {
+declare namespace Toastr {
 }
-declare module Core {
+declare namespace Core {
     /**
      * Displays an alert message which is typically the result of some asynchronous operation
      *
@@ -152,7 +152,7 @@ declare module Core {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     var log: Logging.Logger;
     var scrollBarWidth: number;
     var pluginName: string;
@@ -164,17 +164,17 @@ declare module UI {
  * @module UI
  * @main UI
  */
-declare module UI {
+declare namespace UI {
     var _module: angular.IModule;
 }
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
 }
-declare module UI {
+declare namespace UI {
 }
-declare module UI {
+declare namespace UI {
 }
 interface Window {
     Clipboard?: any;
@@ -182,7 +182,7 @@ interface Window {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     /**
      * Configuration object for the ConfirmDialog directive
      * @class ConfirmDialogConfig
@@ -290,12 +290,12 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
 }
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     /**
      * Simple helper class for creating <a href="http://angular-ui.github.io/bootstrap/#/modal">angular ui bootstrap modal dialogs</a>
      * @class Dialog
@@ -333,14 +333,14 @@ declare module UI {
     }
     function multiItemConfirmActionDialog(options: MultiItemConfirmActionOptions): any;
 }
-declare module UI {
+declare namespace UI {
     var hawtioDrag: angular.IModule;
     var hawtioDrop: angular.IModule;
 }
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     class EditableProperty {
         private $parse;
         restrict: string;
@@ -351,18 +351,18 @@ declare module UI {
         constructor($parse: any);
     }
 }
-declare module UI {
+declare namespace UI {
 }
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     var hawtioFilter: angular.IModule;
 }
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     class GridsterDirective {
         restrict: string;
         replace: boolean;
@@ -370,15 +370,15 @@ declare module UI {
         link: ($scope: any, $element: any, $attrs: any) => void;
     }
 }
-declare module UI {
+declare namespace UI {
     function groupBy(): (list: any, group: any) => any;
 }
-declare module UI {
+declare namespace UI {
 }
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     function hawtioList($templateCache: any, $compile: any): {
         restrict: string;
         replace: boolean;
@@ -389,12 +389,12 @@ declare module UI {
         link: ($scope: any, $element: any, $attr: any) => void;
     };
 }
-declare module UI {
+declare namespace UI {
 }
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     function hawtioPane(): {
         restrict: string;
         replace: boolean;
@@ -412,7 +412,7 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     class MessagePanel {
         restrict: string;
         link: ($scope: any, $element: any, $attrs: any) => void;
@@ -425,7 +425,7 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     class DivRow {
         restrict: string;
         link: ($scope: any, $element: any, $attrs: any) => void;
@@ -434,7 +434,7 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     class SlideOut {
         restrict: string;
         replace: boolean;
@@ -455,7 +455,7 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     class TablePager {
         restrict: string;
         scope: boolean;
@@ -476,7 +476,7 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     function TemplatePopover($templateCache: any, $compile: any, $document: any): {
         restrict: string;
         link: ($scope: any, $element: any, $attr: any) => void;
@@ -485,7 +485,7 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     function HawtioTocDisplay(marked: any, $location: any, $anchorScroll: any, $compile: any): {
         restrict: string;
         scope: {
@@ -498,7 +498,7 @@ declare module UI {
 /**
  * @module UI
  */
-declare module UI {
+declare namespace UI {
     class ViewportHeight {
         restrict: string;
         link: ($scope: any, $element: any, $attrs: any) => void;
@@ -508,7 +508,7 @@ declare module UI {
         link: ($scope: any, $element: any, $attrs: any) => void;
     }
 }
-declare module UI {
+declare namespace UI {
 }
-declare module UIBootstrap {
+declare namespace UIBootstrap {
 }

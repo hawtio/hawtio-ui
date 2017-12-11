@@ -2,7 +2,7 @@
 /**
  * @module UI
  */
-module UI {
+namespace UI {
 
   _module.controller("UI.DeveloperPageController", ["$scope", "$http", ($scope, $http) => {
 

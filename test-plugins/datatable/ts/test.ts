@@ -1,5 +1,5 @@
 /// <reference path="datatablePlugin.ts"/>
-module DatatableTest {
+namespace DatatableTest {
 
   _module.controller('DatatableTest.SimpleTableTestController', ['$scope', '$location', ($scope, $location) => {
     $scope.myData = [

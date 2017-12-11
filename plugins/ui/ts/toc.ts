@@ -2,7 +2,7 @@
  * @module UI
  */
 /// <reference path="./uiPlugin.ts"/>
-module UI {
+namespace UI {
 
   export function HawtioTocDisplay(marked, $location, $anchorScroll, $compile) {
     var log:Logging.Logger = Logger.get("UI");

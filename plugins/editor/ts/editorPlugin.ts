@@ -1,6 +1,6 @@
 /// <reference path="editorGlobals.ts"/>
 /// <reference path="CodeEditor.ts"/>
-module HawtioEditor {
+namespace HawtioEditor {
 
   export var _module = angular.module(pluginName, []);
 

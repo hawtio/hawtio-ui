@@ -4,7 +4,7 @@
  * @module CodeEditor
  * @main CodeEditor
  */
-module CodeEditor {
+namespace CodeEditor {
 
   declare var window: any;
   

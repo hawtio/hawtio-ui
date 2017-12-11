@@ -1,4 +1,4 @@
-module DatatableTest {
+namespace DatatableTest {
 
   var pluginName = "datatable-test";
   export var templatePath = "test-plugins/datatable/html";

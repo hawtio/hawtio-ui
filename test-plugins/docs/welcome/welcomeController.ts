@@ -1,6 +1,6 @@
 /// <reference path="../docs.ts"/>
 
-module UIDocs {
+namespace UIDocs {
 
   _module.controller("WelcomePageController", ["$scope", "marked", "$http", "$timeout", function ($scope, marked, $http, $timeout) {
     $timeout(function() {

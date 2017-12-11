@@ -1,6 +1,6 @@
 /// <reference path="uiPlugin.ts"/>
 //
-module UI {
+namespace UI {
 
   _module.directive('hawtioWindowHeight', ['$window', ($window) => {
     return {

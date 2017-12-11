@@ -1,10 +1,10 @@
-module Toastr {
+namespace Toastr {
   var pluginName = 'hawtio-toastr';
   var _module = angular.module(pluginName, []);
   hawtioPluginLoader.addModule(pluginName);
 }
 
-module Core {
+namespace Core {
 
   let visibleToastElem: HTMLElement = null;
   let timeoutId: number;

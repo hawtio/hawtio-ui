@@ -1,4 +1,4 @@
-module UI {
+namespace UI {
 
   setTimeout(function() {
     var clipboard = new window.Clipboard('.btn-clipboard');

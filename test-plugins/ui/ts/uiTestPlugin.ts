@@ -1,4 +1,4 @@
-module UITest {
+namespace UITest {
 
   export var templatePath = 'test-plugins/ui/html';
   var path = templatePath;

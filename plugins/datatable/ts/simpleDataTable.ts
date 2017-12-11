@@ -2,7 +2,7 @@
 /**
  * @module DataTable
  */
-module DataTable {
+namespace DataTable {
 
   _module.directive('hawtioSimpleTable', ["$compile", "$timeout", ($compile, $timeout) => {
     return {

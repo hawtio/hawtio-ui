@@ -1,4 +1,4 @@
-module UI {
+namespace UI {
   _module.directive('httpSrc', ['$http', function ($http) {
     return {
       // do not share scope with sibling img tags and parent

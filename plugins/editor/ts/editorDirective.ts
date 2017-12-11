@@ -3,7 +3,7 @@
 /**
  * @module HawtioEditor
  */
-module HawtioEditor {
+namespace HawtioEditor {
 
   _module.directive('hawtioEditor', ["$parse", ($parse) => {
     return HawtioEditor.Editor($parse);

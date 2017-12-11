@@ -5,7 +5,7 @@
  * @module UI
  * @main UI
  */
-module UI {
+namespace UI {
 
   export var _module = angular.module(UI.pluginName, []);
 

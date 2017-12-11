@@ -1,6 +1,6 @@
 /// <reference path="uiPlugin.ts"/>
 
-module UI {
+namespace UI {
 
   // simple directive that adds the patternfly card BG color to the content area of a hawtio app
   _module.directive('hawtioCardBg', ['$timeout', ($timeout) => {

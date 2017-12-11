@@ -2,7 +2,7 @@
  * @module UI
  */
 /// <reference path="./uiPlugin.ts"/>
-module UI {
+namespace UI {
 
   _module.directive('gridster', () => {
     return new UI.GridsterDirective();

@@ -2,7 +2,7 @@
  * @module UI
  */
 /// <reference path="./uiPlugin.ts"/>
-module UI {
+namespace UI {
 
   export var hawtioFilter = _module.directive("hawtioFilter", [() => {
     return {

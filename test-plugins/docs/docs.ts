@@ -1,4 +1,4 @@
-module UIDocs {
+namespace UIDocs {
 
   let pluginName = "docs";
   export let log:Logging.Logger = Logger.get(pluginName);

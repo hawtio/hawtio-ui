@@ -1,6 +1,6 @@
 ///<reference path="uiPlugin.ts"/>
 
-module UI {
+namespace UI {
 
   export var hawtioDrag = _module.directive("hawtioDrag", [() => {
     return {

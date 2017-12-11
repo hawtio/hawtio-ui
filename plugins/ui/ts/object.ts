@@ -1,6 +1,6 @@
 /// <reference path="uiPlugin.ts"/>
 
-module UI {
+namespace UI {
 
   var objectView = _module.directive("hawtioObject", ["$templateCache", "$interpolate", "$compile", ($templateCache:ng.ITemplateCacheService, $interpolate:ng.IInterpolateService, $compile:ng.ICompileService) => {
     return {

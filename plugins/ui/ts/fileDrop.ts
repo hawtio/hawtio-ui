@@ -1,5 +1,5 @@
 /// <reference path="uiPlugin.ts"/>
-module UI {
+namespace UI {
   var hawtioFileDrop = _module.directive("hawtioFileDrop", [() => {
     return {
       restrict: 'A',

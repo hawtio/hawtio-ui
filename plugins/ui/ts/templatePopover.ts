@@ -2,7 +2,7 @@
  * @module UI
  */
 /// <reference path="./uiPlugin.ts"/>
-module UI {
+namespace UI {
   export function TemplatePopover($templateCache, $compile, $document) {
 
     return {

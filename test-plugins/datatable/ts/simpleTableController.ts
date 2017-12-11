@@ -1,6 +1,6 @@
 /// <reference path="datatablePlugin.ts"/>
 
-module DatatableTest {
+namespace DatatableTest {
 
   _module.controller("DatatableTest.SimpleTableController",
       ["$scope", "$templateCache", "$location", ($scope, $templateCache, $location) => {

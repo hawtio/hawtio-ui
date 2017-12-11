@@ -1,7 +1,7 @@
 /**
  * @module UI
  */
-module UI {
+namespace UI {
 
   export var log:Logging.Logger = Logger.get("UI");
 
