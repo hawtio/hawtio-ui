@@ -176,9 +176,6 @@ declare namespace UI {
 }
 declare namespace UI {
 }
-interface Window {
-    Clipboard?: any;
-}
 /**
  * @module UI
  */

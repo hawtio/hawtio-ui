@@ -1248,12 +1248,37 @@ div.scroll-body-table-wrapper {
   background-color: #1a1a1a;
 }
 
-.input-group-button {
-  padding: 0;
+[hawtio-clipboard],
+[hawtio-clipboard]:hover,
+[hawtio-clipboard]:focus,
+[hawtio-clipboard]:active {
+  border: 0;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  outline-color: transparent;
 }
-.input-group-button .btn-clipboard {
-  padding: 3px 7px;
-  border-width: 0;
+.hawtio-clipboard-container {
+  position: relative;
+}
+.hawtio-clipboard-container [hawtio-clipboard] {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+}
+.hawtio-clipboard-container [hawtio-clipboard].btn-lg {
+  padding: 10px;
+}
+.hawtio-clipboard-container [hawtio-clipboard].avoid-scrollbar {
+  margin-right: 17px;
+}
+.hawtio-clipboard-container pre {
+  white-space: pre-wrap;
+}
+.hawtio-clipboard-hidden-target {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
 }
 
 .contained {
