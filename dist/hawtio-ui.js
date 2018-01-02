@@ -984,27 +984,42 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
+/// <reference path="uiPlugin.ts"/>
 var UI;
 (function (UI) {
-    setTimeout(function () {
-        var clipboard = new window.Clipboard('.btn-clipboard');
-        clipboard.on('success', function (e) {
-            var button = $(e.trigger);
-            var title = null;
-            if (button.attr('title')) {
-                title = button.attr('title');
-                button.removeAttr('title');
+    clipboardDirective.$inject = ["$timeout"];
+    function clipboardDirective($timeout) {
+        'ngInject';
+        return {
+            restrict: 'A',
+            scope: {
+                hawtioClipboard: '@'
+            },
+            link: function ($scope, $element, $attrs) {
+                var copied = false;
+                $element.attr('data-clipboard-target', $scope.hawtioClipboard);
+                $element.tooltip({ placement: 'bottom', title: 'Copy to clipboard' });
+                new Clipboard($element.get(0)).on('success', function () {
+                    $element.tooltip('destroy');
+                    $timeout(function () {
+                        $element.tooltip({ placement: 'bottom', title: 'Copied!' });
+                        $element.tooltip('show');
+                        copied = true;
+                    }, 200);
+                });
+                $element.mouseleave(function () {
+                    if (copied) {
+                        $element.tooltip('destroy');
+                        $timeout(function () {
+                            $element.tooltip({ placement: 'bottom', title: 'Copy to clipboard' });
+                            copied = false;
+                        }, 200);
+                    }
+                });
             }
-            button.tooltip({ placement: 'bottom', title: 'Copied!', trigger: 'click' });
-            button.tooltip('show');
-            button.mouseleave(function () {
-                button.tooltip('hide');
-                if (title) {
-                    button.attr('title', title);
-                }
-            });
-        });
-    }, 1000);
+        };
+    }
+    UI._module.directive('hawtioClipboard', clipboardDirective);
 })(UI || (UI = {}));
 /**
  * @module UI

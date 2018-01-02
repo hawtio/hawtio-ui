@@ -19,16 +19,63 @@
 <script type="text/ng-template" id="clipboardTemplate">
   <form>
     <div class="form-group">
-      <label for="url-field">Clone with HTTPS</label>
+      <label for="input-text1">Input text</label>
       <div class="input-group">
-        <input type="text" id="url-field" class="form-control" value="https://github.com/hawtio/hawtio-ui.git" readonly>
-        <div class="input-group-addon input-group-button">
-          <button class="btn btn-sm btn-default btn-clipboard" data-clipboard-target="#url-field"
-                  title="Copy to clipboard" aria-label="Copy to clipboard">
+        <input type="text" id="input-text1" class="form-control" value="https://github.com/hawtio/hawtio-ui.git" readonly>
+        <div class="input-group-addon input-group-btn">
+          <button hawtio-clipboard="#input-text1" class="btn btn-default btn-sm">
             <i class="fa fa-clipboard" aria-hidden="true"></i>
           </button>
         </div>
       </div>
+    </div>
+    <div class="form-group">
+      <label for="input-text1">Textarea (1 row)</label>
+      <div class="hawtio-clipboard-container">
+        <button hawtio-clipboard="#textarea1" class="btn btn-default">
+          <i class="fa fa-clipboard" aria-hidden="true"></i>
+        </button>
+        <textarea id="textarea1" class='form-control' rows='1' readonly='true'>row 1</textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="input-text1">Textarea (2 rows)</label>
+      <div class="hawtio-clipboard-container">
+        <button hawtio-clipboard="#textarea2" class="btn btn-default">
+          <i class="fa fa-clipboard" aria-hidden="true"></i>
+        </button>
+        <textarea id="textarea2" class='form-control' rows='2' readonly='true'>row 1
+row 2</textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="input-text1">Textarea (2 rows + scrollbar)</label>
+      <div class="hawtio-clipboard-container">
+        <button hawtio-clipboard="#textarea3" class="btn btn-default avoid-scrollbar">
+          <i class="fa fa-clipboard" aria-hidden="true"></i>
+        </button>
+        <textarea id="textarea3" class='form-control' rows='2' readonly='true'>row 1
+row 2
+row 3</textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Preformatted text</label>
+      <div class="hawtio-clipboard-container">
+        <button hawtio-clipboard="#pre1" class="btn btn-default btn-lg">
+          <i class="fa fa-clipboard" aria-hidden="true"></i>
+        </button>
+        <pre>{  
+  "name":"John",
+  "age":31,
+  "city":"New York"
+}</pre>
+      </div>
+      <textarea id="pre1" class="hawtio-clipboard-hidden-target">{  
+  "name":"John",
+  "age":31,
+  "city":"New York"
+}</textarea>
     </div>
   </form>
 </script>

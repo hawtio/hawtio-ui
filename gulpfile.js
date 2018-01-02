@@ -24,8 +24,8 @@ var config = {
   testTemplates: ['test-plugins/**/*.html'],
   templateModule: 'hawtio-ui-templates',
   testTemplateModule: 'hawtio-ui-test-templates',
-  dist: argv.out || './dist/',
-  testDist: './test-dist/',
+  dist: 'dist/',
+  testDist: 'test-dist/',
   js: 'hawtio-ui.js',
   testJs: 'hawtio-ui-test.js',
   css: 'hawtio-ui.css',
@@ -74,6 +74,7 @@ gulp.task('tsc', ['clean-defs'], function() {
     .pipe(config.tsProject());
   return eventStream.merge(
     tsResult.js
+      .pipe(plugins.ngAnnotate())
       .pipe(gulp.dest('.')),
     tsResult.dts
       .pipe(plugins.rename(config.dts))
@@ -124,15 +125,10 @@ gulp.task('clean', ['concat'], function() {
   return del(['templates.js', 'compiled.js']);
 });
 
-gulp.task('watch-less', function() {
-  gulp.watch(config.less, ['less']);
-  gulp.watch(config.testLess, ['test-less']);
-});
-
-gulp.task('watch', ['build', 'build-example', 'watch-less'], function() {
-  gulp.watch([config.ts, config.templates], ['tsc', 'template', 'concat', 'clean']);
-  gulp.watch([config.testTs, config.testTemplates], [ 'example-template', 'example-concat', 'example-clean']);
-  gulp.watch(['index.html', config.dist + '/' + '*'], ['reload']);
+gulp.task('watch', ['build', 'build-example'], function() {
+  gulp.watch([config.less, config.ts, config.templates], ['build']);
+  gulp.watch([config.testLess, config.testTs, config.testTemplates], ['build-example']);
+  gulp.watch([config.dist + '*'], ['reload']);
 });
 
 gulp.task('connect', ['watch'], function() {
@@ -161,8 +157,9 @@ gulp.task('connect', ['watch'], function() {
 });
 
 gulp.task('reload', function() {
-  gulp.src('.')
-    .pipe(plugins.connect.reload());
+  setTimeout(() => {
+    gulp.src('.').pipe(plugins.connect.reload());
+  });
 });
 
 gulp.task('embed-images', ['concat'], function() {
