@@ -1007,7 +1007,7 @@ var UI;
                         copied = true;
                     }, 200);
                 });
-                $element.mouseleave(function () {
+                $element.on('mouseleave', function () {
                     if (copied) {
                         $element.tooltip('destroy');
                         $timeout(function () {

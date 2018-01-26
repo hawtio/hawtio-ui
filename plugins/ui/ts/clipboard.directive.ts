@@ -27,7 +27,7 @@ namespace UI {
           }, 200);
         });
     
-        $element.mouseleave(() => {
+        $element.on('mouseleave', () => {
           if (copied) {
             $element.tooltip('destroy');
             $timeout(() => {
