@@ -761,7 +761,6 @@ var Toastr;
 var Core;
 (function (Core) {
     var visibleToastElem = null;
-    var timeoutId;
     /**
      * Displays an alert message which is typically the result of some asynchronous operation
      *
@@ -779,13 +778,9 @@ var Core;
         var bodyElem = document.querySelector('body');
         // if toast element is in the DOM
         if (visibleToastElem && visibleToastElem.parentNode) {
-            clearTimeout(timeoutId);
             bodyElem.removeChild(visibleToastElem);
         }
         visibleToastElem = bodyElem.appendChild(toastElem);
-        timeoutId = window.setTimeout(function () {
-            bodyElem.removeChild(toastElem);
-        }, 3000);
     }
     Core.notification = notification;
     function resolveToastIcon(type) {

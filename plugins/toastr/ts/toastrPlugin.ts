@@ -7,7 +7,6 @@ namespace Toastr {
 namespace Core {
 
   let visibleToastElem: HTMLElement = null;
-  let timeoutId: number;
 
   /**
    * Displays an alert message which is typically the result of some asynchronous operation
@@ -35,14 +34,9 @@ namespace Core {
 
     // if toast element is in the DOM
     if (visibleToastElem && visibleToastElem.parentNode) {
-      clearTimeout(timeoutId);
       bodyElem.removeChild(visibleToastElem);
     }
     visibleToastElem = bodyElem.appendChild(toastElem);
-
-    timeoutId = window.setTimeout(() => {
-      bodyElem.removeChild(toastElem);
-    }, 3000);
   }
 
   function resolveToastIcon(type: string): string {
