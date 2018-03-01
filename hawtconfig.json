@@ -1,0 +1,8 @@
+{
+  "branding": {
+    "appName": "Hawtio UI Console",
+    "appLogoUrl": "node_modules/@hawtio/core/dist/img/hawtio-logo.svg",
+    "aboutDescription": "The Hawtio UI Console is an example Web console showcasing hawtio UI components."
+  },
+  "disabledRoutes": []
+}
