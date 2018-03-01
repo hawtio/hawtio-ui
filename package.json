@@ -12,9 +12,8 @@
     "test": "gulp build-example"
   },
   "dependencies": {
-    "@hawtio/core": "3.2.3",
+    "@hawtio/core": "3.2.17",
     "@hawtio/core-dts": "3.0.18",
-    "@hawtio/utilities": "3.2.0",
     "@types/bootstrap": "3.3.36",
     "@types/clipboard": "1.5.35",
     "@types/codemirror": "0.0.40",
@@ -61,7 +60,6 @@
   },
   "flat": true,
   "resolutions": {
-    "@hawtio/core": "3.2.3",
     "@types/marked": "0.3.0",
     "glob": "7.1.2",
     "gulp-concat": "2.6.0",
@@ -152,6 +150,11 @@
     "extend-shallow": "2.0.1",
     "convert-source-map": "1.5.0",
     "wordwrap": "0.0.2",
-    "mime-types": "2.1.18"
+    "mime-types": "2.1.18",
+    "angular-ui-bootstrap": "2.5.6",
+    "angular": "1.6.8",
+    "angular-sanitize": "1.6.8",
+    "bootstrap-select": "1.12.4",
+    "datatables.net-colreorder": "1.4.1"
   }
 }
