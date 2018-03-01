@@ -7,6 +7,9 @@
     <meta charset="UTF8">
 
     <!-- CSS -->
+
+    <!-- datatables -->
+    <link rel="stylesheet" href="node_modules/datatables.net-dt/css/jquery.dataTables.css" />
     <!-- patternfly -->
     <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly.min.css">
     <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly-additions.min.css">
@@ -16,8 +19,12 @@
     <link rel="stylesheet" href="dist/hawtio-ui.css" />
 
     <!-- JAVASCRIPT -->
+
     <!-- jquery -->
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <!-- datatables -->
+    <script src="node_modules/datatables.net/js/jquery.dataTables.js"></script>
+    <script src="node_modules/datatables.net-select/js/dataTables.select.js"></script>
     <!-- bootstrap -->
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
     <!-- patternfly -->
@@ -28,10 +35,15 @@
     <script src="node_modules/angular-sanitize/angular-sanitize.js"></script>
     <!-- angular-route -->
     <script src="node_modules/angular-route/angular-route.min.js"></script>
-    <!-- angular-file-upload -->
-    <script src="node_modules/angular-file-upload/dist/angular-file-upload.min.js"></script>
     <!-- angular-ui-bootstrap -->
     <script src="node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js"></script>
+    <!-- angular-drag-and-drop-lists -->
+    <script src="node_modules/angular-drag-and-drop-lists/angular-drag-and-drop-lists.min.js"></script>
+    <!-- angular-datatables -->
+    <script src="node_modules/angularjs-datatables/dist/angular-datatables.min.js"></script>
+    <script src="node_modules/angularjs-datatables/dist/plugins/select/angular-datatables.select.min.js"></script>
+    <!-- angular-patternfly -->
+    <script src="node_modules/angular-patternfly/dist/angular-patternfly.js"></script>
     <!-- lodash -->
     <script src="node_modules/lodash/lodash.min.js"></script>
     <!-- urijs -->
@@ -64,23 +76,13 @@
     <script src="node_modules/codemirror/mode/yaml/yaml.js"></script>
     <!-- @hawtio/core -->
     <script src="node_modules/@hawtio/core/dist/hawtio-core.js"></script>
-    <!-- @hawtio/utilities -->
-    <script src="node_modules/@hawtio/utilities/dist/hawtio-utilities.js"></script>
     <!-- @hawtio/ui -->
     <script src="dist/hawtio-ui.js"></script>
     <script src="test-dist/hawtio-ui-test.js"></script>
   </head>
 
   <body>
-    <nav class="navbar navbar-pf-vertical" style="height: 60px">
-    </nav>
-
-    <hawtio-vertical-nav></hawtio-vertical-nav>
-
-    <div class="container-fluid container-pf-nav-pf-vertical ng-cloak" 
-        ng-controller="HawtioNav.ViewController">
-      <div ng-include src="viewPartial"></div>
-    </div>
+    <hawtio-app></hawtio-app>
   </body>
 
 </html>
