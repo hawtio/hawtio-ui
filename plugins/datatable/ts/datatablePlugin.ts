@@ -3,8 +3,8 @@
  * @main DataTable
  */
 namespace DataTable {
-  export var pluginName = 'datatable';
-  export var log:Logging.Logger = Logger.get("DataTable");
-  export var _module = angular.module(pluginName, []);
+  export const pluginName: string = 'hawtio-ui-datatable';
+  export const log: Logging.Logger = Logger.get(pluginName);
+  export const _module = angular.module(pluginName, []);
   hawtioPluginLoader.addModule(pluginName);
 }

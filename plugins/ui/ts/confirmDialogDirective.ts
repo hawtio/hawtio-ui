@@ -4,6 +4,8 @@
 /// <reference path="./uiPlugin.ts"/>
 namespace UI {
 
+  const log: Logging.Logger = Logger.get("hawtio-ui-confirm-dialog");
+
   _module.directive('hawtioConfirmDialog', () => {
     return new UI.ConfirmDialog();
   });
@@ -156,7 +158,7 @@ namespace UI {
           // lets make sure we don't have a modal-backdrop hanging around!
           var backdrop = $("div.modal-backdrop");
           if (backdrop && backdrop.length) {
-            Logger.get("ConfirmDialog").debug("Removing the backdrop div! " + backdrop);
+            log.debug("Removing the backdrop div!", backdrop);
             backdrop.remove();
           }
         }, 200);

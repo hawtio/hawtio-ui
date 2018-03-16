@@ -1,5 +1,5 @@
 namespace HawtioEditor {
-  export var pluginName = "hawtio-editor";
-  export var templatePath = "plugins/editor/html";
-  export var log:Logging.Logger = Logger.get(pluginName);
+  export const pluginName: string = "hawtio-ui-editor";
+  export const templatePath: string = "plugins/editor/html";
+  export const log: Logging.Logger = Logger.get(pluginName);
 }

@@ -5,7 +5,6 @@
 namespace UI {
 
   export function HawtioTocDisplay(marked, $location, $anchorScroll, $compile) {
-    var log:Logging.Logger = Logger.get("UI");
 
     return {
       restrict: 'A',
@@ -18,7 +17,7 @@ namespace UI {
         $scope.chapters = [];
 
         $scope.addChapter = (item) => {
-          console.log("Adding: ", item);
+          log.debug("Adding:", item);
           $scope.chapters.push(item);
           if (!angular.isDefined(item['text'])) {
             $scope.fetchItemContent(item);
@@ -147,7 +146,7 @@ namespace UI {
           $scope.tocId = '#' + html.get(0).id;
           $scope.remaining = findLinks().length;
           findLinks().each((index, a) => {
-            log.debug("Found: ", a);
+            log.debug("Found:", a);
             var filename = $scope.getFilename(a.href, a.getAttribute('file-extension'));
             var item = {
               filename: filename,
@@ -216,7 +215,7 @@ namespace UI {
                   var href = a.href;
                   var filename = $scope.getFilename(href, a.getAttribute('file-extension'));
                   $(a).click((e) => {
-                    log.debug("Clicked: ", e);
+                    log.debug("Clicked:", e);
                     e.preventDefault();
                     var chapterId = $scope.getTarget(filename);
                     $location.search("chapter", chapterId);
@@ -246,7 +245,7 @@ namespace UI {
          * @param chapterId
          */
         function scrollToChapter(chapterId) {
-          log.debug("selected chapter changed: " + chapterId);
+          log.debug("selected chapter changed:", chapterId);
           if (chapterId) {
             var target = '#' + chapterId;
             var top = 0;

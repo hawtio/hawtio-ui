@@ -1,14 +1,9 @@
-/**
- * @module UI
- */
 namespace UI {
 
-  export var log:Logging.Logger = Logger.get("UI");
+  export const pluginName: string = 'hawtio-ui';
 
-  export var scrollBarWidth:number = null;
+  export const log: Logging.Logger = Logger.get(pluginName);
 
-  export var pluginName = 'hawtio-ui';
-
-  export var templatePath = 'plugins/ui/html/';
+  export const templatePath: string = 'plugins/ui/html/';
 
 }
