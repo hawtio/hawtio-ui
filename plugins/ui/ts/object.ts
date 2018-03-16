@@ -2,7 +2,7 @@
 
 namespace UI {
 
-  var objectView = _module.directive("hawtioObject", ["$templateCache", "$interpolate", "$compile", ($templateCache:ng.ITemplateCacheService, $interpolate:ng.IInterpolateService, $compile:ng.ICompileService) => {
+  var objectView = _module.directive("hawtioObject", ["$templateCache", "$interpolate", "$compile", ($templateCache: ng.ITemplateCacheService, $interpolate: ng.IInterpolateService, $compile: ng.ICompileService) => {
     return {
       restrict: "A",
       replace: true,
@@ -35,7 +35,7 @@ namespace UI {
           var answer = undefined;
           var properties = Core.pathGet(config, ['properties']);
           if (!answer && properties) {
-            angular.forEach(properties, (config, propertySelector) => {
+            angular.forEach(properties, (config, propertySelector: string) => {
               var regex = new RegExp(propertySelector);
               if (regex.test(path)) {
                 // log.debug("Matched selector: ", propertySelector, " for path: ", path);
@@ -62,7 +62,7 @@ namespace UI {
           return answer;
         }
 
-        function compile(template, path:string, key, value, config) {
+        function compile(template, path: string, key, value, config) {
           var config = getEntityConfig(path, config);
           if (config && config.hidden) {
             return;
@@ -70,32 +70,32 @@ namespace UI {
           var interpolated = null;
           // avoid interpolating custom templates
           if (config && config.template) {
-            interpolated = config.template;  
+            interpolated = config.template;
           } else {
             interpolated = interpolate(template, path, key, value);
           }
           var scope = $scope.$new();
           scope.row = $scope.row;
-          scope.entityConfig = config; 
+          scope.entityConfig = config;
           scope.data = value;
           scope.path = path;
           return $compile(interpolated)(scope);
         }
 
-        function renderPrimitiveValue(path:string, entity, config) {
+        function renderPrimitiveValue(path: string, entity, config) {
           var template = getTemplate(path, config, $templateCache.get('primitiveValueTemplate.html'));
           return compile(template, path, undefined, entity, config);
         }
 
-        function renderDateValue(path:string, entity, config) {
+        function renderDateValue(path: string, entity, config) {
           var template = getTemplate(path, config, $templateCache.get('dateValueTemplate.html'));
           return compile(template, path, undefined, entity, config);
         }
 
-        function renderObjectValue(path:string, entity, config) {
+        function renderObjectValue(path: string, entity, config) {
           var isArray = false;
           var el = undefined;
-          angular.forEach(entity, (value, key) => {
+          angular.forEach(entity, (value, key: string) => {
             if (angular.isNumber(key) && "length" in entity) {
               isArray = true;
             }
@@ -129,8 +129,8 @@ namespace UI {
           }
         }
 
-        function getColumnHeaders(path:string, entity:Array<any>, config) {
-          var answer = <Array<string>> undefined;
+        function getColumnHeaders(path: string, entity: Array<any>, config) {
+          var answer = <Array<string>>undefined;
           if (!entity) {
             return answer;
           }
@@ -151,18 +151,18 @@ namespace UI {
               });
               return _.union(answer, notHidden);
             } else {
-              answer = <Array<string>> undefined;
+              answer = <Array<string>>undefined;
               hasPrimitive = true;
             }
           });
           if (answer) {
-            answer = <Array<string>> _.reject(answer, (item) => _.startsWith("" + item, '$'));
+            answer = <Array<string>>_.reject(answer, (item) => _.startsWith("" + item, '$'));
           }
           //log.debug("Column headers: ", answer);
           return answer;
         }
 
-        function renderTable(template, path:string, key, value, headers, config) {
+        function renderTable(template, path: string, key, value, headers, config) {
           var el = angular.element(interpolate(template, path, key, value));
           var thead = el.find('thead');
           var tbody = el.find('tbody');
@@ -188,7 +188,7 @@ namespace UI {
           return el;
         }
 
-        function renderArrayValue(path:string, entity:any, config):any {
+        function renderArrayValue(path: string, entity: any, config): any {
           var headers = getColumnHeaders(path, entity, config);
           if (!headers) {
             var template = getTemplate(path, config, $templateCache.get('arrayValueListTemplate.html'));
@@ -199,22 +199,22 @@ namespace UI {
           }
         }
 
-        function renderPrimitiveAttribute(path:string, key:string, value:any, config) {
+        function renderPrimitiveAttribute(path: string, key: string, value: any, config) {
           var template = getTemplate(path, config, $templateCache.get('primitiveAttributeTemplate.html'));
           return compile(template, path, key, value, config);
         }
 
-        function renderDateAttribute(path:string, key:string, value:any, config) {
+        function renderDateAttribute(path: string, key: string, value: any, config) {
           var template = getTemplate(path, config, $templateCache.get('dateAttributeTemplate.html'));
           return compile(template, path, key, value, config);
         }
 
-        function renderObjectAttribute(path:string, key:string, value:any, config) {
+        function renderObjectAttribute(path: string, key: string, value: any, config) {
           var template = getTemplate(path, config, $templateCache.get('objectAttributeTemplate.html'));
           return compile(template, path, key, value, config);
         }
 
-        function renderArrayAttribute(path:string, key:string, value:any, config):any {
+        function renderArrayAttribute(path: string, key: string, value: any, config): any {
           var headers = getColumnHeaders(path, value, config);
           if (!headers) {
             var template = getTemplate(path, config, $templateCache.get('arrayAttributeListTemplate.html'));
@@ -225,13 +225,13 @@ namespace UI {
           }
         }
 
-        function renderThing(path:string, entity, config) {
+        function renderThing(path: string, entity, config) {
           if (angular.isArray(entity)) {
             return renderArrayValue(path, entity, config);
           } else if (angular.isObject(entity)) {
             return renderObjectValue(path, entity, config);
           } else if (StringHelpers.isDate(entity)) {
-            return renderDateValue(path, (<any> Date).create(entity), config);
+            return renderDateValue(path, (<any>Date).create(entity), config);
           } else {
             return renderPrimitiveValue(path, entity, config);
           }
