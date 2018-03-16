@@ -12,7 +12,7 @@
     "test": "gulp build-example"
   },
   "dependencies": {
-    "@hawtio/core": "3.2.17",
+    "@hawtio/core": "3.2.22",
     "@hawtio/core-dts": "3.0.18",
     "@types/bootstrap": "3.3.36",
     "@types/clipboard": "1.5.35",
@@ -155,6 +155,7 @@
     "angular": "1.6.8",
     "angular-sanitize": "1.6.8",
     "bootstrap-select": "1.12.4",
-    "datatables.net-colreorder": "1.4.1"
+    "datatables.net-colreorder": "1.4.1",
+    "@types/angular": "1.6.43"
   }
 }
