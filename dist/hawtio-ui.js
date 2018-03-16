@@ -4,8 +4,8 @@
  */
 var DataTable;
 (function (DataTable) {
-    DataTable.pluginName = 'datatable';
-    DataTable.log = Logger.get("DataTable");
+    DataTable.pluginName = 'hawtio-ui-datatable';
+    DataTable.log = Logger.get(DataTable.pluginName);
     DataTable._module = angular.module(DataTable.pluginName, []);
     hawtioPluginLoader.addModule(DataTable.pluginName);
 })(DataTable || (DataTable = {}));
@@ -571,7 +571,7 @@ var CodeEditor;
 })(CodeEditor || (CodeEditor = {}));
 var HawtioEditor;
 (function (HawtioEditor) {
-    HawtioEditor.pluginName = "hawtio-editor";
+    HawtioEditor.pluginName = "hawtio-ui-editor";
     HawtioEditor.templatePath = "plugins/editor/html";
     HawtioEditor.log = Logger.get(HawtioEditor.pluginName);
 })(HawtioEditor || (HawtioEditor = {}));
@@ -804,14 +804,10 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
-/**
- * @module UI
- */
 var UI;
 (function (UI) {
-    UI.log = Logger.get("UI");
-    UI.scrollBarWidth = null;
     UI.pluginName = 'hawtio-ui';
+    UI.log = Logger.get(UI.pluginName);
     UI.templatePath = 'plugins/ui/html/';
 })(UI || (UI = {}));
 /// <reference path="uiHelpers.ts"/>
@@ -1022,6 +1018,7 @@ var UI;
 /// <reference path="./uiPlugin.ts"/>
 var UI;
 (function (UI) {
+    var log = Logger.get("hawtio-ui-confirm-dialog");
     UI._module.directive('hawtioConfirmDialog', function () {
         return new UI.ConfirmDialog();
     });
@@ -1092,7 +1089,7 @@ var UI;
                             // lets make sure we don't have a modal-backdrop hanging around!
                             var backdrop = $("div.modal-backdrop");
                             if (backdrop && backdrop.length) {
-                                Logger.get("ConfirmDialog").debug("Removing the backdrop div! " + backdrop);
+                                log.debug("Removing the backdrop div!", backdrop);
                                 backdrop.remove();
                             }
                         }, 200);
@@ -2502,7 +2499,6 @@ var UI;
 var UI;
 (function (UI) {
     function HawtioTocDisplay(marked, $location, $anchorScroll, $compile) {
-        var log = Logger.get("UI");
         return {
             restrict: 'A',
             scope: {
@@ -2513,7 +2509,7 @@ var UI;
                     $scope.render = false;
                     $scope.chapters = [];
                     $scope.addChapter = function (item) {
-                        console.log("Adding: ", item);
+                        UI.log.debug("Adding:", item);
                         $scope.chapters.push(item);
                         if (!angular.isDefined(item['text'])) {
                             $scope.fetchItemContent(item);
@@ -2636,7 +2632,7 @@ var UI;
                     $scope.tocId = '#' + html.get(0).id;
                     $scope.remaining = findLinks().length;
                     findLinks().each(function (index, a) {
-                        log.debug("Found: ", a);
+                        UI.log.debug("Found:", a);
                         var filename = $scope.getFilename(a.href, a.getAttribute('file-extension'));
                         var item = {
                             filename: filename,
@@ -2659,7 +2655,7 @@ var UI;
                                 var selectedChapter = $location.search()["chapter"];
                                 // lets load the chapter panels
                                 $scope.chapters.forEach(function (chapter, index) {
-                                    log.debug("index:", index);
+                                    UI.log.debug("index:", index);
                                     var panel = $('<div></div>');
                                     var panelHeader = null;
                                     var chapterId = $scope.getTarget(chapter['filename']);
@@ -2697,7 +2693,7 @@ var UI;
                                     var href = a.href;
                                     var filename = $scope.getFilename(href, a.getAttribute('file-extension'));
                                     $(a).click(function (e) {
-                                        log.debug("Clicked: ", e);
+                                        UI.log.debug("Clicked:", e);
                                         e.preventDefault();
                                         var chapterId = $scope.getTarget(filename);
                                         $location.search("chapter", chapterId);
@@ -2725,7 +2721,7 @@ var UI;
                  * @param chapterId
                  */
                 function scrollToChapter(chapterId) {
-                    log.debug("selected chapter changed: " + chapterId);
+                    UI.log.debug("selected chapter changed:", chapterId);
                     if (chapterId) {
                         var target = '#' + chapterId;
                         var top = 0;
