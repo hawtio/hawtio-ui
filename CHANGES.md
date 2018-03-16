@@ -1,5 +1,11 @@
 ### Change Log
 
+#### 3.2.4
+
+* Canonicalise logger names based on `hawtio-[plugin name]-[sub component name]` format
+
+...
+
 #### 2.0.11
 * Let's pull in hawtio 1.x's css for now, also use container-fluid for the page
 
