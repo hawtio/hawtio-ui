@@ -4,9 +4,9 @@
  * @main DataTable
  */
 declare namespace DataTable {
-    var pluginName: string;
-    var log: Logging.Logger;
-    var _module: angular.IModule;
+    const pluginName: string;
+    const log: Logging.Logger;
+    const _module: angular.IModule;
 }
 /**
  * @module DataTable
@@ -103,9 +103,9 @@ declare namespace CodeEditor {
     function createEditorSettings(options?: any): any;
 }
 declare namespace HawtioEditor {
-    var pluginName: string;
-    var templatePath: string;
-    var log: Logging.Logger;
+    const pluginName: string;
+    const templatePath: string;
+    const log: Logging.Logger;
 }
 declare namespace HawtioEditor {
     var _module: angular.IModule;
@@ -149,14 +149,12 @@ declare namespace Core {
      */
     function clearNotifications(): void;
 }
-/**
- * @module UI
- */
+declare namespace UIBootstrap {
+}
 declare namespace UI {
-    var log: Logging.Logger;
-    var scrollBarWidth: number;
-    var pluginName: string;
-    var templatePath: string;
+    const pluginName: string;
+    const log: Logging.Logger;
+    const templatePath: string;
 }
 /**
  * Module that contains a bunch of re-usable directives to assemble into pages in hawtio
@@ -506,6 +504,4 @@ declare namespace UI {
     }
 }
 declare namespace UI {
-}
-declare namespace UIBootstrap {
 }
