@@ -804,15 +804,6 @@ var Core;
     }
     Core.clearNotifications = clearNotifications;
 })(Core || (Core = {}));
-var UIBootstrap;
-(function (UIBootstrap) {
-    var pluginName = "hawtio-ui-bootstrap";
-    angular.module(pluginName, ["ui.bootstrap"]);
-    hawtioPluginLoader.addModule(pluginName);
-    hawtioPluginLoader.addModule("hawtio-compat.transition");
-    hawtioPluginLoader.addModule("hawtio-compat.dialog");
-    hawtioPluginLoader.addModule("hawtio-compat.modal");
-})(UIBootstrap || (UIBootstrap = {}));
 var UI;
 (function (UI) {
     UI.pluginName = 'hawtio-ui';
@@ -2853,6 +2844,15 @@ var UI;
             };
         }]);
 })(UI || (UI = {}));
+var UIBootstrap;
+(function (UIBootstrap) {
+    var pluginName = "hawtio-ui-bootstrap";
+    angular.module(pluginName, ["ui.bootstrap"]);
+    hawtioPluginLoader.addModule(pluginName);
+    hawtioPluginLoader.addModule("hawtio-compat.transition");
+    hawtioPluginLoader.addModule("hawtio-compat.dialog");
+    hawtioPluginLoader.addModule("hawtio-compat.modal");
+})(UIBootstrap || (UIBootstrap = {}));
 
 angular.module('hawtio-ui-templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('plugins/editor/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
 $templateCache.put('plugins/ui/html/confirmDialog.html','<div modal="show">\n  <div class="modal-dialog {{sizeClass}}">\n    <div class="modal-content">    \n      <div class="modal-header">\n        <button type="button" class="close" aria-hidden="true" ng-click="cancel()">\n          <span class="pficon pficon-close"></span>\n        </button>\n        <h4 class="modal-title">{{title}}</h4>\n      </div>\n      <div class="modal-body">\n      </div>\n      <div class="modal-footer">\n        <button type="button" class="btn btn-default" ng-click="cancel()">\n          {{cancelButtonText}}\n        </button>\n        <button type="submit" class="btn btn-primary" ng-click="submit()" ng-hide="{{showOkButton === \'false\'}}">\n          {{okButtonText}}\n        </button>\n      </div>\n    </div>\n  </div>\n</div>\n');
