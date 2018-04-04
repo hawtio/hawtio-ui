@@ -139,7 +139,8 @@ namespace UITest {
 
     $scope.toastNotificationEx1 = "Core.notification('success', 'Saved successfully!');";
 
-    $scope.showToastNotification = () => Core.notification('success', 'Saved successfully!');
+    $scope.notificationType = 'success';
+    $scope.showToastNotification = () => Core.notification($scope.notificationType, 'Notification message.');
 
     $scope.transcludedValue = "and this is transcluded";
 

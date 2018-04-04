@@ -10,11 +10,28 @@
         <li>warning</li>
         <li>danger</li>
       </ul>
-      <h4>Example JavaScript</h5>
+      <h3>Example JavaScript</h3>
       <div hawtio-editor="toastNotificationEx1" mode="'javascript'"></div>
-      <h4>Live Example</h5>
+      <h3>Live Example</h3>
       <div class="directive-example">
-        <button type="button" ng-click="showToastNotification()">Show Toast Notification</button>
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label for="notificationType" class="col-sm-2 control-label">Type</label>
+            <div class="col-sm-3">
+              <select id="notificationType" ng-model="notificationType" class="form-control">
+                <option>success</option>
+                <option>info</option>
+                <option>warning</option>
+                <option>danger</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="button" ng-click="showToastNotification()">Show Toast Notification</button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>

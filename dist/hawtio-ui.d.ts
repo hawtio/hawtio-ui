@@ -137,11 +137,11 @@ declare namespace Core {
      *
      * @method notification
      * @static
-     * @param type which is usually "success", "warning", or "danger" (for error) and matches css alert-* css styles
+     * @param type which is usually "success", "info", "warning", or "danger" (for error) and matches css alert-* css styles
      * @param message the text to display
      *
      */
-    function notification(type: string, message: string, options?: any): void;
+    function notification(type: string, message: string): void;
     /**
      * Clears all the pending notifications
      * @method clearNotifications
