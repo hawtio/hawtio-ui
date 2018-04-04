@@ -761,26 +761,32 @@ var Toastr;
 var Core;
 (function (Core) {
     var visibleToastElem = null;
+    var timeoutId;
     /**
      * Displays an alert message which is typically the result of some asynchronous operation
      *
      * @method notification
      * @static
-     * @param type which is usually "success", "warning", or "danger" (for error) and matches css alert-* css styles
+     * @param type which is usually "success", "info", "warning", or "danger" (for error) and matches css alert-* css styles
      * @param message the text to display
      *
      */
-    function notification(type, message, options) {
-        if (options === void 0) { options = {}; }
+    function notification(type, message) {
         var toastHtml = "\n      <div class=\"toast-pf alert alert-" + type + " alert-dismissable\">\n        <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">\n          <span class=\"pficon pficon-close\"></span>\n        </button>\n        <span class=\"pficon pficon-" + resolveToastIcon(type) + "\"></span>\n        " + message + "\n      </div>\n    ";
         var toastFrag = document.createRange().createContextualFragment(toastHtml);
         var toastElem = toastFrag.querySelector('div');
         var bodyElem = document.querySelector('body');
         // if toast element is in the DOM
         if (visibleToastElem && visibleToastElem.parentNode) {
+            clearTimeout(timeoutId);
             bodyElem.removeChild(visibleToastElem);
         }
         visibleToastElem = bodyElem.appendChild(toastElem);
+        if (type === 'success' || type === 'info') {
+            timeoutId = window.setTimeout(function () {
+                bodyElem.removeChild(toastElem);
+            }, 8000);
+        }
     }
     Core.notification = notification;
     function resolveToastIcon(type) {
