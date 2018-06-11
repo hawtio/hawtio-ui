@@ -2,22 +2,19 @@ namespace UIDocs {
 
   let pluginName = "docs";
   export let log:Logging.Logger = Logger.get(pluginName);
-  let templatePath = "test-plugins/docs/welcome";
   export let _module = angular.module(pluginName, []);
-  let welcomeTab = null;
 
-  _module.config(["$routeProvider", 'HawtioNavBuilderProvider', ($routeProvider, builder) => {
-    welcomeTab = builder.create()
-      .id(pluginName)
-      .title(() => "Documentation")
-      .href(() => "/docs")
-      .subPath("Welcome", "welcome", builder.join(templatePath, "welcome.html"), 1)
-      .build();
-    builder.configureRouting($routeProvider, welcomeTab);
+  _module.config(["$routeProvider", ($routeProvider) => {
+    $routeProvider
+      .when('/docs', {templateUrl: 'test-plugins/docs/welcome/welcome.html'});
   }]);
 
-  _module.run(['HawtioNav', (nav) => {
-    nav.add(welcomeTab);
+  _module.run(['mainNavService', (mainNavService: Nav.MainNavService) => {
+      mainNavService.addItem({
+      title: 'Documentation',
+      href: '/docs',
+      rank: 1
+    });
   }]);
 
   hawtioPluginLoader.addModule(pluginName);
