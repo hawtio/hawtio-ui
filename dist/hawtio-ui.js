@@ -784,7 +784,9 @@ var Core;
         visibleToastElem = bodyElem.appendChild(toastElem);
         if (type === 'success' || type === 'info') {
             timeoutId = window.setTimeout(function () {
-                bodyElem.removeChild(toastElem);
+                if (toastElem.parentNode) {
+                    bodyElem.removeChild(toastElem);
+                }
             }, 8000);
         }
     }
