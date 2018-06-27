@@ -9,7 +9,9 @@
   "scripts": {
     "start": "gulp",
     "build": "gulp build",
-    "test": "gulp build-example"
+    "test": "gulp build-example",
+    "site": "gulp site",
+    "deploy": "gulp deploy"
   },
   "dependencies": {
     "@hawtio/core": "^4.0.0",
@@ -27,7 +29,6 @@
   "devDependencies": {
     "del": "^2.2.2",
     "event-stream": "3.3.2",
-    "glob": "^7.1.2",
     "gulp": "^3.0.0",
     "gulp-angular-templatecache": "^2.0.0",
     "gulp-concat": "^2.0.0",
@@ -42,13 +43,11 @@
     "gulp-ng-annotate": "~2.1.0",
     "gulp-rename": "^1.0.0",
     "gulp-replace-task": "~0.11.0",
-    "gulp-size": "^2.1.0",
     "gulp-typescript": "^3.1.7",
     "imagemin": "^5.3.1",
     "run-sequence": "^1.0.0",
     "typescript": "^2.3.4",
-    "underscore.string": "^3.3.4",
-    "yargs": "^8.0.1"
+    "underscore.string": "^3.3.4"
   },
   "repository": {
     "type": "git",

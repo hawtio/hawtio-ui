@@ -1,14 +1,10 @@
 var gulp = require('gulp'),
     eventStream = require('event-stream'),
     gulpLoadPlugins = require('gulp-load-plugins'),
-    fs = require('fs'),
     path = require('path'),
     s = require('underscore.string'),
-    glob = require('glob'),
     path = require('path'),
-    size = require('gulp-size'),
     s = require('underscore.string'),
-    argv = require('yargs').argv,
     del = require('del'),
     runSequence = require('run-sequence');
 
@@ -162,49 +158,6 @@ gulp.task('reload', function() {
   });
 });
 
-gulp.task('embed-images', ['concat'], function() {
-
-  var replacements = [];
-
-  var files = glob.sync('img/**/*.{png,svg,gif,jpg}');
-  //console.log("files: ", files);
-  function escapeRegExp(str) {
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-  }
-
-  function getDataURI(filename) {
-    var relative = path.relative('.', filename);
-    var ext = path.extname(filename);
-    var mime = 'image/jpg';
-    switch (ext) {
-      case '.png':
-        mime = 'image/png';
-      break;
-      case '.svg':
-        mime = 'image/svg+xml';
-      break;
-      case '.gif':
-        mime='image/gif';
-      break;
-    }
-    var buf = fs.readFileSync(filename);
-    return 'data:' + mime + ';base64,' + buf.toString('base64');
-  }
-
-  files.forEach(function(file) {
-    replacements.push({
-      match: new RegExp(escapeRegExp(file), 'g'),
-      replacement: getDataURI(file)
-    });
-  });
-
-  gulp.src(config.dist + config.js)
-  .pipe(plugins.replaceTask({
-    patterns: replacements
-  }))
-  .pipe(gulp.dest(config.dist));
-});
-
 gulp.task('site', ['build', 'build-example'], function() {
   gulp.src('website/*', { dot: true })
     .pipe(gulp.dest('site'));
@@ -213,22 +166,8 @@ gulp.task('site', ['build', 'build-example'], function() {
     .pipe(gulp.dest('site'));
   gulp.src('README.md')
     .pipe(gulp.dest('site'));
-  gulp.src(['index.html', 'hawtio-nav-example.js', 'test/**', 'css/**', 'images/**', 'img/**', 'node_modules/**/*.js', 'node_modules/**/*.css', 'node_modules/**/*.swf', 'node_modules/**/*.woff','node_modules/**/*.woff2', 'node_modules/**/*.ttf', 'node_modules/**/*.map', 'dist/**', 'test-dist/**'], {base: '.'})
+  gulp.src(['index.html', 'node_modules/**/*.js', 'node_modules/**/*.css', 'node_modules/**/*.swf', 'node_modules/**/*.woff','node_modules/**/*.woff2', 'node_modules/**/*.ttf', 'node_modules/**/*.map', 'dist/**', 'test-dist/**'], {base: '.'})
     .pipe(gulp.dest('site'));
-
-  // var dirs = fs.readdirSync('./node_modules');
-  // dirs.forEach(function(dir) {
-  //   var path = './node_modules/' + dir + "/img";
-  //   try {
-  //     if (fs.statSync(path).isDirectory()) {
-  //       console.log("found image dir: " + path);
-  //       var pattern = 'node_modules/' + dir + "/img/**";
-  //       gulp.src([pattern]).pipe(gulp.dest('site/img'));
-  //     }
-  //   } catch (e) {
-  //     // ignore, file does not exist
-  //   }
-  // });
 });
 
 gulp.task('deploy', function() {
@@ -249,7 +188,7 @@ gulp.task('build-example-clean', function() {
 
 gulp.task('build', function(callback) {
   runSequence('build-clean',
-              ['tsc', 'less', 'template', 'concat', 'clean', 'embed-images'],
+              ['tsc', 'less', 'template', 'concat', 'clean'],
               callback);
 });
 
