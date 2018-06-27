@@ -42,7 +42,9 @@ namespace Core {
 
     if (type === 'success' || type === 'info') {
       timeoutId = window.setTimeout(() => {
-        bodyElem.removeChild(toastElem);
+        if (toastElem.parentNode) {
+          bodyElem.removeChild(toastElem);
+        }
       }, 8000);
     }
   }
