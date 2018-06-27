@@ -149,8 +149,6 @@ declare namespace Core {
      */
     function clearNotifications(): void;
 }
-declare namespace UIBootstrap {
-}
 declare namespace UI {
     const pluginName: string;
     const log: Logging.Logger;
@@ -504,4 +502,6 @@ declare namespace UI {
     }
 }
 declare namespace UI {
+}
+declare namespace UIBootstrap {
 }
