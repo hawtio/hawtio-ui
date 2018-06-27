@@ -96,34 +96,6 @@ namespace UITest {
       '  </div>\n' +
       '</div>\n';
 
-    $scope.sliderEx1 = '' +
-      '<button class="btn btn-default" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right</button>\n' +
-      '<div hawtio-slideout="showSlideoutRight" title="Hey look a slider!">\n' +
-      '   <div class="dialog-body">\n' +
-      '     <div>\n' +
-      '       Here is some content or whatever {{transcludedValue}}\n' +
-      '     </div>\n' +
-      '   </div>\n' +
-      '</div>';
-
-    $scope.sliderEx2 = '' +
-      '<button class="btn btn-default" ng-click="showSlideoutLeft = !showSlideoutLeft">Show slideout left</button>\n' +
-      '<div hawtio-slideout="showSlideoutLeft" direction="left" title="Hey, another slider!">\n' +
-      '   <div class="dialog-body">\n' +
-      '     <div hawtio-editor="someText" mode="javascript"></div>\n' +
-      '   </div>\n' +
-      '</div>\n';
-
-    $scope.sliderEx3 = '' +
-      '<button class="btn btn-default" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right no close button</button>\n' +
-      '<div hawtio-slideout="showSlideoutRight" close="false" title="Hey look a slider with no close button!">\n' +
-      '   <div class="dialog-body">\n' +
-      '     <div>\n' +
-      '       Here is some content or whatever {{transcludedValue}}\n' +
-      '     </div>\n' +
-      '   </div>\n' +
-      '</div>';
-
     $scope.editorEx1 = '' +
       'Instance 1\n' +
       '<div class="row-fluid">\n' +
@@ -151,9 +123,6 @@ namespace UITest {
     $scope.onOk = (number) => {
       Core.notification('info', number + ' ok!');
     }
-
-    $scope.showSlideoutRight = false;
-    $scope.showSlideoutLeft = false;
 
     $scope.dirty = false;
     $scope.mode = 'javascript';

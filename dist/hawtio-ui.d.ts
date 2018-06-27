@@ -1,19 +1,5 @@
 /// <reference types="angular" />
 /**
- * @module DataTable
- * @main DataTable
- */
-declare namespace DataTable {
-    const pluginName: string;
-    const log: Logging.Logger;
-    const _module: angular.IModule;
-}
-/**
- * @module DataTable
- */
-declare namespace DataTable {
-}
-/**
  * Module that contains several helper functions related to hawtio's code editor
  *
  * @module CodeEditor
@@ -129,25 +115,19 @@ declare namespace HawtioEditor {
         link: ($scope: any, $element: any, $attrs: any) => void;
     };
 }
-declare namespace Toastr {
+/**
+ * @module DataTable
+ * @main DataTable
+ */
+declare namespace DataTable {
+    const pluginName: string;
+    const log: Logging.Logger;
+    const _module: angular.IModule;
 }
-declare namespace Core {
-    /**
-     * Displays an alert message which is typically the result of some asynchronous operation
-     *
-     * @method notification
-     * @static
-     * @param type which is usually "success", "info", "warning", or "danger" (for error) and matches css alert-* css styles
-     * @param message the text to display
-     *
-     */
-    function notification(type: string, message: string): void;
-    /**
-     * Clears all the pending notifications
-     * @method clearNotifications
-     * @static
-     */
-    function clearNotifications(): void;
+/**
+ * @module DataTable
+ */
+declare namespace DataTable {
 }
 declare namespace UI {
     const pluginName: string;
@@ -428,27 +408,6 @@ declare namespace UI {
  * @module UI
  */
 declare namespace UI {
-    class SlideOut {
-        restrict: string;
-        replace: boolean;
-        transclude: boolean;
-        templateUrl: string;
-        scope: {
-            show: string;
-            direction: string;
-            top: string;
-            height: string;
-            title: string;
-            close: string;
-        };
-        controller: (string | (($scope: any, $element: any, $attrs: any, $transclude: any, $compile: any) => void))[];
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    }
-}
-/**
- * @module UI
- */
-declare namespace UI {
     class TablePager {
         restrict: string;
         scope: boolean;
@@ -502,6 +461,26 @@ declare namespace UI {
     }
 }
 declare namespace UI {
+}
+declare namespace Toastr {
+}
+declare namespace Core {
+    /**
+     * Displays an alert message which is typically the result of some asynchronous operation
+     *
+     * @method notification
+     * @static
+     * @param type which is usually "success", "info", "warning", or "danger" (for error) and matches css alert-* css styles
+     * @param message the text to display
+     *
+     */
+    function notification(type: string, message: string): void;
+    /**
+     * Clears all the pending notifications
+     * @method clearNotifications
+     * @static
+     */
+    function clearNotifications(): void;
 }
 declare namespace UIBootstrap {
 }

@@ -11,7 +11,7 @@ namespace UIDocs {
 
   _module.run(['mainNavService', (mainNavService: Nav.MainNavService) => {
       mainNavService.addItem({
-      title: 'Documentation',
+      title: 'Home',
       href: '/docs',
       rank: 1
     });
