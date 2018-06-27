@@ -428,27 +428,6 @@ declare namespace UI {
  * @module UI
  */
 declare namespace UI {
-    class SlideOut {
-        restrict: string;
-        replace: boolean;
-        transclude: boolean;
-        templateUrl: string;
-        scope: {
-            show: string;
-            direction: string;
-            top: string;
-            height: string;
-            title: string;
-            close: string;
-        };
-        controller: (string | (($scope: any, $element: any, $attrs: any, $transclude: any, $compile: any) => void))[];
-        link: ($scope: any, $element: any, $attrs: any) => void;
-    }
-}
-/**
- * @module UI
- */
-declare namespace UI {
     class TablePager {
         restrict: string;
         scope: boolean;

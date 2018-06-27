@@ -10,7 +10,7 @@ var UIDocs;
         }]);
     UIDocs._module.run(['mainNavService', function (mainNavService) {
             mainNavService.addItem({
-                title: 'Documentation',
+                title: 'Home',
                 href: '/docs',
                 rank: 1
             });
@@ -257,7 +257,6 @@ var UITest;
                 .when('/editable-property', { templateUrl: 'test-plugins/ui/html/editable-property.html' })
                 .when('/editor', { templateUrl: 'test-plugins/ui/html/editor.html' })
                 .when('/pager', { templateUrl: 'test-plugins/ui/html/pager.html' })
-                .when('/slideout', { templateUrl: 'test-plugins/ui/html/slideout.html' })
                 .when('/template-popover', { templateUrl: 'test-plugins/ui/html/template-popover.html' })
                 .when('/toast-notification', { templateUrl: 'test-plugins/ui/html/toast-notification.html' });
         }]);
@@ -268,38 +267,9 @@ var UITest;
             mainNavService.addItem({ title: 'Editable Property', href: '/editable-property' });
             mainNavService.addItem({ title: 'Editor', href: '/editor' });
             mainNavService.addItem({ title: 'Pager', href: '/pager' });
-            mainNavService.addItem({ title: 'Slideout', href: '/slideout' });
             mainNavService.addItem({ title: 'Template Popover', href: '/template-popover' });
             mainNavService.addItem({ title: 'Toast Notification', href: '/toast-notification' });
         }]);
-    // _module.config(['ExampleTabs', '$routeProvider', 'HawtioNavBuilderProvider', function(tabs, $routeProvider, builder) {
-    //   tabs.push(builder.create()
-    //                 .id(builder.join(pluginName, 'editor'))
-    //                 .href( () => '/ui' )
-    //                 .title( () => 'Editor' )
-    //                   .subPath('Editor', 'editor', builder.join(path, 'editor.html'))
-    //                 .build());
-    //   tabs.push(builder.create()
-    //                  .id(builder.join(pluginName, 'components'))
-    //                  .href( () => '/components' )
-    //                  .title( () => 'UI Components' )
-    //                    .subPath('Auto Dropdown', 'auto-dropdown', builder.join(path, 'auto-dropdown.html'))
-    //                    .subPath('Clipboard', 'clipboard', builder.join(path, 'clipboard.html'))
-    //                    .subPath('Confirm Dialog', 'confirm-dialog', builder.join(path, 'confirm-dialog.html'))
-    //                    .subPath('Editable Property', 'editable-property', builder.join(path, 'editable-property.html'))
-    //                    //.subPath('File Upload', 'file-upload', builder.join(path, 'file-upload.html'))
-    //                    .subPath('Pager', 'pager', builder.join(path, 'pager.html'))
-    //                    .subPath('Slideout', 'slideout', builder.join(path, 'slideout.html'))
-    //                    .subPath('Template Popover', 'template-popover', builder.join(path, 'template-popover.html'))
-    //                    .subPath('Toast Notification', 'toast-notification', builder.join(path, 'toast-notification.html'))
-    //                  .build());
-    //   _.forEach(tabs, (tab) => builder.configureRouting($routeProvider, tab));
-    // }]);
-    // _module.run(['ExampleTabs', 'HawtioNav', function(tabs, nav) {
-    //   _.forEach(tabs, (tab) => {
-    //     nav.add(tab);
-    //   });
-    // }]);
     hawtioPluginLoader.addModule(UITest.pluginName);
 })(UITest || (UITest = {}));
 /// <reference path="uiTestPlugin.ts"/>
@@ -384,31 +354,6 @@ var UITest;
                 '    </p>\n' +
                 '  </div>\n' +
                 '</div>\n';
-            $scope.sliderEx1 = '' +
-                '<button class="btn btn-default" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right</button>\n' +
-                '<div hawtio-slideout="showSlideoutRight" title="Hey look a slider!">\n' +
-                '   <div class="dialog-body">\n' +
-                '     <div>\n' +
-                '       Here is some content or whatever {{transcludedValue}}\n' +
-                '     </div>\n' +
-                '   </div>\n' +
-                '</div>';
-            $scope.sliderEx2 = '' +
-                '<button class="btn btn-default" ng-click="showSlideoutLeft = !showSlideoutLeft">Show slideout left</button>\n' +
-                '<div hawtio-slideout="showSlideoutLeft" direction="left" title="Hey, another slider!">\n' +
-                '   <div class="dialog-body">\n' +
-                '     <div hawtio-editor="someText" mode="javascript"></div>\n' +
-                '   </div>\n' +
-                '</div>\n';
-            $scope.sliderEx3 = '' +
-                '<button class="btn btn-default" ng-click="showSlideoutRight = !showSlideoutRight">Show slideout right no close button</button>\n' +
-                '<div hawtio-slideout="showSlideoutRight" close="false" title="Hey look a slider with no close button!">\n' +
-                '   <div class="dialog-body">\n' +
-                '     <div>\n' +
-                '       Here is some content or whatever {{transcludedValue}}\n' +
-                '     </div>\n' +
-                '   </div>\n' +
-                '</div>';
             $scope.editorEx1 = '' +
                 'Instance 1\n' +
                 '<div class="row-fluid">\n' +
@@ -431,8 +376,6 @@ var UITest;
             $scope.onOk = function (number) {
                 Core.notification('info', number + ' ok!');
             };
-            $scope.showSlideoutRight = false;
-            $scope.showSlideoutLeft = false;
             $scope.dirty = false;
             $scope.mode = 'javascript';
             $scope.someText = "var someValue = 0;\n" +
@@ -460,6 +403,5 @@ $templateCache.put('test-plugins/ui/html/editable-property.html','<div ng-contro
 $templateCache.put('test-plugins/ui/html/editor.html','<div ng-controller="UI.UITestController1">\n  <div class="row">\n    <div class="col-md-6">\n      <h1>CodeMirror</h1>\n      <p>A directive that wraps the codeMirror editor.  More details on the editor itself is available <a href="http://codemirror.net/doc/manual.html">here</a>.  Configurations on the directive are:</p>\n      <dl>\n        <dt>\n        hawtio-editor\n        </dt>\n        <dd>\n        Attribute in the controller that contains the text string that the editor will display\n        </dd>\n        <dt>\n        mode\n        </dt>\n        <dd>\n        The type of syntax highlighting to use, i.e. \'javascript\', \'java\', etc.\n        </dd>\n        <dt>\n        read-only\n        </dt>\n        <dd>\n        Controls if the user can edit the text in editor instance\n        </dd>\n        <dt>\n        name\n        </dt>\n        <dd>\n        Instance name of the text editor\n        </dd>\n      </dl>\n      <p>\n      In addition to the directive options the containing controller can further configure the editor settings by creating an \'options\' attribute, which the editor will use.  The default options are:\n      </p>\n      <pre>\n      {{GlobalCodeMirrorOptions | json}}\n      </pre>\n      <p>\n      Use \'CodeEditor.createEditorSettings()\' to create the options object for the editor, which will ensure the above defaults are in place unless set on the options you pass into the function.\n      </p>\n    </div>\n    <div class="col-md-6">\n      <h5>HTML Example</h5>\n      <div hawtio-editor="editorEx1" mode="fileUploadExMode"></div>\n      <h5>Live Example</h5>\n      <div class="directive-example">\n        <div compile="editorEx1"></div>\n      </div>\n    </div>\n  </div>\n</div>\n');
 $templateCache.put('test-plugins/ui/html/file-upload.html','<div ng-controller="UI.UITestController1">\n\n  <div class="row">\n    <h3>File upload</h3>\n\n    <p>Use to upload files to the hawtio webapp backend. Files are stored in a temporary directory and managed via the\n      UploadManager JMX MBean</p>\n\n    <p>Showing files:</p>\n\n    <div hawtio-editor="fileUploadEx1" mode="fileUploadExMode"></div>\n    <div class="directive-example">\n      <div compile="fileUploadEx1"></div>\n    </div>\n    <hr>\n    <p>Not showing files:</p>\n\n    <div hawtio-editor="fileUploadEx2" mode="fileUploadExMode"></div>\n    <div class="directive-example">\n      <div compile="fileUploadEx2"></div>\n    </div>\n  </div>\n  <hr>\n</div>\n\n</div>\n');
 $templateCache.put('test-plugins/ui/html/pager.html','<div ng-controller="UI.UITestController1">\n  <script type="text/ng-template" id="pagerExample.html">\n    <div>\n      <div class="btn-group" hawtio-pager="messages" on-index-change="selectRow" row-index="rowIndex"></div>\n      <pre>{{getMessage(rowIndex) | json}}</pre>\n    </div>\n  </script>\n  <div class="row">\n    <div class="col-md-6">\n      <h1>Pager</h1>\n      <p>Widget used to navigate an array of data by element.  Handy for tabular data.  Configuration consists of:</p>\n      <dl>\n        <dt>\n          hawtio-pager\n        </dt>\n        <dd>\n          The array that the pager will track.\n        </dd>\n        <dt>\n          on-index-change\n        </dt>\n        <dd>\n          Name of a function in your controller that the directive will call when the user clicks a button on the pager.  The function will receive the new index value.  Use this to set the index and to perform any required actions when the user clicks one of the pager buttons.\n        </dd>\n        <dt>\n          row-index\n        </dt>\n        <dd>\n          Name of the variable in your controller that will track the current index in the array.\n        </dd>\n      </dl>\n    </div>\n  </div>\n  <div class="row">\n    <div class="col-md-12">\n      <h5>Example HTML</h5>\n      <div hawtio-editor="pagerExampleHtml" mode="html"></div>\n    </div>\n  </div>\n  <div class="row">\n    <div class="col-md-12">\n      <h5>Live Example</h5>\n      <div class="directive-example">\n        <div compile="pagerExampleHtml"></div>\n      </div>\n    </div>\n  </div>\n</div>\n');
-$templateCache.put('test-plugins/ui/html/slideout.html','<div ng-controller="UI.UITestController1">\n\n  <div class="row">\n    <h3>Slideout</h3>\n    <p>Displays a panel that slides out from either the left or right and immediately disappears when closed</p>\n\n    <div hawtio-editor="sliderEx1" mode="fileUploadExMode"></div>\n    <div class="directive-example">\n      <div compile="sliderEx1"></div>\n    </div>\n\n    <div hawtio-editor="sliderEx2" mode="fileUploadExMode"></div>\n    <div class="directive-example">\n      <div compile="sliderEx2"></div>\n    </div>\n\n    <div hawtio-editor="sliderEx3" mode="fileUploadExMode"></div>\n    <div class="directive-example">\n      <div compile="sliderEx3"></div>\n    </div>\n\n    <hr>\n  </div>\n\n</div>\n');
 $templateCache.put('test-plugins/ui/html/template-popover.html','<div ng-controller="UI.UITestController2">\n  <script type="text/ng-template" id="popoverExTemplate">\n<ul>\n  <li ng-repeat="contact in contacts" hawtio-template-popover content="myTemplate" title="Contact details"\n      placement="auto">\n    {{contact.name}}\n  </li>\n</ul>\n  </script>\n  <script type="text/ng-template" id="myTemplate">\n    <small>\n      <table class="table">\n        <tbody>\n        <tr ng-repeat="(k, v) in contact track by $index">\n          <td class="property-name">{{k}}</td>\n          <td class="property-value">{{v}}</td>\n        </tr>\n        </tbody>\n      </table>\n    </small>\n  </script>\n  <div class="row">\n    <div class="col-md-6">\n      <h1>Template Popover</h1>\n      <div class="alert alert-warning">\n        <span class="pficon pficon-warning-triangle-o"></span>\n        <strong>Deprecated.</strong> Please use <a href="http://www.patternfly.org/pattern-library/widgets/#popover" class="alert-link">PatternFly popover</a>.\n      </div>\n      <p>Uses bootstrap popover but lets you supply an angular template to render as the popover body.  For example here\'s a simple template for the popover body:</p>\n      <div hawtio-editor="popoverEx" mode="fileUploadExMode"></div>\n      <p>\n      You can then supply this template as an argument to hawtioTemplatePopover.  By default it will look for a template in $templateCache called "popoverTemplate", or specify a template for the "content" argument.  You can specify "placement" if you want the popover to appear on a certain side, or "auto" and the directive will calculate an appropriate side ("right" or "left") depending on where the element is in the window.\n      </p>\n      <dl>\n        <dt>\n          content\n        </dt>\n        <dd>\n          Template name that the directive will use from $templateCache for the popover body\n        </dd>\n        <dt>\n          title\n        </dt>\n        <dd>\n          Value for the title element of the popup, if not set the popup will have no title element.\n        </dd>\n        <dt>\n          trigger\n        </dt>\n        <dd>\n          Passed to the bootstrap popover \'trigger\' argument, defaults to \'auto\'\n        </dd>\n        <dt>\n          placement\n        </dt>\n        <dd>\n          Controls where the popup will appear in relation to the element.  Defaults to \'auto\', you can also set it to \'left\' or \'right\'.\n        </dd>\n        <dt>\n          delay\n        </dt>\n        <dd>\n          How long until the popup appears\n        </dd>\n        <dt>\n          container\n        </dt>\n        <dd>\n          DOM element that the popover will be attached to, defaults to \'body\'\n        </dd>\n      </dl>\n    </div>\n    <div class="col-md-6">\n      <h5>HTML Example</h5>\n      <div hawtio-editor="popoverUsageEx" mode="fileUploadExMode"></div>\n      <h5>Live Example</h5>\n      <div class="directive-example">\n        <div compile="popoverUsageEx"></div>\n      </div>\n    </div>\n  </div>\n</div>\n');
 $templateCache.put('test-plugins/ui/html/toast-notification.html','<div ng-controller="UI.UITestController1">\n  <div class="row">\n    <div class="col-md-12">\n      <h1>Toast Notification</h1>\n      <p>Shows a toast notification on the top right corner of the page.</p>\n      <p>Possible notification types:</p>\n      <ul>\n        <li>success</li>\n        <li>info</li>\n        <li>warning</li>\n        <li>danger</li>\n      </ul>\n      <h3>Example JavaScript</h3>\n      <div hawtio-editor="toastNotificationEx1" mode="\'javascript\'"></div>\n      <h3>Live Example</h3>\n      <div class="directive-example">\n        <form class="form-horizontal">\n          <div class="form-group">\n            <label for="notificationType" class="col-sm-2 control-label">Type</label>\n            <div class="col-sm-3">\n              <select id="notificationType" ng-model="notificationType" class="form-control">\n                <option>success</option>\n                <option>info</option>\n                <option>warning</option>\n                <option>danger</option>\n              </select>\n            </div>\n          </div>\n          <div class="form-group">\n            <div class="col-sm-offset-2 col-sm-10">\n              <button type="button" ng-click="showToastNotification()">Show Toast Notification</button>\n            </div>\n          </div>\n        </form>\n      </div>\n    </div>\n  </div>\n</div>');}]); hawtioPluginLoader.addModule("hawtio-ui-test-templates");

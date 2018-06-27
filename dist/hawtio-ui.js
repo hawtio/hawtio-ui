@@ -2278,70 +2278,6 @@ var UI;
 /// <reference path="./uiPlugin.ts"/>
 var UI;
 (function (UI) {
-    UI._module.directive('hawtioSlideout', function () {
-        return new UI.SlideOut();
-    });
-    var SlideOut = (function () {
-        function SlideOut() {
-            this.restrict = 'A';
-            this.replace = true;
-            this.transclude = true;
-            this.templateUrl = UI.templatePath + 'slideout.html';
-            this.scope = {
-                show: '=hawtioSlideout',
-                direction: '@',
-                top: '@',
-                height: '@',
-                title: '@',
-                close: '@'
-            };
-            this.controller = ["$scope", "$element", "$attrs", "$transclude", "$compile", function ($scope, $element, $attrs, $transclude, $compile) {
-                    $scope.clone = null;
-                    $transclude(function (clone) {
-                        $scope.clone = $(clone).filter('.dialog-body');
-                    });
-                    UI.observe($scope, $attrs, 'direction', 'right');
-                    UI.observe($scope, $attrs, 'top', '10%', function (value) {
-                        $element.css('top', value);
-                    });
-                    UI.observe($scope, $attrs, 'height', '80%', function (value) {
-                        $element.css('height', value);
-                    });
-                    UI.observe($scope, $attrs, 'title', '');
-                    UI.observe($scope, $attrs, 'close', 'true');
-                    $scope.$watch('show', function () {
-                        if ($scope.show) {
-                            $scope.body = $element.find('.slideout-body');
-                            $scope.body.html($compile($scope.clone.html())($scope.$parent));
-                        }
-                    });
-                    $scope.hidePanel = function ($event) {
-                        UI.log.debug("Event: ", $event);
-                        $scope.show = false;
-                    };
-                }];
-            this.link = function ($scope, $element, $attrs) {
-                $scope.$watch('show', function () {
-                    if ($scope.show) {
-                        $element.addClass('out');
-                        $element.focus();
-                    }
-                    else {
-                        $element.removeClass('out');
-                    }
-                });
-            };
-        }
-        return SlideOut;
-    }());
-    UI.SlideOut = SlideOut;
-})(UI || (UI = {}));
-/**
- * @module UI
- */
-/// <reference path="./uiPlugin.ts"/>
-var UI;
-(function (UI) {
     UI._module.directive('hawtioPager', function () {
         return new UI.TablePager();
     });
@@ -2864,7 +2800,7 @@ var UIBootstrap;
 
 angular.module('hawtio-ui-templates', []).run(['$templateCache', function($templateCache) {$templateCache.put('plugins/editor/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
 $templateCache.put('plugins/ui/html/confirmDialog.html','<div modal="show">\n  <div class="modal-dialog {{sizeClass}}">\n    <div class="modal-content">    \n      <div class="modal-header">\n        <button type="button" class="close" aria-hidden="true" ng-click="cancel()">\n          <span class="pficon pficon-close"></span>\n        </button>\n        <h4 class="modal-title">{{title}}</h4>\n      </div>\n      <div class="modal-body">\n      </div>\n      <div class="modal-footer">\n        <button type="button" class="btn btn-default" ng-click="cancel()">\n          {{cancelButtonText}}\n        </button>\n        <button type="submit" class="btn btn-primary" ng-click="submit()" ng-hide="{{showOkButton === \'false\'}}">\n          {{okButtonText}}\n        </button>\n      </div>\n    </div>\n  </div>\n</div>\n');
-$templateCache.put('plugins/ui/html/developerPage.html','<div ng-controller="UI.DeveloperPageController">\n\n  <div class="tocify" wiki-href-adjuster>\n    <div hawtio-toc-display\n         get-contents="getContents(filename, cb)">\n      <ul>\n        <li>\n          <a href="plugins/ui/html/test/auto-columns.html" chapter-id="auto-columns">auto-columns</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/auto-dropdown.html" chapter-id="auto-dropdown">auto-dropdown</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/confirm-dialog.html" chapter-id="confirm-dialog">confirm-dialog</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/drop-down.html" chapter-id="drop-down">drop-down</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editable-property.html" chapter-id="editableProperty">editable-property</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editor.html" chapter-id="editor">editor</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/file-upload.html" chapter-id="file-upload">file-upload</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/pager.html" chapter-id="pager">pager</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/slideout.html" chapter-id="slideout">slideout</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/template-popover.html" chapter-id="template-popover">template-popover</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n  <div class="toc-content" id="toc-content"></div>\n</div>\n');
+$templateCache.put('plugins/ui/html/developerPage.html','<div ng-controller="UI.DeveloperPageController">\n\n  <div class="tocify" wiki-href-adjuster>\n    <div hawtio-toc-display\n         get-contents="getContents(filename, cb)">\n      <ul>\n        <li>\n          <a href="plugins/ui/html/test/auto-columns.html" chapter-id="auto-columns">auto-columns</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/auto-dropdown.html" chapter-id="auto-dropdown">auto-dropdown</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/confirm-dialog.html" chapter-id="confirm-dialog">confirm-dialog</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/drop-down.html" chapter-id="drop-down">drop-down</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editable-property.html" chapter-id="editableProperty">editable-property</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/editor.html" chapter-id="editor">editor</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/file-upload.html" chapter-id="file-upload">file-upload</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/pager.html" chapter-id="pager">pager</a>\n        </li>\n        <li>\n          <a href="plugins/ui/html/test/template-popover.html" chapter-id="template-popover">template-popover</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n  <div class="toc-content" id="toc-content"></div>\n</div>\n');
 $templateCache.put('plugins/ui/html/editableProperty.html','<div ng-mouseenter="showEdit()" ng-mouseleave="hideEdit()" class="ep" ng-dblclick="doEdit()">\n  {{getText()}}&nbsp;&nbsp;<i class="ep-edit fa fa-pencil" title="Click to edit" ng-click="doEdit()" no-click></i>\n</div>\n<div class="ep editing" ng-show="editing" no-click>\n  <form class="form-inline no-bottom-margin" ng-submit="saveEdit()">\n    <fieldset>\n      <span ng-switch="inputType">\n        <span ng-switch-when="number">\n          <input type="number" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}" max="{{max}}" min="{{min}}">\n        </span>\n        <span ng-switch-when="password">\n          <input type="password" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}">\n        </span>\n        <span ng-switch-default>\n          <input type="text" size="{{text.length}}" ng-style="getInputStyle()" value="{{text}}">\n        </span>\n      </span>\n      <i class="blue clickable fa fa-check icon1point5x" title="Save changes" ng-click="saveEdit()"></i>\n      <i class="clickable fa fa-remove icon1point5x" title="Discard changes" ng-click="stopEdit()"></i>\n    </fieldset>\n  </form>\n</div>\n');
 $templateCache.put('plugins/ui/html/editor.html','<div class="editor-autoresize">\n  <textarea name="{{name}}" ng-model="text"></textarea>\n</div>\n');
 $templateCache.put('plugins/ui/html/editorPreferences.html','<div ng-controller="CodeEditor.PreferencesController">\n  <form class="form-horizontal">\n    <div class="control-group">\n      <label class="control-label" for="theme" title="The default theme to be used by the code editor">Theme</label>\n\n      <div class="controls">\n        <select id="theme" ng-model="preferences.theme">\n          <option value="default">Default</option>\n          <option value="ambiance">Ambiance</option>\n          <option value="blackboard">Blackboard</option>\n          <option value="cobalt">Cobalt</option>\n          <option value="eclipse">Eclipse</option>\n          <option value="monokai">Monokai</option>\n          <option value="neat">Neat</option>\n          <option value="twilight">Twilight</option>\n          <option value="vibrant-ink">Vibrant ink</option>\n        </select>\n      </div>\n    </div>\n  </form>\n\n  <form name="editorTabForm" class="form-horizontal">\n    <div class="control-group">\n      <label class="control-label" for="tabSIze">Tab size</label>\n\n      <div class="controls">\n        <input type="number" id="tabSize" name="tabSize" ng-model="preferences.tabSize" ng-required="ng-required" min="1" max="10"/>\n        <span class="help-block"\n            ng-hide="editorTabForm.tabSize.$valid">Please specify correct size (1-10).</span>\n      </div>\n    </div>\n  </form>\n\n  <div compile="codeMirrorEx"></div>\n\n<!-- please do not change the tabs into spaces in the following script! -->\n<script type="text/ng-template" id="exampleText">\nvar foo = "World!";\n\nvar myObject = {\n\tmessage: "Hello",\n\t\tgetMessage: function() {\n\t\treturn message + " ";\n \t}\n};\n\nwindow.alert(myObject.getMessage() + foo);\n</script>\n\n<script type="text/ng-template" id="codeMirrorExTemplate">\n  <div hawtio-editor="exampleText" mode="javascript"></div>\n</script>\n</div>\n\n</div>\n');
@@ -2874,7 +2810,6 @@ $templateCache.put('plugins/ui/html/list.html','<div>\n\n  <!-- begin cell templ
 $templateCache.put('plugins/ui/html/multiItemConfirmActionDialog.html','<div>\n  <form class="no-bottom-margin">\n    <div class="modal-header">\n      <span>{{options.title || \'Are you sure?\'}}</span>\n    </div>\n    <div class="modal-body">\n      <p ng-show=\'options.action\'\n         ng-class=\'options.actionClass\'\n         ng-bind=\'options.action\'></p>\n      <ul>\n        <li ng-repeat="item in options.collection" ng-bind="getName(item)"></li>\n      </ul>\n      <p ng-show="options.custom" \n         ng-class="options.customClass" \n         ng-bind="options.custom"></p>\n    </div>\n    <div class="modal-footer">\n      <button class="btn" \n              ng-class="options.okClass" \n              ng-click="close(true)">{{options.okText || \'Ok\'}}</button>\n      <button class="btn" \n              ng-class="options.cancelClass"\n              ng-click="close(false)">{{options.cancelText || \'Cancel\'}}</button>\n    </div>\n  </form>\n</div>\n');
 $templateCache.put('plugins/ui/html/object.html','<div>\n  <script type="text/ng-template" id="primitiveValueTemplate.html">\n    <span ng-show="data" object-path="{{path}}">{{data}}</span>\n  </script>\n  <script type="text/ng-template" id="arrayValueListTemplate.html">\n    <ul class="zebra-list" ng-show="data" object-path="{{path}}">\n      <li ng-repeat="item in data">\n        <div hawtio-object="item" config="config" path="path" row="row"></div>\n      </li>\n    </ul>\n  </script>\n  <script type="text/ng-template" id="arrayValueTableTemplate.html">\n    <table class="table table-striped" object-path="{{path}}">\n      <thead>\n      </thead>\n      <tbody>\n      </tbody>\n    </table>\n  </script>\n  <script type="text/ng-template" id="dateAttributeTemplate.html">\n    <dl class="" ng-show="data" object-path="{{path}}">\n      <dt>{{key}}</dt>\n      <dd ng-show="data && data.getTime() > 0">{{data | date:"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z"}}</dd>\n      <dd ng-show="data && data.getTime() <= 0"></dd>\n\n    </dl>\n  </script>\n  <script type="text/ng-template" id="dateValueTemplate.html">\n    <span ng-show="data">\n      <span ng-show="data && data.getTime() > 0" object-path="{{path}}">{{data | date:"EEEE, MMMM dd, yyyy \'at\' hh : mm : ss a Z"}}</span>\n      <span ng-show="data && data.getTime() <= 0" object-path="{{path}}"></span>\n    </span>\n  </script>\n  <script type="text/ng-template" id="primitiveAttributeTemplate.html">\n    <dl class="" ng-show="data" object-path="{{path}}">\n      <dt>{{key}}</dt>\n      <dd>{{data}}</dd>\n    </dl>\n  </script>\n  <script type="text/ng-template" id="objectAttributeTemplate.html">\n    <dl class="" ng-show="data" object-path="{{path}}">\n      <dt>{{key}}</dt>\n      <dd>\n        <div hawtio-object="data" config="config" path="path" row="row"></div>\n      </dd>\n    </dl>\n  </script>\n  <script type="text/ng-template" id="arrayAttributeListTemplate.html">\n    <dl class="" ng-show="data" object-path="{{path}}">\n      <dt>{{key}}</dt>\n      <dd>\n        <ul class="zebra-list">\n          <li ng-repeat="item in data" ng-init="path = path + \'/\' + $index">\n            <div hawtio-object="item" config="config" path="path" row="row"></div>\n          </li>\n        </ul>\n      </dd>\n    </dl>\n  </script>\n  <script type="text/ng-template" id="arrayAttributeTableTemplate.html">\n    <dl class="" ng-show="data" object-path="{{path}}">\n      <dt>{{key}}</dt>\n      <dd>\n        <table class="table table-striped">\n          <thead>\n          </thead>\n          <tbody>\n          </tbody>\n        </table>\n      </dd>\n    </dl>\n  </script>\n  <script type="text/ng-template" id="headerTemplate.html">\n    <th object-path="{{path}}">{{key}}</th>\n  </script>\n  <script type="text/ng-template" id="rowTemplate.html">\n    <tr object-path="{{path}}"></tr>\n  </script>\n  <script type="text/ng-template" id="cellTemplate.html">\n    <td object-path="{{path}}"></td>\n  </script>\n</div>\n');
 $templateCache.put('plugins/ui/html/pane.html','<div class="pane">\n  <div class="pane-wrapper">\n    <div class="pane-header-wrapper">\n    </div>\n    <div class="pane-viewport">\n      <div class="pane-content">\n      </div>\n    </div>\n    <div class="pane-bar"\n         ng-mousedown="startMoving($event)"\n         ng-click="toggle()"></div>\n  </div>\n</div>\n');
-$templateCache.put('plugins/ui/html/slideout.html','<div class="slideout {{direction || \'right\'}}">\n  <div class=slideout-title>\n    <div ng-show="{{close || \'true\'}}" class="mouse-pointer pull-right" ng-click="hidePanel($event)" title="Close panel">\n      <i class="fa fa-remove"></i>\n    </div>\n    <span>{{title}}</span>\n  </div>\n  <div class="slideout-content">\n    <div class="slideout-body"></div>\n  </div>\n</div>\n');
 $templateCache.put('plugins/ui/html/tablePager.html','<ul class="pagination">\n  <li ng-class="{disabled: isEmptyOrFirst()}">\n    <a href="#" ng-disabled="isEmptyOrFirst()" ng-click="first()">\n      <span class="i fa fa-angle-double-left"></span>\n    </a>\n  </li>\n  <li ng-class="{disabled: isEmptyOrFirst()}">\n    <a href="#" ng-disabled="isEmptyOrFirst()" ng-click="previous()">\n      <span class="i fa fa-angle-left"></span>\n    </a>\n  </li>\n  <li class="active">\n    <span>{{rowIndex() + 1}} / {{tableLength()}}</span>\n  </li>\n  <li ng-class="{disabled: isEmptyOrLast()}">\n    <a href="#" ng-disabled="isEmptyOrLast()" ng-click="next()">\n      <span class="i fa fa-angle-right"></span>\n    </a>\n  </li>\n  <li ng-class="{disabled: isEmptyOrLast()}">\n    <a href="#" ng-disabled="isEmptyOrLast()" ng-click="last()">\n      <span class="i fa fa-angle-double-right"></span>\n    </a>\n  </li>\n</ul>\n');
 $templateCache.put('plugins/ui/html/toc.html','<div>\n  <div ng-repeat="item in myToc">\n    <div id="{{item[\'href\']}}Target" ng-bind-html="item.text">\n    </div>\n  </div>\n</div>\n');
 $templateCache.put('plugins/ui-bootstrap/html/message.html','<div class="modal-header">\n\t<h3>{{ title }}</h3>\n</div>\n<div class="modal-body">\n\t<p>{{ message }}</p>\n</div>\n<div class="modal-footer">\n\t<button ng-repeat="btn in buttons" ng-click="close(btn.result)" class="btn" ng-class="btn.cssClass">{{ btn.label }}</button>\n</div>\n');}]); hawtioPluginLoader.addModule("hawtio-ui-templates");
