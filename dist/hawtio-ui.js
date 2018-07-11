@@ -769,9 +769,10 @@ var Core;
      * @static
      * @param type which is usually "success", "info", "warning", or "danger" (for error) and matches css alert-* css styles
      * @param message the text to display
+     * @param duration number of milliseconds the notification is visible
      *
      */
-    function notification(type, message) {
+    function notification(type, message, duration) {
         var toastHtml = "\n      <div class=\"toast-pf alert alert-" + type + " alert-dismissable\">\n        <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">\n          <span class=\"pficon pficon-close\"></span>\n        </button>\n        <span class=\"pficon pficon-" + resolveToastIcon(type) + "\"></span>\n        " + message + "\n      </div>\n    ";
         var toastFrag = document.createRange().createContextualFragment(toastHtml);
         var toastElem = toastFrag.querySelector('div');
@@ -782,12 +783,12 @@ var Core;
             bodyElem.removeChild(visibleToastElem);
         }
         visibleToastElem = bodyElem.appendChild(toastElem);
-        if (type === 'success' || type === 'info') {
+        if (duration || (type === 'success' || type === 'info')) {
             timeoutId = window.setTimeout(function () {
                 if (toastElem.parentNode) {
                     bodyElem.removeChild(toastElem);
                 }
-            }, 8000);
+            }, duration || 8000);
         }
     }
     Core.notification = notification;
