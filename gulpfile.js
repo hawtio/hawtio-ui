@@ -32,8 +32,8 @@ var config = {
   vendorJs: 'plugins/vendor/*.js'
 };
 
-gulp.task('clean-defs', function() {
-  return del(config.dist + 'hawtio-ui.d.ts');
+gulp.task('clean', function() {
+  return del(config.dist);
 });
 
 gulp.task('example-tsc', ['tsc'], function() {
@@ -65,7 +65,7 @@ gulp.task('example-clean', ['example-concat'], function() {
   return del(['test-templates.js', 'test-compiled.js']);
 });
 
-gulp.task('tsc', ['clean-defs'], function() {
+gulp.task('tsc', ['clean'], function() {
   var tsResult = gulp.src(config.ts)
     .pipe(config.tsProject());
   return eventStream.merge(
@@ -77,7 +77,7 @@ gulp.task('tsc', ['clean-defs'], function() {
       .pipe(gulp.dest(config.dist)));
 });
 
-gulp.task('less', function () {
+gulp.task('less', ['clean'], function () {
   return gulp.src(config.less)
     .pipe(plugins.less({
       paths: [
@@ -117,7 +117,7 @@ gulp.task('concat', ['template'], function() {
     .pipe(gulp.dest(config.dist));
 });
 
-gulp.task('clean', ['concat'], function() {
+gulp.task('clean-temp-files', ['concat'], function() {
   return del(['templates.js', 'compiled.js']);
 });
 
@@ -188,7 +188,7 @@ gulp.task('build-example-clean', function() {
 
 gulp.task('build', function(callback) {
   runSequence('build-clean',
-              ['tsc', 'less', 'template', 'concat', 'clean'],
+              ['tsc', 'less', 'template', 'concat', 'clean-temp-files'],
               callback);
 });
 
