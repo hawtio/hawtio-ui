@@ -9,11 +9,13 @@
   "scripts": {
     "start": "gulp",
     "build": "gulp build",
-    "test": "gulp build-example"
+    "test": "gulp build",
+    "site": "gulp site",
+    "deploy": "gulp deploy"
   },
   "dependencies": {
-    "@hawtio/core": "3.2.22",
-    "@hawtio/core-dts": "3.0.18",
+    "@hawtio/core": "^3.0.0",
+    "@hawtio/core-dts": "^3.0.0",
     "@types/bootstrap": "3.3.36",
     "@types/clipboard": "1.5.35",
     "@types/codemirror": "0.0.40",
@@ -152,10 +154,12 @@
     "wordwrap": "0.0.2",
     "mime-types": "2.1.18",
     "angular-ui-bootstrap": "2.5.6",
-    "angular": "1.6.8",
-    "angular-sanitize": "1.6.8",
     "bootstrap-select": "1.12.4",
     "datatables.net-colreorder": "1.4.1",
-    "@types/angular": "1.6.43"
+    "@types/angular": "1.6.43",
+    "@hawtio/core-dts": "3.1.0",
+    "angular": "1.6.8",
+    "angular-animate": "1.6.10",
+    "angular-sanitize": "1.6.8"
   }
 }

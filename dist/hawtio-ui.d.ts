@@ -139,15 +139,18 @@ declare namespace Core {
      * @static
      * @param type which is usually "success", "info", "warning", or "danger" (for error) and matches css alert-* css styles
      * @param message the text to display
+     * @param duration number of milliseconds the notification is visible
      *
      */
-    function notification(type: string, message: string): void;
+    function notification(type: string, message: string, duration?: number): void;
     /**
      * Clears all the pending notifications
      * @method clearNotifications
      * @static
      */
     function clearNotifications(): void;
+}
+declare namespace UIBootstrap {
 }
 declare namespace UI {
     const pluginName: string;
@@ -502,6 +505,4 @@ declare namespace UI {
     }
 }
 declare namespace UI {
-}
-declare namespace UIBootstrap {
 }

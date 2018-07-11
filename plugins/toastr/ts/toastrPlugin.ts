@@ -16,9 +16,10 @@ namespace Core {
    * @static
    * @param type which is usually "success", "info", "warning", or "danger" (for error) and matches css alert-* css styles
    * @param message the text to display
+   * @param duration number of milliseconds the notification is visible
    *
    */
-  export function notification(type: string, message: string) {
+  export function notification(type: string, message: string, duration?: number) {
     let toastHtml = `
       <div class="toast-pf alert alert-${type} alert-dismissable">
         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
@@ -40,10 +41,12 @@ namespace Core {
     }
     visibleToastElem = bodyElem.appendChild(toastElem);
 
-    if (type === 'success' || type === 'info') {
+    if (duration || (type === 'success' || type === 'info')) {
       timeoutId = window.setTimeout(() => {
-        bodyElem.removeChild(toastElem);
-      }, 8000);
+        if (toastElem.parentNode) {
+          bodyElem.removeChild(toastElem);
+        }
+      }, duration || 8000);
     }
   }
 
