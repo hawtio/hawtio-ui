@@ -71,10 +71,19 @@ namespace DataTable {
 
           // sort data
           var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
-          var sortedData = _.sortBy(value || [], customSort || ((item) => ((item[sortInfo.sortBy] || '') + '').toLowerCase()));
+          var sortAsString = value.filter(v => !Core.isBlank(v[sortInfo.sortBy]) && !angular.isNumber(v[sortInfo.sortBy])).length > 0;
+          var sortedData = _.sortBy(value || [], customSort || ((item) => {
+            if (sortAsString === true) {
+              return ((item[sortInfo.sortBy] || '') + '').toLowerCase();
+            } else {
+              return item[sortInfo.sortBy];
+            }
+          }));
+
           if (!sortInfo.ascending) {
             sortedData.reverse();
           }
+
           // enrich the rows with information about their index
           var idx = -1;
           var rows = _.map(sortedData, (entity) => {
@@ -320,7 +329,7 @@ namespace DataTable {
 
   /**
    * Returns true if the field's default sorting is ascending
-   * 
+   *
    * @param field the name of the field
    * @param config the config object, which contains the columnDefs values
    * @return true if the field's default sorting is ascending, false otherwise
@@ -338,7 +347,7 @@ namespace DataTable {
 
   /**
    * Builds the thead HTML.
-   * 
+   *
    * @param columnDefs column definitions
    * @param showCheckBox add extra column for checkboxes
    * @param multiSelect show "select all" checkbox
@@ -378,10 +387,10 @@ namespace DataTable {
 
   /**
    * Builds the tbody HTML.
-   * 
+   *
    * @param columnDefs column definitions
    * @param showCheckBox show selection checkboxes
-   * @param enableRowClickSelection enable row click selection 
+   * @param enableRowClickSelection enable row click selection
    */
   function buildBodyHtml(columnDefs, showCheckBox, enableRowClickSelection) {
     // use a function to check if a row is selected so the UI can be kept up to date asap
@@ -409,7 +418,7 @@ namespace DataTable {
 
   /**
    * Transform original table into a scrollable table.
-   * 
+   *
    * @param $table jQuery object referencing the DOM table element
    * @param head thead HTML
    * @param body tbody HTML
