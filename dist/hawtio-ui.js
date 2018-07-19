@@ -74,7 +74,15 @@ var DataTable;
                         }
                         // sort data
                         var sortInfo = $scope.config.sortInfo || { sortBy: '', ascending: true };
-                        var sortedData = _.sortBy(value || [], customSort || (function (item) { return ((item[sortInfo.sortBy] || '') + '').toLowerCase(); }));
+                        var sortAsString = value.filter(function (v) { return !Core.isBlank(v[sortInfo.sortBy]) && !angular.isNumber(v[sortInfo.sortBy]); }).length > 0;
+                        var sortedData = _.sortBy(value || [], customSort || (function (item) {
+                            if (sortAsString === true) {
+                                return ((item[sortInfo.sortBy] || '') + '').toLowerCase();
+                            }
+                            else {
+                                return item[sortInfo.sortBy];
+                            }
+                        }));
                         if (!sortInfo.ascending) {
                             sortedData.reverse();
                         }
