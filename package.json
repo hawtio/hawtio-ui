@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@hawtio/core": "^4.0.0",
-    "@hawtio/core-dts": "3.0.18",
     "@types/bootstrap": "3.3.36",
     "@types/clipboard": "1.5.35",
     "@types/codemirror": "0.0.40",
