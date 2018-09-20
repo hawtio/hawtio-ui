@@ -1,6 +1,6 @@
 ## hawtio-ui
 
-[![Circle CI](https://circleci.com/gh/hawtio/hawtio-ui.svg?style=svg)](https://circleci.com/gh/hawtio/hawtio-ui)
+[![CircleCI](https://circleci.com/gh/hawtio/hawtio-ui.svg?style=svg)](https://circleci.com/gh/hawtio/hawtio-ui)
 
 This plugin contains a number of UI widgets and dependencies for hawtio 2.x projects.
 
