@@ -14,7 +14,7 @@
     "deploy": "gulp deploy"
   },
   "dependencies": {
-    "@hawtio/core": "~4.1.0",
+    "@hawtio/core": "~4.2.0",
     "@types/bootstrap": "3.3.36",
     "@types/clipboard": "1.5.35",
     "@types/codemirror": "0.0.40",
@@ -44,6 +44,7 @@
     "gulp-replace-task": "~0.11.0",
     "gulp-typescript": "^3.1.7",
     "imagemin": "^5.3.1",
+    "natives": "~1.1.6",
     "run-sequence": "^1.0.0",
     "typescript": "^2.3.4",
     "underscore.string": "^3.3.4"
@@ -156,6 +157,8 @@
     "datatables.net-colreorder": "1.4.1",
     "@types/angular": "1.6.43",
     "gulp-rename": "1.2.3",
-    "angular-animate": "1.7.1"
+    "angular-animate": "1.7.1",
+    "natives": "1.1.6",
+    "through2-filter": "3.0.0"
   }
 }
