@@ -14,7 +14,7 @@
     "deploy": "gulp deploy"
   },
   "dependencies": {
-    "@hawtio/core": "~4.2.0",
+    "@hawtio/core": "~4.3.0",
     "@types/bootstrap": "3.3.36",
     "@types/clipboard": "1.5.35",
     "@types/codemirror": "0.0.40",
@@ -151,14 +151,15 @@
     "wordwrap": "0.0.2",
     "mime-types": "2.1.18",
     "angular-ui-bootstrap": "2.5.6",
-    "angular": "1.6.8",
-    "angular-sanitize": "1.6.8",
     "bootstrap-select": "1.12.4",
     "datatables.net-colreorder": "1.4.1",
-    "@types/angular": "1.6.43",
     "gulp-rename": "1.2.3",
-    "angular-animate": "1.7.1",
     "natives": "1.1.6",
-    "through2-filter": "3.0.0"
+    "through2-filter": "3.0.0",
+    "@types/jquery": "2.0.53",
+    "angular": "1.7.7",
+    "angular-animate": "1.7.7",
+    "angular-sanitize": "1.7.7",
+    "bootstrap": "3.4.0"
   }
 }
