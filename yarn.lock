@@ -9,10 +9,10 @@
   dependencies:
     "@types/jquery" "2.0.53"
 
-"@hawtio/core@~4.4.0":
-  version "4.4.4"
-  resolved "https://registry.yarnpkg.com/@hawtio/core/-/core-4.4.4.tgz#078d35341e3a950c958ba595c62bfd8349918bde"
-  integrity sha512-HWL/s4y6ZNdpGijrhcycTLMxU56lp8IcYgjYGx7EH4JEl/Fb91s2agb5TaFA4jbht2zBLzDQpmQ1uPjh90EKiQ==
+"@hawtio/core@~4.5.0":
+  version "4.5.1"
+  resolved "https://registry.yarnpkg.com/@hawtio/core/-/core-4.5.1.tgz#7076fcc18fcbd911eaf7481d7a0a839d5d3ed105"
+  integrity sha512-6bc9K7COc3vAHBtTMXPq2M6CiD+EpNKgTc51aLhlnYoipVVagxAfGtgdqWV3S7674RPl1viPzNICNUrgqWMYzg==
   dependencies:
     "@hawtio/core-dts" "~3.3.0"
     "@patternfly/patternfly" "~1.0.192"
@@ -307,11 +307,6 @@
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@types/marked/-/marked-0.3.0.tgz#583c223dd33385a1dda01aaf77b0cd0411c4b524"
   integrity sha512-CSf9YWJdX1DkTNu9zcNtdCcn6hkRtB5ILjbhRId4ZOQqx30fXmdecuaXhugQL6eyrhuXtaHJ7PHI+Vm7k9ZJjg==
-
-"@types/sizzle@*":
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/@types/sizzle/-/sizzle-2.3.2.tgz#a811b8c18e2babab7d542b3365887ae2e4d9de47"
-  integrity sha512-7EJYyKTL7tFR8+gDbB6Wwz/arpGa0Mywk1TJbNzKzHtzbwVmY4HR9WqS5VV7dsBUKQmPNr192jHr/VpBluj/hg==
 
 "@types/urijs@~1.15.38":
   version "1.15.38"

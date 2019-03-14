@@ -14,7 +14,7 @@
     "deploy": "gulp deploy"
   },
   "dependencies": {
-    "@hawtio/core": "~4.4.0",
+    "@hawtio/core": "~4.5.0",
     "@types/bootstrap": "3.3.36",
     "@types/clipboard": "1.5.35",
     "@types/js-beautify": "0.0.30",
