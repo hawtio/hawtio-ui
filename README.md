@@ -1,3 +1,7 @@
+# DEPRECATED
+
+**This project is not being actively developed or maintained. The code has been moved to hawtio-integration.**
+
 ## hawtio-ui
 
 [![CircleCI](https://circleci.com/gh/hawtio/hawtio-ui.svg?style=svg)](https://circleci.com/gh/hawtio/hawtio-ui)
